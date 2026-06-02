@@ -1,20 +1,37 @@
 "use client";
 
-import { useEffect, useState, useTransition, useMemo } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { getRiwayatMasuk, addRiwayatMasukAction } from "@/actions/riwayatmasuk";
 import { getProduk } from "@/actions/produk";
 import SearchSelect from "@/components/SearchSelect";
+import PortalModal from "@/components/PortalModal";
+
+interface CartItem {
+  produk_id: number;
+  nama_produk: string;
+  jumlah: number;
+  harga_modal_real: number;
+  harga_jual_real: number;
+}
 
 export default function RiwayatMasukPage() {
   const [list, setList] = useState<any[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [produkList, setProdukList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formMsg, setFormMsg] = useState<{ type: string; text: string } | null>(
-    null,
-  );
+  const [formMsg, setFormMsg] = useState<{ type: string; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [inputJumlah, setInputJumlah] = useState<number>(1);
+  const [hargaModal, setHargaModal] = useState<number>(0);
   const [hargaModalStr, setHargaModalStr] = useState<string>("0");
+  const [hargaJual, setHargaJual] = useState<number>(0);
+  const [hargaJualStr, setHargaJualStr] = useState<string>("0");
+
+  const [activeDetail, setActiveDetail] = useState<any | null>(null);
+
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [tempStart, setTempStart] = useState<string>("");
@@ -44,7 +61,6 @@ export default function RiwayatMasukPage() {
       setList(r.data.rows as any[]);
       setTotal(r.data.total ?? 0);
     }
-    // Filter produk agar hanya menampilkan yang is_active == true
     if (p.success && p.data) {
       setProdukList((p.data as any[]).filter((item) => item.is_active));
     }
@@ -55,21 +71,72 @@ export default function RiwayatMasukPage() {
     load();
   }, [page, startDate, endDate]);
 
-  // sync temp inputs with applied filters
   useEffect(() => {
     setTempStart(startDate);
     setTempEnd(endDate);
   }, [startDate, endDate]);
 
+  const totalItemDiForm = cart.reduce((sum, item) => sum + item.jumlah, 0);
+  const totalHargaDiForm = cart.reduce((sum, item) => sum + (item.harga_modal_real * item.jumlah), 0);
+
+  const handleAddToBag = () => {
+    if (!selectedProduct) {
+      setFormMsg({ type: "error", text: "Pilih produk terlebih dahulu." });
+      return;
+    }
+    if (inputJumlah <= 0) {
+      setFormMsg({ type: "error", text: "Jumlah produk harus lebih dari 0." });
+      return;
+    }
+
+    const existingIndex = cart.findIndex((item) => item.produk_id === selectedProduct.id);
+    if (existingIndex > -1) {
+      const updatedCart = [...cart];
+      updatedCart[existingIndex].jumlah += inputJumlah;
+      setCart(updatedCart);
+    } else {
+      setCart([
+        ...cart,
+        {
+          produk_id: selectedProduct.id,
+          nama_produk: selectedProduct.nama_produk,
+          jumlah: inputJumlah,
+          harga_modal_real: hargaModal,
+          harga_jual_real: hargaJual,
+        },
+      ]);
+    }
+
+    setInputJumlah(1);
+    setFormMsg(null);
+  };
+
+  const handleRemoveFromBag = (index: number) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (cart.length === 0) {
+      setFormMsg({ type: "error", text: "Gagal: Daftar barang masih kosong!" });
+      return;
+    }
+
     const form = e.currentTarget;
     const fd = new FormData(form);
+    fd.append("items", JSON.stringify(cart));
+
     startTransition(async () => {
       const res = await addRiwayatMasukAction(null, fd);
       if (res.success) {
         setFormMsg({ type: "success", text: res.message! });
         form.reset();
+        setCart([]);
+        setSelectedProduct(null);
+        setHargaModal(0);
+        setHargaModalStr("0");
+        setHargaJual(0);
+        setHargaJualStr("0");
         await load();
       } else {
         setFormMsg({ type: "error", text: res.error! });
@@ -79,7 +146,7 @@ export default function RiwayatMasukPage() {
 
   useEffect(() => {
     if (!formMsg) return;
-    const t = setTimeout(() => setFormMsg(null), 3500);
+    const t = setTimeout(() => setFormMsg(null), 4500);
     return () => clearTimeout(t);
   }, [formMsg]);
 
@@ -145,7 +212,6 @@ export default function RiwayatMasukPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <></>
                   <button
                     type="button"
                     onClick={() => {
@@ -153,7 +219,7 @@ export default function RiwayatMasukPage() {
                       setEndDate(tempEnd);
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm"
+                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
                   >
                     Terapkan
                   </button>
@@ -166,7 +232,7 @@ export default function RiwayatMasukPage() {
                       setEndDate("");
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 border rounded-md text-sm"
+                    className="ml-2 px-3 py-1.5 border rounded-md text-sm bg-white text-slate-700 hover:bg-slate-50"
                   >
                     Reset
                   </button>
@@ -175,52 +241,74 @@ export default function RiwayatMasukPage() {
             </div>
 
             {loading ? (
-              <p>Loading...</p>
+              <p className="text-center py-6 text-slate-500">Loading data...</p>
             ) : (
               <div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[640px]">
                     <thead>
-                      <tr className="text-left text-slate-500">
+                      <tr className="text-left text-slate-500 border-b">
                         <th className="py-2">Tanggal</th>
-                        <th className="py-2">Produk</th>
-                        <th className="py-2">Jumlah</th>
-                        <th className="py-2">Harga Modal</th>
+                        <th className="py-2">Produk (Items)</th>
+                        <th className="py-2 text-center">Total Barang</th>
+                        <th className="py-2">Total Modal</th>
                         <th className="py-2">Metode</th>
-                        <th className="py-2">Catatan</th>
+                        <th className="py-2 text-center">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {list.map((r) => (
-                        <tr key={r.id} className="border-t">
-                          <td className="py-2">
-                            {new Date(r.tanggal).toLocaleString()}
-                          </td>
-                          <td className="py-2">
-                            {r.produk?.nama_produk ?? "-"}
-                          </td>
-                          <td className="py-2">{r.jumlah}</td>
-                          <td className="py-2">
-                            {r.harga_modal_real ? idr(r.harga_modal_real) : "-"}
-                          </td>
-                          <td className="py-2">
-                            {renderMethodBadge(r.metode_pembayaran)}
-                          </td>
-                          <td className="py-2">{r.keterangan ?? "-"}</td>
+                      {list.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="text-center py-4 text-slate-400">Belum ada riwayat transaksi.</td>
                         </tr>
-                      ))}
+                      ) : (
+                        list.map((transaksi) => {
+                          const totalItem = transaksi.detail_transaksi?.reduce((sum: number, d: any) => sum + d.jumlah, 0) ?? 0;
+                          const totalHarga = transaksi.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_modal_real), 0) ?? 0;
+
+                          return (
+                            <tr key={transaksi.id} className="border-t hover:bg-slate-50/80 transition-colors">
+                              <td className="py-3">
+                                {transaksi.tanggal ? new Date(transaksi.tanggal).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                              </td>
+                              <td className="py-3 max-w-[220px] truncate">
+                                {transaksi.detail_transaksi && transaksi.detail_transaksi.length > 0 ? (
+                                  <span className="font-medium text-slate-800">
+                                    {transaksi.detail_transaksi[0].produk?.nama_produk}
+                                    {transaksi.detail_transaksi.length > 1 && ` (+${transaksi.detail_transaksi.length - 1} barang lainnya)`}
+                                  </span>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
+                              <td className="py-3 text-center font-semibold text-slate-700">{totalItem} Pcs</td>
+                              <td className="py-3 font-semibold text-emerald-600">{idr(totalHarga)}</td>
+                              <td className="py-3">{renderMethodBadge(transaksi.metode_pembayaran)}</td>
+                              <td className="py-3 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveDetail(transaksi)}
+                                  className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                >
+                                  Detail
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
                     </tbody>
                   </table>
                 </div>
-                {/* pagination controls (stays static, outside scrollable table) */}
-                <div className="px-4 py-3 border-t border-slate-50 bg-slate-50/50 flex items-center justify-end gap-3 mt-3">
+
+                <div className="px-4 py-3 border-t border-slate-50 bg-slate-50/50 flex items-center justify-end gap-3 mt-3 rounded-xl">
                   <div className="text-sm text-slate-600 mr-auto">
-                    Halaman {page} • Total {total}
+                    Halaman {page} • Total {total} Transaksi
                   </div>
                   <button
                     type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 border rounded-md text-sm"
+                    className="px-3 py-1.5 border rounded-md text-sm bg-white"
                     disabled={page === 1}
                   >
                     Prev
@@ -228,7 +316,7 @@ export default function RiwayatMasukPage() {
                   <button
                     type="button"
                     onClick={() => setPage((p) => p + 1)}
-                    className="px-3 py-1.5 border rounded-md text-sm"
+                    className="px-3 py-1.5 border rounded-md text-sm bg-white"
                     disabled={page * pageSize >= total}
                   >
                     Next
@@ -240,77 +328,132 @@ export default function RiwayatMasukPage() {
         </div>
 
         <div className="order-1 md:order-2">
-          <div className="bg-white rounded-xl shadow p-4">
+          <div className="bg-white rounded-xl shadow p-4 sticky top-4">
             <h2 className="font-semibold mb-3">Tambah Riwayat Masuk</h2>
             {formMsg && (
               <div
-                className={`mb-3 p-2 rounded ${formMsg.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                className={`mb-3 p-2.5 rounded-xl text-sm font-medium ${formMsg.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}
               >
                 {formMsg.text}
               </div>
             )}
-            <form onSubmit={handleAdd} className="space-y-3">
+
+            <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pilih Item Barang</span>
               <div>
-                <label htmlFor="produk_id_select" className="block text-sm text-slate-600 mb-1">
-                  Produk
-                </label>
+                <label htmlFor="produk_id_select" className="block text-xs text-slate-500 mb-1">Produk</label>
                 <div id="produk_id_select">
                   <SearchSelect
                     products={produkList}
-                    name="produk_id"
-                    placeholder="Cari produk (nama atau ID)"
+                    name="temp_produk_id"
+                    placeholder="Cari nama barang..."
+                    onSelect={(p: any) => {
+                      setSelectedProduct(p);
+                      if (p) {
+                        setHargaModal(p.harga_modal || 0);
+                        setHargaModalStr(String(p.harga_modal || 0));
+                        setHargaJual(p.harga_jual || 0);
+                        setHargaJualStr(String(p.harga_jual || 0));
+                      }
+                    }}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="inputJumlah" className="block text-sm text-slate-600 mb-1">
-                  Jumlah
-                </label>
+                <label htmlFor="inputJumlah" className="block text-xs text-slate-500 mb-1">Jumlah</label>
                 <input
                   id="inputJumlah"
-                  name="jumlah"
-                  required
                   type="number"
                   min={1}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                  value={inputJumlah}
+                  onChange={(e) => setInputJumlah(Math.max(1, Number(e.target.value)))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 />
               </div>
 
-              <div>
-                <label htmlFor="inputHargaModal" className="block text-sm text-slate-600 mb-1">
-                  Harga Modal
-                </label>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
+                  <label htmlFor="inputHargaModal" className="block text-xs text-slate-500 mb-1">Harga Modal</label>
                   <input
                     id="inputHargaModal"
                     type="text"
-                    value={Number(String(hargaModalStr)).toLocaleString(
-                      "id-ID",
-                    )}
-                    onChange={(e) =>
-                      setHargaModalStr(
-                        String(e.target.value).replace(/[^0-9-]/g, ""),
-                      )
-                    }
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    value={Number(hargaModalStr).toLocaleString("id-ID")}
+                    onChange={(e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9-]/g, "");
+                      setHargaModalStr(cleaned);
+                      setHargaModal(Number(cleaned) || 0);
+                    }}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
+                </div>
+                <div>
+                  <label htmlFor="inputHargaJual" className="block text-xs text-slate-500 mb-1">Harga Jual</label>
                   <input
-                    type="hidden"
-                    name="harga_modal_real"
-                    value={Number(String(hargaModalStr)) || 0}
+                    id="inputHargaJual"
+                    type="text"
+                    value={Number(hargaJualStr).toLocaleString("id-ID")}
+                    onChange={(e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9-]/g, "");
+                      setHargaJualStr(cleaned);
+                      setHargaJual(Number(cleaned) || 0);
+                    }}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
                 </div>
               </div>
 
+              <button
+                type="button"
+                onClick={handleAddToBag}
+                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+              >
+                + Masukkan Daftar
+              </button>
+            </div>
+
+            <form onSubmit={handleAdd} className="space-y-3">
+              {cart.length > 0 && (
+                <div className="border border-dashed border-slate-200 rounded-xl p-3 bg-white max-h-[180px] overflow-y-auto space-y-2">
+                  <span className="text-xs font-semibold text-slate-500 block mb-1">List Barang Dipilih:</span>
+                  {cart.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded-lg border">
+                      <div className="pr-2">
+                        <p className="font-medium text-slate-800 line-clamp-1">{item.nama_produk}</p>
+                        <p className="text-slate-500">{item.jumlah} pcs x {idr(item.harga_modal_real)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFromBag(index)}
+                        className="text-rose-500 hover:bg-rose-50 p-1 rounded-md font-bold text-sm"
+                        aria-label={`Hapus ${item.nama_produk}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {cart.length > 0 && (
+                <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 text-slate-700 space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span>Total Item Pilihan:</span>
+                    <span className="font-bold">{totalItemDiForm} Pcs</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-emerald-700 font-bold border-t pt-1.5 border-emerald-100">
+                    <span>Total Modal:</span>
+                    <span>{idr(totalHargaDiForm)}</span>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label htmlFor="selectMetode" className="block text-sm text-slate-600 mb-1">
-                  Metode Pembayaran
-                </label>
+                <label htmlFor="selectMetode" className="block text-sm text-slate-600 mb-1">Metode Pembayaran</label>
                 <select
                   id="selectMetode"
                   name="metode_pembayaran"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 >
                   <option value="CASH">CASH</option>
                   <option value="TRANSFER">TRANSFER</option>
@@ -319,29 +462,138 @@ export default function RiwayatMasukPage() {
               </div>
 
               <div>
-                <label htmlFor="inputKeterangan" className="block text-sm text-slate-600 mb-1">
-                  Keterangan
-                </label>
+                <label htmlFor="inputKeterangan" className="block text-sm text-slate-600 mb-1">Keterangan / Catatan</label>
                 <textarea
                   id="inputKeterangan"
                   name="keterangan"
                   rows={2}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                  placeholder="Contoh: Restok dari Distributor A"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 />
               </div>
 
               <div>
-               <button
-               type="submit"
-               className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-               >
-                Tambah
-              </button>
+                <button
+                  type="submit"
+                  disabled={isPending || cart.length === 0}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm w-full font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isPending ? "Memproses Transaksi..." : `Simpan ${cart.length > 0 ? `(${cart.length})` : ""} Transaksi`}
+                </button>
               </div>
             </form>
           </div>
         </div>
       </div>
+
+      {activeDetail && (
+        <PortalModal onClose={() => setActiveDetail(null)}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Detail Transaksi</h2>
+                <p className="text-xs text-slate-400">Rincian item masuk dari mutasi stok.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveDetail(null)}
+              aria-label="Tutup detail"
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Tipe</span>
+                <span className="inline-flex mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border bg-emerald-50 text-emerald-700 border-emerald-200">Masuk</span>
+              </div>
+              <div>
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Metode</span>
+                <span className="block text-sm font-bold text-slate-700 mt-1">{activeDetail.metode_pembayaran}</span>
+              </div>
+              <div>
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Tanggal</span>
+                <span className="block text-sm font-medium text-slate-700 mt-1">
+                  {new Date(activeDetail.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs font-semibold text-slate-400 tracking-wider">Petugas</span>
+                <span className="block text-sm font-medium text-slate-700 mt-1">{activeDetail.users?.nama_lengkap || "Sistem"}</span>
+              </div>
+            </div>
+
+            <div className="border border-slate-100 rounded-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[500px]">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold tracking-wider">
+                      <th className="py-3 px-4">Nama Produk</th>
+                      <th className="py-3 px-4 text-center">Jumlah</th>
+                      <th className="py-3 px-4 text-right">Harga Modal</th>
+                      <th className="py-3 px-4 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {activeDetail.detail_transaksi?.map((dt: any) => (
+                      <tr key={dt.id} className="text-slate-700">
+                        <td className="py-3 px-4 font-medium text-slate-800 whitespace-nowrap">{dt.produk?.nama_produk ?? "Produk Terhapus"}</td>
+                        <td className="py-3 px-4 text-center font-semibold">{dt.jumlah}</td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap">{idr(dt.harga_modal_real)}</td>
+                        <td className="py-3 px-4 text-right font-bold text-slate-800 whitespace-nowrap">{idr(dt.jumlah * dt.harga_modal_real)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-2 border-t border-slate-100 pt-4 text-sm">
+              <div className="flex justify-between w-full sm:w-64">
+                <span className="text-slate-500 font-medium">Total Barang Masuk:</span>
+                <span className="font-bold text-slate-800">{activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + d.jumlah, 0) ?? 0} Pcs</span>
+              </div>
+              <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-medium">Total Akumulasi Modal:</span>
+                <span className="font-bold text-slate-800">{idr(activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_modal_real), 0) ?? 0)}</span>
+              </div>
+              <div className="flex justify-between w-full sm:w-64 pt-1">
+                <span className="text-slate-700 font-bold">Total Nilai Transaksi:</span>
+                <span className="text-lg font-black text-indigo-600">
+                  {idr(activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_modal_real), 0) ?? 0)}
+                </span>
+              </div>
+            </div>
+
+            {activeDetail.keterangan && (
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Catatan Keterangan</span>
+                <p className="text-sm text-slate-600 italic">"{activeDetail.keterangan}"</p>
+              </div>
+            )}
+            
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveDetail(null)}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Tutup Detail
+              </button>
+            </div>
+          </div>
+        </PortalModal>
+      )}
     </div>
   );
 }

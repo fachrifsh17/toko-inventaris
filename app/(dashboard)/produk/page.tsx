@@ -15,7 +15,6 @@ import {
   deleteKategoriAction,
 } from "@/actions/kategori";
 
-// ─── Types ───────────────────────────────────────────
 type Kategori = {
   id: number;
   nama_kategori: string;
@@ -38,7 +37,6 @@ type Produk = {
 type Msg = { type: "success" | "error"; text: string };
 type Tab = "produk" | "kategori";
 
-// ─── Format currency ──────────────────────────────────
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -46,11 +44,9 @@ const idr = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-// ─── Shared Input style ───────────────────────────────
 const inputCls =
   "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
 
-// ─── Form Field ───────────────────────────────────────
 function Field({
   label,
   children,
@@ -60,15 +56,14 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">
-        {label}
+      <label className="block text-sm font-medium text-slate-700">
+        <span className="block mb-1.5">{label}</span>
+        {children}
       </label>
-      {children}
     </div>
   );
 }
 
-// ─── Modal wrapper ────────────────────────────────────
 function Modal({
   onClose,
   children,
@@ -79,7 +74,6 @@ function Modal({
   return <PortalModal onClose={onClose}>{children}</PortalModal>;
 }
 
-// ─── Modal Header ─────────────────────────────────────
 function ModalHeader({
   title,
   color,
@@ -113,6 +107,7 @@ function ModalHeader({
       </div>
       <button
         onClick={onClose}
+        aria-label="Tutup"
         className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
       >
         <svg
@@ -133,7 +128,6 @@ function ModalHeader({
   );
 }
 
-// ─── Produk Form Fields ───────────────────────────────
 function ProdukFormFields({
   kategoriList,
   defaultValues,
@@ -167,11 +161,9 @@ function ProdukFormFields({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Preview lokal
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
 
-    // Upload ke server
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
@@ -191,7 +183,6 @@ function ProdukFormFields({
 
       const data = await res.json();
       if (data.success) {
-        // Simpan URL dari server ke hidden field
         const hiddenInput = document.querySelector(
           'input[name="url_foto_uploaded"]',
         ) as HTMLInputElement;
@@ -233,7 +224,11 @@ function ProdukFormFields({
       <div className="grid grid-cols-2 gap-4">
         <Field label="Harga Modal (Rp)">
           <div>
+            <label htmlFor="harga_modal_display" className="sr-only">
+              Harga Modal
+            </label>
             <input
+              id="harga_modal_display"
               type="text"
               value={format(hargaModalStr)}
               onChange={(e) => setHargaModalStr(String(parse(e.target.value)))}
@@ -249,7 +244,11 @@ function ProdukFormFields({
         </Field>
         <Field label="Harga Jual (Rp)">
           <div>
+            <label htmlFor="harga_jual_display" className="sr-only">
+              Harga Jual
+            </label>
             <input
+              id="harga_jual_display"
               type="text"
               value={format(hargaJualStr)}
               onChange={(e) => setHargaJualStr(String(parse(e.target.value)))}
@@ -268,7 +267,11 @@ function ProdukFormFields({
       <div className="grid grid-cols-2 gap-4">
         <Field label="Stok Sekarang">
           <div>
+            <label htmlFor="stok_sekarang_display" className="sr-only">
+              Stok Sekarang
+            </label>
             <input
+              id="stok_sekarang_display"
               type="text"
               value={format(stokStr)}
               onChange={(e) => setStokStr(String(parse(e.target.value)))}
@@ -278,7 +281,11 @@ function ProdukFormFields({
           </div>
         </Field>
         <Field label="Kategori">
+          <label htmlFor="kategori_id" className="sr-only">
+            Pilih Kategori
+          </label>
           <select
+            id="kategori_id"
             name="kategori_id"
             defaultValue={defaultValues?.kategori_id ?? ""}
             className={inputCls}
@@ -293,10 +300,12 @@ function ProdukFormFields({
         </Field>
       </div>
 
-      {/* ── File Upload Field ── */}
       <Field label="Foto Produk">
         <div className="space-y-3">
-          <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
+          <label
+            htmlFor="url_foto_file"
+            className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors"
+          >
             <svg
               className="w-8 h-8 text-slate-400 mb-2"
               fill="none"
@@ -319,6 +328,7 @@ function ProdukFormFields({
               </p>
             </div>
             <input
+              id="url_foto_file"
               type="file"
               name="url_foto"
               accept="image/*"
@@ -328,7 +338,6 @@ function ProdukFormFields({
             />
           </label>
 
-          {/* Preview ── */}
           {previewUrl && (
             <div className="relative w-24 h-24">
               <img
@@ -364,7 +373,6 @@ function ProdukFormFields({
             </div>
           )}
 
-          {/* Hidden field untuk menyimpan URL upload */}
           <input
             type="hidden"
             name="url_foto_uploaded"
@@ -374,7 +382,11 @@ function ProdukFormFields({
       </Field>
 
       <Field label="Status">
+        <label htmlFor="is_active" className="sr-only">
+          Status Aktif
+        </label>
         <select
+          id="is_active"
           name="is_active"
           defaultValue={String(defaultValues?.is_active ?? true)}
           className={inputCls}
@@ -387,7 +399,6 @@ function ProdukFormFields({
   );
 }
 
-// ─── Kategori Form Fields ────────────────────────────
 function KategoriFormFields({
   defaultValues,
 }: {
@@ -417,13 +428,9 @@ function KategoriFormFields({
   );
 }
 
-// ════════════════════════════════════════════════════════
-//  MAIN PAGE
-// ════════════════════════════════════════════════════════
 export default function ProdukPage() {
   const [activeTab, setActiveTab] = useState<Tab>("produk");
 
-  // Produk states
   const [produkList, setProdukList] = useState<Produk[]>([]);
   const [produkPage, setProdukPage] = useState<number>(1);
   const [produkPageSize] = useState<number>(10);
@@ -438,7 +445,6 @@ export default function ProdukPage() {
   const [formMsg, setFormMsg] = useState<Msg | null>(null);
   const [searchProduk, setSearchProduk] = useState("");
 
-  // Kategori states
   const [kategoriEditList, setKategoriEditList] = useState<Kategori[]>([]);
   const [showAddKategori, setShowAddKategori] = useState(false);
   const [showEditKategori, setShowEditKategori] = useState(false);
@@ -451,11 +457,9 @@ export default function ProdukPage() {
 
   const [isPending, startTransition] = useTransition();
 
-  // ── Load data ──
   const load = async () => {
     setLoading(true);
     try {
-      // fetch produk and kategori separately so one failing doesn't block the other
       const p = await getProduk({
         page: produkPage,
         pageSize: produkPageSize,
@@ -514,7 +518,6 @@ export default function ProdukPage() {
     return () => clearTimeout(t);
   }, [pageMsg]);
 
-  // ── Handlers ──
   const openAddProduk = () => {
     setFormMsg(null);
     setShowAddProduk(true);
@@ -534,7 +537,6 @@ export default function ProdukPage() {
     setShowEditKategori(true);
   };
 
-  // ── Produk Handlers ──
   const handleAddProduk = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -587,7 +589,6 @@ export default function ProdukPage() {
     });
   };
 
-  // ── Kategori Handlers ──
   const handleAddKategori = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -640,7 +641,6 @@ export default function ProdukPage() {
     });
   };
 
-  // ── Filtered lists ──
   const filteredProduk = produkList.filter(
     (p) =>
       (p.nama_produk.toLowerCase().includes(searchProduk.toLowerCase()) ||
@@ -659,7 +659,6 @@ export default function ProdukPage() {
     catPage * catPageSize,
   );
 
-  // ── Alert sub-component ──
   const Alert = ({ msg }: { msg: Msg }) => (
     <div
       className={`text-sm p-3 rounded-lg ${msg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}
@@ -668,7 +667,6 @@ export default function ProdukPage() {
     </div>
   );
 
-  // ── Form footer buttons ──
   const FormFooter = ({
     onCancel,
     submitLabel,
@@ -713,7 +711,6 @@ export default function ProdukPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 space-y-6">
-      {/* ── Page Header ── */}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <h1 className="text-2xl font-bold text-slate-800">
           Manajemen Produk & Kategori
@@ -723,10 +720,10 @@ export default function ProdukPage() {
         </p>
       </div>
 
-      {/* ── Tab Navigation ── */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1 flex gap-1 inline-flex">
         <button
           onClick={() => setActiveTab("produk")}
+          aria-label="Tab Produk"
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "produk" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg
@@ -746,6 +743,7 @@ export default function ProdukPage() {
         </button>
         <button
           onClick={() => setActiveTab("kategori")}
+          aria-label="Tab Kategori"
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "kategori" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg
@@ -765,7 +763,6 @@ export default function ProdukPage() {
         </button>
       </div>
 
-      {/* ── Alert Banner ── */}
       {pageMsg && (
         <div
           className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium ${pageMsg.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}
@@ -803,12 +800,8 @@ export default function ProdukPage() {
         </div>
       )}
 
-      {/* ═════════════════════════════════════════════════ */}
-      {/* TAB: PRODUK */}
-      {/* ═════════════════════════════════════════════════ */}
       {activeTab === "produk" && (
         <>
-          {/* ── Page Header ── */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div>
               <h2 className="text-xl font-bold text-slate-800">
@@ -839,9 +832,11 @@ export default function ProdukPage() {
             </button>
           </div>
 
-          {/* ── Search + Filter Bar ── */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="relative md:col-span-2">
+              <label htmlFor="search_produk" className="sr-only">
+                Cari produk atau kategori
+              </label>
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                 fill="none"
@@ -856,6 +851,7 @@ export default function ProdukPage() {
                 />
               </svg>
               <input
+                id="search_produk"
                 value={searchProduk}
                 onChange={(e) => setSearchProduk(e.target.value)}
                 placeholder="Cari produk atau kategori..."
@@ -864,7 +860,11 @@ export default function ProdukPage() {
             </div>
 
             <div className="md:col-span-1">
+              <label htmlFor="filter_kategori" className="sr-only">
+                Filter kategori
+              </label>
               <select
+                id="filter_kategori"
                 value={kategoriFilter}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -883,7 +883,6 @@ export default function ProdukPage() {
             </div>
           </div>
 
-          {/* ── Product Table ── */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
@@ -943,8 +942,6 @@ export default function ProdukPage() {
                                   alt={p.nama_produk}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    (e.target as HTMLImageElement).src =
-                                      "/placeholder.png";
                                   }}
                                 />
                               ) : (
@@ -1010,8 +1007,8 @@ export default function ProdukPage() {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => openEditProduk(p)}
+                              aria-label={`Edit produk ${p.nama_produk}`}
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
-                              title="Edit"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -1030,8 +1027,8 @@ export default function ProdukPage() {
                             <button
                               onClick={() => handleDeleteProduk(p)}
                               disabled={isPending}
+                              aria-label={`Hapus produk ${p.nama_produk}`}
                               className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors disabled:opacity-50"
-                              title="Hapus"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -1095,6 +1092,7 @@ export default function ProdukPage() {
                   <button
                     type="button"
                     onClick={() => setProdukPage((p) => Math.max(1, p - 1))}
+                    aria-label="Halaman sebelumnya produk"
                     className="px-3 py-1 border rounded text-sm"
                     disabled={produkPage === 1}
                   >
@@ -1103,6 +1101,7 @@ export default function ProdukPage() {
                   <button
                     type="button"
                     onClick={() => setProdukPage((p) => p + 1)}
+                    aria-label="Halaman berikutnya produk"
                     className="px-3 py-1 border rounded text-sm"
                     disabled={produkPage * produkPageSize >= produkTotal}
                   >
@@ -1115,12 +1114,8 @@ export default function ProdukPage() {
         </>
       )}
 
-      {/* ═════════════════════════════════════════════════ */}
-      {/* TAB: KATEGORI */}
-      {/* ═════════════════════════════════════════════════ */}
       {activeTab === "kategori" && (
         <>
-          {/* ── Page Header ── */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div>
               <h2 className="text-xl font-bold text-slate-800">
@@ -1151,8 +1146,10 @@ export default function ProdukPage() {
             </button>
           </div>
 
-          {/* ── Search Bar ── */}
           <div className="relative">
+            <label htmlFor="search_kategori" className="sr-only">
+              Cari kategori
+            </label>
             <svg
               className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
               fill="none"
@@ -1167,6 +1164,7 @@ export default function ProdukPage() {
               />
             </svg>
             <input
+              id="search_kategori"
               value={searchKategori}
               onChange={(e) => setSearchKategori(e.target.value)}
               placeholder="Cari kategori..."
@@ -1174,7 +1172,6 @@ export default function ProdukPage() {
             />
           </div>
 
-          {/* ── Kategori Table ── */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
@@ -1241,8 +1238,8 @@ export default function ProdukPage() {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => openEditKategori(k)}
+                              aria-label={`Edit kategori ${k.nama_kategori}`}
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
-                              title="Edit"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -1261,8 +1258,8 @@ export default function ProdukPage() {
                             <button
                               onClick={() => handleDeleteKategori(k)}
                               disabled={isPending}
+                              aria-label={`Hapus kategori ${k.nama_kategori}`}
                               className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors disabled:opacity-50"
-                              title="Hapus"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -1327,6 +1324,7 @@ export default function ProdukPage() {
                   <button
                     type="button"
                     onClick={() => setCatPage((p) => Math.max(1, p - 1))}
+                    aria-label="Halaman sebelumnya kategori"
                     className="px-3 py-1 border rounded text-sm"
                     disabled={catPage === 1}
                   >
@@ -1335,6 +1333,7 @@ export default function ProdukPage() {
                   <button
                     type="button"
                     onClick={() => setCatPage((p) => p + 1)}
+                    aria-label="Halaman berikutnya kategori"
                     className="px-3 py-1 border rounded text-sm"
                     disabled={catPage * catPageSize >= filteredKategori.length}
                   >
@@ -1347,7 +1346,6 @@ export default function ProdukPage() {
         </>
       )}
 
-      {/* ══════ PRODUK: ADD MODAL ══════ */}
       {showAddProduk && (
         <Modal onClose={() => setShowAddProduk(false)}>
           <ModalHeader
@@ -1366,7 +1364,6 @@ export default function ProdukPage() {
         </Modal>
       )}
 
-      {/* ══════ PRODUK: EDIT MODAL ══════ */}
       {showEditProduk && selectedProduk && (
         <Modal onClose={() => setShowEditProduk(false)}>
           <ModalHeader
@@ -1389,7 +1386,6 @@ export default function ProdukPage() {
         </Modal>
       )}
 
-      {/* ══════ KATEGORI: ADD MODAL ══════ */}
       {showAddKategori && (
         <Modal onClose={() => setShowAddKategori(false)}>
           <ModalHeader
@@ -1408,7 +1404,6 @@ export default function ProdukPage() {
         </Modal>
       )}
 
-      {/* ══════ KATEGORI: EDIT MODAL ══════ */}
       {showEditKategori && selectedKategori && (
         <Modal onClose={() => setShowEditKategori(false)}>
           <ModalHeader

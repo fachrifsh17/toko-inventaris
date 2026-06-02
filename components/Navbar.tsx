@@ -12,7 +12,7 @@ interface NavbarProps {
 
 export default function Navbar({
   onMenuClick,
-  namaToko = "GlowAura",
+  namaToko = "Toko",
   urlLogo,
 }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -124,7 +124,7 @@ export default function Navbar({
                   <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
                     admin@
                     {namaToko.toLowerCase().replace(/[^a-z0-9]/g, "") ||
-                      "glowaura"}
+                      "Toko"}
                     .id
                   </p>
                 </div>

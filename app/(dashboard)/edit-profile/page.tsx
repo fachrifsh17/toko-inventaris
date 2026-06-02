@@ -92,6 +92,33 @@ export default function EditProfilePage() {
         
         {/* Left Column: Data Akun (Span 2) */}
         <div className="lg:col-span-2 space-y-6">
+           {/* Avatar Profile Preview */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 flex flex-col items-center text-center">
+            
+            {/* Elegant Avatar Initials */}
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-4 select-none animate-pulse">
+              {(user.nama_lengkap || "U").substring(0, 2).toUpperCase()}
+            </div>
+
+            <h4 className="text-sm font-bold text-slate-800">{user.nama_lengkap}</h4>
+            <p className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-2.5 py-0.5 rounded-full mt-1.5 uppercase tracking-wide">
+              @{user.username}
+            </p>
+
+            <div className="border-t border-slate-100 my-4 w-full"></div>
+
+            <span className="text-[10px] text-slate-400 font-medium block">
+              Terdaftar sejak:{" "}
+              <span className="text-slate-600 font-semibold block mt-0.5">
+                {new Date(user.created_at).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </span>
+
+          </div>
           
           {/* Form Detail Profile */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
@@ -176,34 +203,6 @@ export default function EditProfilePage() {
 
         {/* Right Column: Avatar & Verification Password */}
         <div className="space-y-6">
-          
-          {/* Avatar Profile Preview */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 flex flex-col items-center text-center">
-            
-            {/* Elegant Avatar Initials */}
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-4 select-none animate-pulse">
-              {(user.nama_lengkap || "U").substring(0, 2).toUpperCase()}
-            </div>
-
-            <h4 className="text-sm font-bold text-slate-800">{user.nama_lengkap}</h4>
-            <p className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-2.5 py-0.5 rounded-full mt-1.5 uppercase tracking-wide">
-              @{user.username}
-            </p>
-
-            <div className="border-t border-slate-100 my-4 w-full"></div>
-
-            <span className="text-[10px] text-slate-400 font-medium block">
-              Terdaftar sejak:{" "}
-              <span className="text-slate-600 font-semibold block mt-0.5">
-                {new Date(user.created_at).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-            </span>
-
-          </div>
 
           {/* Secure confirmation card */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 space-y-4">

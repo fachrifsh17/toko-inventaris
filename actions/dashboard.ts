@@ -2,10 +2,19 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
-// ============= STATISTIK DASHBOARD =============
+type TransaksiWithDetails = Prisma.transaksiGetPayload<{
+  include: {
+    users: true;
+    detail_transaksi: {
+      include: {
+        produk: true;
+      };
+    };
+  };
+}>;
 
-// Ambil ringkasan dashboard
 export async function getDashboardSummary() {
   try {
     const today = new Date();
@@ -14,57 +23,51 @@ export async function getDashboardSummary() {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Query paralel untuk performa
     const [
       totalProduk,
       totalKategori,
       totalStok,
-      nilaiStok,
       stokMasukHariIni,
       stokKeluarHariIni,
       produkBerlabel,
-      riwayatTerbaru,
+      transaksiTerbaru,
     ] = await Promise.all([
       prisma.produk.count(),
       prisma.kategori.count(),
       prisma.produk.aggregate({
         _sum: { stok_sekarang: true },
       }),
-      prisma.produk.aggregate({
-        _sum: {
-          stok_sekarang: true,
-        },
-      }),
-      prisma.riwayat_stok.aggregate({
-        _sum: { jumlah: true },
+      prisma.transaksi.aggregate({
         _count: true,
         where: {
-          jenis_stok: "MASUK",
+          jenis_stok: "masuk",
           tanggal: { gte: today, lt: tomorrow },
         },
       }),
-      prisma.riwayat_stok.aggregate({
-        _sum: { jumlah: true },
+      prisma.transaksi.aggregate({
         _count: true,
         where: {
-          jenis_stok: "KELUAR",
+          jenis_stok: "keluar",
           tanggal: { gte: today, lt: tomorrow },
         },
       }),
       prisma.produk.count({
         where: { is_active: true },
       }),
-      prisma.riwayat_stok.findMany({
+      prisma.transaksi.findMany({
         take: 5,
         orderBy: { tanggal: "desc" },
         include: {
-          produk: true,
           users: true,
+          detail_transaksi: {
+            include: {
+              produk: true,
+            },
+          },
         },
       }),
     ]);
 
-    // Hitung nilai stok (stok * harga modal)
     const nilaiTotal = await prisma.produk.findMany({
       select: {
         stok_sekarang: true,
@@ -77,6 +80,42 @@ export async function getDashboardSummary() {
       0,
     );
 
+    const sumMasukQty = await prisma.detail_transaksi.aggregate({
+      _sum: { jumlah: true },
+      where: {
+        transaksi: {
+          jenis_stok: "masuk",
+          tanggal: { gte: today, lt: tomorrow },
+        },
+      },
+    });
+
+    const sumKeluarQty = await prisma.detail_transaksi.aggregate({
+      _sum: { jumlah: true },
+      where: {
+        transaksi: {
+          jenis_stok: "keluar",
+          tanggal: { gte: today, lt: tomorrow },
+        },
+      },
+    });
+
+    const riwayatTerbaru = transaksiTerbaru.map((t: TransaksiWithDetails) => {
+      const totalJumlah = t.detail_transaksi.reduce((s, d) => s + d.jumlah, 0);
+      const labelProduk = t.detail_transaksi.length === 1
+        ? (t.detail_transaksi[0].produk?.nama_produk || "Produk Terhapus")
+        : `${t.detail_transaksi[0].produk?.nama_produk || "Produk"} +${t.detail_transaksi.length - 1} lainnya`;
+
+      return {
+        id: t.id,
+        produk: labelProduk,
+        jenis: (t.jenis_stok || "").toLowerCase(),
+        jumlah: totalJumlah,
+        dicatatOleh: t.users?.nama_lengkap || "Sistem",
+        tanggal: t.tanggal,
+      };
+    });
+
     return {
       success: true,
       data: {
@@ -88,19 +127,12 @@ export async function getDashboardSummary() {
           nilaiStok: totalNilaiStok,
         },
         aktivitasHariIni: {
-          stokMasuk: stokMasukHariIni._sum.jumlah ?? 0,
+          stokMasuk: sumMasukQty._sum.jumlah ?? 0,
           jumlahTransaksiMasuk: stokMasukHariIni._count,
-          stokKeluar: stokKeluarHariIni._sum.jumlah ?? 0,
+          stokKeluar: sumKeluarQty._sum.jumlah ?? 0,
           jumlahTransaksiKeluar: stokKeluarHariIni._count,
         },
-        riwayatTerbaru: riwayatTerbaru.map((riwayat) => ({
-          id: riwayat.id,
-          produk: riwayat.produk?.nama_produk,
-          jenis: riwayat.jenis_stok,
-          jumlah: riwayat.jumlah,
-          dicatatOleh: riwayat.users?.nama_lengkap,
-          tanggal: riwayat.tanggal,
-        })),
+        riwayatTerbaru,
       },
     };
   } catch (error) {
@@ -112,16 +144,22 @@ export async function getDashboardSummary() {
   }
 }
 
-// Ambil produk paling laris (berdasarkan stok keluar)
 export async function getProdukPalingLaris(limit: number = 5) {
   try {
-    const produkLaris = await prisma.riwayat_stok.groupBy({
+    const transaksiKeluarIds = await prisma.transaksi.findMany({
+      where: { jenis_stok: "keluar" },
+      select: { id: true },
+    });
+
+    const listIdTransaksi = transaksiKeluarIds.map((t) => t.id);
+
+    const produkLaris = await prisma.detail_transaksi.groupBy({
       by: ["produk_id"],
       _sum: {
         jumlah: true,
       },
       where: {
-        jenis_stok: "KELUAR",
+        transaksi_id: { in: listIdTransaksi },
       },
       orderBy: {
         _sum: {
@@ -133,7 +171,7 @@ export async function getProdukPalingLaris(limit: number = 5) {
 
     const produkIds = produkLaris
       .map((p) => p.produk_id)
-      .filter((id) => id !== null) as number[];
+      .filter((id): id is number => id !== null && id !== undefined);
 
     const produkDetail = await prisma.produk.findMany({
       where: {
@@ -157,7 +195,6 @@ export async function getProdukPalingLaris(limit: number = 5) {
   }
 }
 
-// Ambil ringkasan stok berdasarkan kategori
 export async function getStokByKategori() {
   try {
     const stokByKategori = await prisma.kategori.findMany({
@@ -192,39 +229,58 @@ export async function getStokByKategori() {
   }
 }
 
-// ============= LOGIKA STOK =============
-
-// Logika untuk menambah riwayat stok (Masuk/Keluar)
 export async function tambahRiwayatStokAction(data: {
-  produk_id: number;
-  jenis_stok: "MASUK" | "KELUAR";
-  jumlah: number;
-  harga_modal_real: number;
-  harga_jual_real: number;
+  items: {
+    produk_id: number;
+    jumlah: number;
+    harga_modal_real: number;
+    harga_jual_real: number;
+  }[];
+  jenis_stok: "masuk" | "keluar";
   dicatat_oleh: number;
+  metode_pembayaran?: string;
   keterangan?: string;
 }) {
   try {
-    // 1. Catat ke riwayat
-    await prisma.riwayat_stok.create({
-      data: {
-        ...data,
-      },
+    await prisma.$transaction(async (tx) => {
+      const master = await tx.transaksi.create({
+        data: {
+          jenis_stok: data.jenis_stok,
+          metode_pembayaran: data.metode_pembayaran || "CASH",
+          keterangan: data.keterangan || null,
+          dicatat_oleh: data.dicatat_oleh,
+          tanggal: new Date(),
+        },
+      });
+
+      for (const item of data.items) {
+        await tx.detail_transaksi.create({
+          data: {
+            transaksi_id: master.id,
+            produk_id: item.produk_id,
+            jumlah: item.jumlah,
+            harga_modal_real: item.harga_modal_real,
+            harga_jual_real: item.harga_jual_real,
+          },
+        });
+
+        const perubahan = data.jenis_stok === "masuk" ? item.jumlah : -item.jumlah;
+
+        await tx.produk.update({
+          where: { id: item.produk_id },
+          data: {
+            stok_sekarang: { increment: perubahan },
+          },
+        });
+      }
     });
 
-    // 2. Update stok di tabel produk
-    const perubahan = data.jenis_stok === "MASUK" ? data.jumlah : -data.jumlah;
-
-    await prisma.produk.update({
-      where: { id: data.produk_id },
-      data: {
-        stok_sekarang: { increment: perubahan },
-      },
-    });
-
-    revalidatePath("/dashboard/produk");
+    revalidatePath("/dashboard");
+    revalidatePath("/riwayat-masuk");
+    revalidatePath("/riwayat-keluar");
     return { success: true };
   } catch (error) {
+    console.error("Error tambahRiwayatStokAction:", error);
     return { success: false, error: "Gagal memproses stok" };
   }
 }

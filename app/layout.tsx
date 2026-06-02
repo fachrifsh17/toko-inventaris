@@ -3,8 +3,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "GlowAura SkinLab - Admin Dashboard",
-  description: "Kelola operasional dan persediaan produk GlowAura SkinLab dengan mudah dan modern.",
+  title: "Toko - Admin Dashboard",
+  description: "Kelola operasional dan persediaan produk dengan mudah dan modern.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

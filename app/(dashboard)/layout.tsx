@@ -27,7 +27,7 @@ export default function DashboardLayout({
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
-        namaToko={pengaturan?.nama_toko || "GlowAura"} 
+        namaToko={pengaturan?.nama_toko || "Toko"} 
         urlLogo={pengaturan?.url_logo}
       />
 
@@ -44,7 +44,7 @@ export default function DashboardLayout({
         {/* Navbar */}
         <Navbar 
           onMenuClick={() => setIsSidebarOpen(true)} 
-          namaToko={pengaturan?.nama_toko || "GlowAura"} 
+          namaToko={pengaturan?.nama_toko || "Toko"} 
           urlLogo={pengaturan?.url_logo}
         />
 

@@ -635,7 +635,6 @@ export default function BannerPage() {
                             alt={b.judul_banner || "Banner"}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.png";
                             }}
                           />
                         ) : (

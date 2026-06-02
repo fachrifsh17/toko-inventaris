@@ -10,7 +10,7 @@ interface SidebarProps {
   urlLogo?: string | null;
 }
 
-export default function Sidebar({ isOpen = false, onClose, namaToko = "GlowAura", urlLogo }: SidebarProps) {
+export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", urlLogo }: SidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [

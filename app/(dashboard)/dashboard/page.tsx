@@ -14,23 +14,21 @@ export default async function DashboardPage() {
   const stokKategori = (stokKategoriResult.success && stokKategoriResult.data) ? stokKategoriResult.data : [];
   const namaToko = pengaturanResult.success && pengaturanResult.data?.nama_toko
     ? pengaturanResult.data.nama_toko
-    : "GlowAura";
+    : "Toko";
 
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(num);
   };
 
-  // Hitung max stock untuk skala visual progress bar
   const maxStok = Math.max(...stokKategori.map((k) => k.totalStok), 1);
 
   return (
     <div className="space-y-6">
-      
-      {/* Page Header */}
+
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Dashboard Utama
@@ -40,11 +38,9 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* KARTU RINGKASAN */}
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          
-          {/* Card 1 - Total Produk */}
+
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -64,7 +60,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 2 - Total Stok */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -84,7 +79,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 3 - Nilai Stok */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -104,7 +98,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 4 - Total Kategori */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -127,11 +120,9 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* AKTIVITAS HARI INI */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          
-          {/* Stok Masuk */}
+
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -162,7 +153,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Stok Keluar */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -196,10 +186,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* RIWAYAT TERBARU & PRODUK PALING LARIS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        
-        {/* Riwayat Terbaru */}
+
         {summary && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
             <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
@@ -224,16 +212,16 @@ export default async function DashboardPage() {
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       <span
-                        className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          riwayat.jenis === "MASUK"
+                        className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                          riwayat.jenis === "masuk"
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-rose-50 text-rose-700"
                         }`}
                       >
                         {riwayat.jenis}
                       </span>
-                      <span className="text-xs font-extrabold text-slate-700 block">
-                        {riwayat.jenis === "MASUK" ? "+" : "-"}{riwayat.jumlah} unit
+                      <span className={`text-xs font-extrabold block ${riwayat.jenis === "masuk" ? "text-emerald-600" : "text-rose-600"}`}>
+                        {riwayat.jenis === "masuk" ? "+" : "-"}{riwayat.jumlah} unit
                       </span>
                     </div>
                   </div>
@@ -247,7 +235,6 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Produk Paling Laris */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
           <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -275,7 +262,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-xs font-bold text-indigo-650 block">
+                    <span className="text-xs font-bold text-indigo-600 block">
                       {formatRupiah(produk.harga_jual)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
@@ -294,7 +281,6 @@ export default async function DashboardPage() {
 
       </div>
 
-      {/* STOK PER KATEGORI */}
       {stokKategori.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-50">
@@ -307,10 +293,14 @@ export default async function DashboardPage() {
             </h3>
           </div>
           <div className="p-5">
-            <div className="space-y-4">
-              {stokKategori.map((kat) => {
-                // Rasio ketersediaan stok
+            <style>{`
+              ${stokKategori.map((kat, idx) => {
                 const rasio = Math.round((kat.totalStok / maxStok) * 100);
+                return `.stok-bar-${idx} { width: ${Math.max(rasio, 2)}%; }`;
+              }).join("\n")}
+            `}</style>
+            <div className="space-y-4">
+              {stokKategori.map((kat, idx) => {
                 return (
                   <div key={kat.kategori} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-semibold">
@@ -324,8 +314,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(rasio, 2)}%` }}
+                        className={`h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500 stok-bar-${idx}`}
                       ></div>
                     </div>
                   </div>
@@ -338,4 +327,4 @@ export default async function DashboardPage() {
 
     </div>
   );
-}
+}
