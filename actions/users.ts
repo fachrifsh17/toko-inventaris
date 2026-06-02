@@ -1,0 +1,104 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
+import bcrypt from "bcrypt";
+
+// ==================== GET ALL USERS ====================
+export async function getUsers() {
+  try {
+    const users = await prisma.users.findMany({
+      select: {
+        id: true,
+        username: true,
+        nama_lengkap: true,
+        created_at: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+    return { success: true, data: users };
+  } catch (error) {
+    console.error("Error getUsers:", error);
+    return { success: false, error: "Gagal mengambil daftar pengguna.", data: [] };
+  }
+}
+
+// ==================== ADD USER ====================
+export async function addUserAction(prevState: any, formData: FormData) {
+  try {
+    const username = (formData.get("username") as string)?.trim();
+    const nama_lengkap = (formData.get("nama_lengkap") as string)?.trim();
+    const password = formData.get("password") as string;
+
+    if (!username || !nama_lengkap || !password) {
+      return { success: false, error: "Semua kolom wajib diisi!" };
+    }
+    if (password.length < 6) {
+      return { success: false, error: "Password minimal 6 karakter!" };
+    }
+
+    const existing = await prisma.users.findUnique({ where: { username } });
+    if (existing) return { success: false, error: "Username sudah digunakan!" };
+
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.users.create({ data: { username, nama_lengkap, password: hashed } });
+
+    revalidatePath("/user");
+    return { success: true, message: "Pengguna berhasil ditambahkan!" };
+  } catch (error) {
+    console.error("Error addUserAction:", error);
+    return { success: false, error: "Gagal menambahkan pengguna." };
+  }
+}
+
+// ==================== EDIT USER ====================
+export async function editUserAction(prevState: any, formData: FormData) {
+  try {
+    const id = Number(formData.get("id"));
+    if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
+
+    const username = (formData.get("username") as string)?.trim();
+    const nama_lengkap = (formData.get("nama_lengkap") as string)?.trim();
+    const password = formData.get("password") as string;
+
+    if (!username || !nama_lengkap) {
+      return { success: false, error: "Username dan Nama Lengkap wajib diisi!" };
+    }
+
+    const user = await prisma.users.findUnique({ where: { id } });
+    if (!user) return { success: false, error: "Pengguna tidak ditemukan." };
+
+    if (username !== user.username) {
+      const check = await prisma.users.findUnique({ where: { username } });
+      if (check) return { success: false, error: "Username sudah dipakai akun lain!" };
+    }
+
+    const updateData: any = { username, nama_lengkap, updated_at: new Date() };
+    if (password && password.trim() !== "") {
+      if (password.length < 6) return { success: false, error: "Password minimal 6 karakter!" };
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    await prisma.users.update({ where: { id }, data: updateData });
+    revalidatePath("/user");
+    return { success: true, message: "Pengguna berhasil diperbarui!" };
+  } catch (error) {
+    console.error("Error editUserAction:", error);
+    return { success: false, error: "Gagal memperbarui pengguna." };
+  }
+}
+
+// ==================== DELETE USER ====================
+export async function deleteUserAction(prevState: any, formData: FormData) {
+  try {
+    const id = Number(formData.get("id"));
+    if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
+
+    await prisma.users.delete({ where: { id } });
+    revalidatePath("/user");
+    return { success: true, message: "Pengguna berhasil dihapus!" };
+  } catch (error) {
+    console.error("Error deleteUserAction:", error);
+    return { success: false, error: "Gagal menghapus pengguna." };
+  }
+}
