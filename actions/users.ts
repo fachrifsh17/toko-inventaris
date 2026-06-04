@@ -2,11 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import bcrypt from "bcrypt";
 
-// ==================== GET ALL USERS ====================
 export async function getUsers() {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu.", data: [] };
+    }
+
     const users = await prisma.users.findMany({
       select: {
         id: true,
@@ -23,9 +30,15 @@ export async function getUsers() {
   }
 }
 
-// ==================== ADD USER ====================
 export async function addUserAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const username = (formData.get("username") as string)?.trim();
     const nama_lengkap = (formData.get("nama_lengkap") as string)?.trim();
     const password = formData.get("password") as string;
@@ -51,9 +64,15 @@ export async function addUserAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== EDIT USER ====================
 export async function editUserAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
@@ -88,9 +107,15 @@ export async function editUserAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== DELETE USER ====================
 export async function deleteUserAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 

@@ -6,9 +6,12 @@ import {
   addRiwayatKeluarAction,
 } from "@/actions/riwayatkeluar";
 import { getProduk } from "@/actions/produk";
+import { getPengaturan } from "@/actions/pengaturan";
 import SearchSelect from "@/components/SearchSelect";
 import PortalModal from "@/components/PortalModal";
 import { toast } from "react-hot-toast";
+import { Printer } from "lucide-react";
+import { StrukPreview, handleCetakStruk } from "@/components/Struk";
 
 interface CartItem {
   produk_id: number;
@@ -23,6 +26,7 @@ export default function RiwayatKeluarPage() {
   const [produkList, setProdukList] = useState<any[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [pengaturan, setPengaturan] = useState<any>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -33,6 +37,7 @@ export default function RiwayatKeluarPage() {
   const [hargaJualStr, setHargaJualStr] = useState<string>("0");
 
   const [activeDetail, setActiveDetail] = useState<any | null>(null);
+  const [strukPopup, setStrukPopup] = useState<any | null>(null);
 
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -50,7 +55,7 @@ export default function RiwayatKeluarPage() {
 
   const load = async () => {
     setLoading(true);
-    const [r, p] = await Promise.all([
+    const [r, p, set] = await Promise.all([
       getRiwayatKeluar({
         page,
         pageSize,
@@ -58,6 +63,7 @@ export default function RiwayatKeluarPage() {
         endDate: endDate || undefined,
       }),
       getProduk(),
+      getPengaturan(),
     ]);
     if (r.success && r.data) {
       setList(r.data.rows as any[]);
@@ -65,6 +71,9 @@ export default function RiwayatKeluarPage() {
     }
     if (p.success && p.data) {
       setProdukList((p.data as any[]).filter((item) => item.is_active));
+    }
+    if (set.success && set.data) {
+      setPengaturan(set.data);
     }
     setLoading(false);
   };
@@ -137,6 +146,15 @@ export default function RiwayatKeluarPage() {
         setHargaJual(0);
         setHargaJualStr("0");
         await load();
+        const resData = (res as any).data;
+        if (resData) {
+          setStrukPopup(resData);
+        } else {
+          const r = await getRiwayatKeluar({ page: 1, pageSize: 1 });
+          if (r.success && r.data && r.data.rows.length > 0) {
+            setStrukPopup(r.data.rows[0]);
+          }
+        }
       } else {
         toast.error(res.error || "Gagal menyimpan transaksi.", { position: "top-center" });
       }
@@ -302,13 +320,24 @@ export default function RiwayatKeluarPage() {
                               <td className="py-3 font-semibold text-emerald-600">{idr(totalHarga)}</td>
                               <td className="py-3">{renderMethodBadge(transaksi.metode_pembayaran)}</td>
                               <td className="py-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveDetail(transaksi)}
-                                  className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
-                                >
-                                  Detail
-                                </button>
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCetakStruk(transaksi, pengaturan)}
+                                    aria-label={`Cetak struk ${transaksi.id}`}
+                                    className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-md transition font-medium border border-emerald-100 flex items-center gap-1.5"
+                                  >
+                                    <Printer size={12} />
+                                    Struk
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveDetail(transaksi)}
+                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
+                                  >
+                                    Detail
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -613,7 +642,15 @@ export default function RiwayatKeluarPage() {
               </div>
             )}
             
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => handleCetakStruk(activeDetail, pengaturan)}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors flex items-center gap-2"
+              >
+                <Printer size={16} />
+                Cetak Struk
+              </button>
               <button
                 type="button"
                 onClick={() => setActiveDetail(null)}
@@ -621,6 +658,56 @@ export default function RiwayatKeluarPage() {
               >
                 Tutup Detail
               </button>
+            </div>
+          </div>
+        </PortalModal>
+      )}
+
+      {strukPopup && (
+        <PortalModal onClose={() => setStrukPopup(null)}>
+          <div className="w-[260px] overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center" aria-hidden="true">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-sm font-bold text-slate-800">Transaksi Berhasil</h2>
+              </div>
+              <button
+                onClick={() => setStrukPopup(null)}
+                aria-label="Tutup struk"
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-3 flex flex-col items-center">
+              <div className="overflow-hidden w-full flex justify-center">
+                <StrukPreview data={strukPopup} settings={pengaturan} />
+              </div>
+
+              <div className="flex gap-2 mt-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => handleCetakStruk(strukPopup, pengaturan)}
+                  className="flex-1 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Printer size={13} />
+                  Cetak
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStrukPopup(null)}
+                  className="flex-1 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         </PortalModal>

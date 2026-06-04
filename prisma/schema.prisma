@@ -23,6 +23,7 @@ model pengaturan {
   tagline        String?  @default("Pancarkan Pesona Alami Kulitmu") @db.VarChar(255)
   deskripsi      String?  @db.Text
   no_wa_toko     String   @db.VarChar(20)
+  email          String?  @db.VarChar(255) // Kolom baru ditambahkan di sini
   url_logo       String?  @db.VarChar(255)
   link_instagram String?  @db.VarChar(255)
   link_facebook  String?  @db.VarChar(255)

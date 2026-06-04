@@ -2,10 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import fs from "fs/promises";
 import path from "path";
-
-// ============= READ =============
 
 export async function getPengaturan() {
   try {
@@ -17,6 +16,7 @@ export async function getPengaturan() {
           nama_toko: "GlowAura SkinLab",
           tagline: "Pancarkan Pesona Alami Kulitmu",
           no_wa_toko: "628123456789",
+          email: "glowauraskinlab@gmail.com", // Opsional: Berikan default email jika baru pertama kali dibuat
         },
       });
     }
@@ -34,15 +34,21 @@ export async function getPengaturan() {
   }
 }
 
-// ============= UPDATE =============
-
 export async function updatePengaturanAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     const nama_toko = formData.get("nama_toko") as string;
     const tagline = formData.get("tagline") as string;
     const deskripsi = formData.get("deskripsi") as string;
     const no_wa_toko = formData.get("no_wa_toko") as string;
+    const email = formData.get("email") as string; // Ambil data email dari formData
     const link_instagram = formData.get("link_instagram") as string;
     const link_facebook = formData.get("link_facebook") as string;
     const link_tiktok = formData.get("link_tiktok") as string;
@@ -86,6 +92,7 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
         tagline: tagline || null,
         deskripsi: deskripsi || null,
         no_wa_toko,
+        email: email || null, // Tambahkan penyimpanan email ke database di sini
         url_logo,
         link_instagram: link_instagram || null,
         link_facebook: link_facebook || null,

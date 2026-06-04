@@ -107,6 +107,10 @@ export default function PengaturanPage() {
                 <label htmlFor="no_wa_toko" className="block text-xs font-bold text-slate-600 uppercase mb-2">No. WhatsApp Toko *</label>
                 <input id="no_wa_toko" name="no_wa_toko" type="text" defaultValue={pengaturan.no_wa_toko} placeholder="Contoh: 628123456789" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200" />
               </div>
+              <div>
+                <label htmlFor="email" className="block text-xs font-bold text-slate-600 uppercase mb-2">Email Toko</label>
+                <input id="email" name="email" type="email" defaultValue={pengaturan.email} placeholder="Masukkan email toko" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200" />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="link_instagram" className="block text-xs font-bold text-slate-600 uppercase mb-2">Link Instagram</label>

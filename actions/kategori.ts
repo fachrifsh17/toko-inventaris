@@ -2,8 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
-// ── Helper: generate slug dari nama ──────────────────────
 function generateSlug(str: string): string {
   return str
     .toLowerCase()
@@ -13,7 +13,6 @@ function generateSlug(str: string): string {
     .replace(/-+/g, "-");
 }
 
-// ==================== GET ALL KATEGORI ====================
 export async function getKategori() {
   try {
     const kategori = await prisma.kategori.findMany({
@@ -27,9 +26,15 @@ export async function getKategori() {
   }
 }
 
-// ==================== ADD KATEGORI ====================
 export async function addKategoriAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const nama_kategori = (formData.get("nama_kategori") as string)?.trim();
     const slugInput = (formData.get("slug") as string)?.trim();
 
@@ -54,9 +59,15 @@ export async function addKategoriAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== EDIT KATEGORI ====================
 export async function editKategoriAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
@@ -71,13 +82,11 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
     const existing = await prisma.kategori.findUnique({ where: { id } });
     if (!existing) return { success: false, error: "Kategori tidak ditemukan." };
 
-    // Cek duplikat nama (selain dirinya sendiri)
     if (nama_kategori !== existing.nama_kategori) {
       const dupName = await prisma.kategori.findUnique({ where: { nama_kategori } });
       if (dupName) return { success: false, error: "Nama kategori sudah digunakan!" };
     }
 
-    // Cek duplikat slug (selain dirinya sendiri)
     if (slug !== existing.slug) {
       const dupSlug = await prisma.kategori.findUnique({ where: { slug } });
       if (dupSlug) return { success: false, error: `Slug "${slug}" sudah digunakan!` };
@@ -96,13 +105,18 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== DELETE KATEGORI ====================
 export async function deleteKategoriAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
-    // Cek apakah ada produk yang pakai kategori ini
     const count = await prisma.produk.count({ where: { kategori_id: id } });
     if (count > 0) {
       return {

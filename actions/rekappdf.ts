@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getPengaturan } from "./pengaturan";
+import { cookies } from "next/headers";
 
 export async function getRekapPdfData(
   type?: "masuk" | "keluar",
@@ -11,13 +12,19 @@ export async function getRekapPdfData(
   metodePembayaran?: string,
 ) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const where: any = {};
 
     if (type) where.jenis_stok = type.toUpperCase();
     if (metodePembayaran) where.metode_pembayaran = metodePembayaran;
 
     if (startDate && endDate) {
-      // Set end date to end of day to include all transactions on that day
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
       const end = new Date(endDate);

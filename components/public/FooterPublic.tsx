@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { MapPin, Phone } from "lucide-react"
+import { MapPin, Phone, Mail } from "lucide-react"
 
 interface Pengaturan {
   nama_toko: string | null
   tagline: string | null
   alamat: string | null
   no_wa_toko: string
+  email: string | null
   link_instagram: string | null
   link_facebook: string | null
   link_tiktok: string | null
@@ -172,6 +173,17 @@ export default function FooterPublic({
                   {pengaturan?.no_wa_toko || "-"}
                 </a>
               </li>
+              {pengaturan?.email && (
+                <li className="flex items-start gap-2 sm:gap-3">
+                  <Mail size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                  <a
+                    href={`mailto:${pengaturan.email}`}
+                    className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors break-all"
+                  >
+                    {pengaturan.email}
+                  </a>
+                </li>
+              )}
               {pengaturan?.alamat && (
                 <li className="flex items-start gap-2 sm:gap-3">
                   <MapPin size={14} className="text-gray-400 mt-0.5 shrink-0" />

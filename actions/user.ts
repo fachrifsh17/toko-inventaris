@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcrypt";
 
-// ============= GET CURRENT USER =============
 export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
@@ -42,7 +41,6 @@ export async function getCurrentUser() {
   }
 }
 
-// ============= UPDATE PROFILE ACTION =============
 export async function updateUserProfileAction(prevState: any, formData: FormData) {
   try {
     const cookieStore = await cookies();
@@ -62,12 +60,10 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
     const password_sekarang = formData.get("password_sekarang") as string;
     const password_baru = formData.get("password_baru") as string;
 
-    // Validasi wajib
     if (!username || !nama_lengkap) {
       return { success: false, error: "Username dan Nama Lengkap wajib diisi!" };
     }
 
-    // Ambil user di database (termasuk password untuk dicompare)
     const user = await prisma.users.findUnique({
       where: { id: userId },
     });
@@ -76,7 +72,6 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
       return { success: false, error: "Pengguna tidak ditemukan." };
     }
 
-    // Cek apakah username diubah dan unik
     if (username !== user.username) {
       const existingUser = await prisma.users.findUnique({
         where: { username },
@@ -86,20 +81,17 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
       }
     }
 
-    // Jika ingin mengganti password atau mengupdate data sensitif, verifikasi password_sekarang
     const isPasswordValid = await bcrypt.compare(password_sekarang, user.password);
     if (!isPasswordValid) {
       return { success: false, error: "Password saat ini salah!" };
     }
 
-    // Siapkan data update
     let updatedData: any = {
       username,
       nama_lengkap,
       updated_at: new Date(),
     };
 
-    // Jika ada input password baru, hash dan simpan
     if (password_baru && password_baru.trim() !== "") {
       if (password_baru.length < 6) {
         return { success: false, error: "Password baru minimal harus 6 karakter!" };
@@ -108,7 +100,6 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
       updatedData.password = hashedPassword;
     }
 
-    // Simpan ke DB
     await prisma.users.update({
       where: { id: userId },
       data: updatedData,
@@ -127,9 +118,15 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
   }
 }
 
-// ============= GET ALL USERS =============
 export async function getUsers() {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const users = await prisma.users.findMany({
       select: {
         id: true,
@@ -146,9 +143,15 @@ export async function getUsers() {
   }
 }
 
-// ============= ADD USER ACTION =============
 export async function addUserAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const username = formData.get("username") as string;
     const nama_lengkap = formData.get("nama_lengkap") as string;
     const password = formData.get("password") as string;
@@ -187,9 +190,15 @@ export async function addUserAction(prevState: any, formData: FormData) {
   }
 }
 
-// ============= GET USER BY ID =============
 export async function getUserById(id: number) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const user = await prisma.users.findUnique({
       where: { id },
       select: {
@@ -210,9 +219,15 @@ export async function getUserById(id: number) {
   }
 }
 
-// ============= EDIT USER ACTION =============
 export async function editUserAction(id: number, prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const username = formData.get("username") as string;
     const nama_lengkap = formData.get("nama_lengkap") as string;
     const password = formData.get("password") as string;
@@ -264,9 +279,15 @@ export async function editUserAction(id: number, prevState: any, formData: FormD
   }
 }
 
-// ============= DELETE USER ACTION =============
 export async function deleteUserAction(id: number) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     await prisma.users.delete({
       where: { id },
     });

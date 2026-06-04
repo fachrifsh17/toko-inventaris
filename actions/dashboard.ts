@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { Prisma } from "@prisma/client";
 
 type TransaksiWithDetails = Prisma.transaksiGetPayload<{
@@ -17,6 +18,13 @@ type TransaksiWithDetails = Prisma.transaksiGetPayload<{
 
 export async function getDashboardSummary() {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -146,6 +154,13 @@ export async function getDashboardSummary() {
 
 export async function getProdukPalingLaris(limit: number = 5) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const transaksiKeluarIds = await prisma.transaksi.findMany({
       where: { jenis_stok: "keluar" },
       select: { id: true },
@@ -197,6 +212,13 @@ export async function getProdukPalingLaris(limit: number = 5) {
 
 export async function getStokByKategori() {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const stokByKategori = await prisma.kategori.findMany({
       select: {
         id: true,
@@ -242,6 +264,13 @@ export async function tambahRiwayatStokAction(data: {
   keterangan?: string;
 }) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     await prisma.$transaction(async (tx) => {
       const master = await tx.transaksi.create({
         data: {

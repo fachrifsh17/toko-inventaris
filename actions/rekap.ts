@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export async function getRekapData(
   type?: "masuk" | "keluar",
@@ -13,6 +14,13 @@ export async function getRekapData(
   metodePembayaran?: string,
 ) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { data: [], total: 0, page, limit, error: "Unauthorized" };
+    }
+
     const skip = (page - 1) * limit;
     const where: any = {};
 
@@ -87,6 +95,13 @@ export async function getRekapData(
 
 export async function getRekapDetail(id: number) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return null;
+    }
+
     const transaksi = await prisma.transaksi.findUnique({
       where: { id },
       include: {
@@ -121,6 +136,13 @@ export async function getRekapDetail(id: number) {
 
 export async function updateRekap(id: number, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const keterangan = formData.get("keterangan") as string;
     const tanggal = new Date(formData.get("tanggal") as string);
     const jenis_stok = formData.get("jenis_stok") as string;
@@ -145,6 +167,13 @@ export async function updateRekap(id: number, formData: FormData) {
 
 export async function exportRekapIndividual(id: number) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const transaksi = await prisma.transaksi.findUnique({
       where: { id },
       include: {
@@ -187,6 +216,13 @@ export async function exportRekapFiltered(
   metodePembayaran?: string,
 ) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const where: any = {};
 
     if (type) where.jenis_stok = type.toUpperCase();

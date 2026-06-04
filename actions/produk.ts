@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import fs from "fs/promises";
 import path from "path";
 
@@ -65,6 +66,13 @@ export async function getKategori() {
 
 export async function addProdukAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const nama_produk = (formData.get("nama_produk") as string)?.trim();
     const deskripsi = (formData.get("deskripsi") as string)?.trim() || null;
     const harga_jual = Number(formData.get("harga_jual"));
@@ -131,6 +139,13 @@ export async function addProdukAction(prevState: any, formData: FormData) {
 
 export async function editProdukAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0)
       return { success: false, error: "ID tidak valid." };
@@ -223,6 +238,13 @@ export async function editProdukAction(prevState: any, formData: FormData) {
 
 export async function deleteProdukAction(prevState: any, formData: FormData) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0)
       return { success: false, error: "ID tidak valid." };

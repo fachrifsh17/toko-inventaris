@@ -18,6 +18,17 @@ export async function getRiwayatKeluar(opts?: {
   endDate?: string;
 }) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return {
+        success: false,
+        error: "Akses ditolak: Anda harus login terlebih dahulu.",
+        data: { rows: [], total: 0 },
+      };
+    }
+
     const page = opts?.page && opts.page > 0 ? opts.page : 1;
     const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 10;
 
@@ -93,7 +104,6 @@ export async function addRiwayatKeluarAction(
     const tanggal = formData.get("tanggal") ? new Date(String(formData.get("tanggal"))) : new Date();
 
     const result = await prisma.$transaction(async (tx) => {
-      
       for (const item of items) {
         if (!item.produk_id) return { error: "Ada produk yang tidak valid." };
         if (isNaN(item.jumlah) || item.jumlah <= 0) return { error: "Jumlah barang harus lebih dari 0." };
