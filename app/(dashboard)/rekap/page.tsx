@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useTransition } from "react";
 import PortalModal from "@/components/PortalModal";
-import { getRekapData, updateRekap, exportRekapFiltered, getRekapDetail } from "@/actions/rekap";
+import { toast } from "react-hot-toast";
+import { getRekapData, updateRekap, getRekapDetail } from "@/actions/rekap";
+import { getRekapPdfData } from "@/actions/rekappdf";
+import { pdf } from "@react-pdf/renderer";
+import RekapPdfDocument from "@/components/pdf/RekapPdfDocument";
 
 type DetailTransaksiItem = {
   id: number;
@@ -28,6 +32,7 @@ type TransaksiItem = {
   total_item: number;
   users?: {
     username: string;
+    nama_lengkap?: string;
   } | null;
   detail_transaksi?: DetailTransaksiItem[];
 };
@@ -40,7 +45,6 @@ export default function RekapPage() {
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(10);
   const [loading, setLoading] = useState(true);
-  const [pageMsg, setPageMsg] = useState<Msg | null>(null);
 
   const [filterType, setFilterType] = useState<"masuk" | "keluar" | "">("");
   const [filterKategori, setFilterKategori] = useState<string>("");
@@ -99,12 +103,6 @@ export default function RekapPage() {
   }, []);
 
   useEffect(() => {
-    if (!pageMsg) return;
-    const t = setTimeout(() => setPageMsg(null), 3500);
-    return () => clearTimeout(t);
-  }, [pageMsg]);
-
-  useEffect(() => {
     if (!showEdit && !showDetail) return;
     document.body.style.overflow = "hidden";
     return () => {
@@ -117,6 +115,7 @@ export default function RekapPage() {
     const q = searchQuery.toLowerCase();
     const matchTransaksi =
       item.keterangan?.toLowerCase().includes(q) ||
+      item.users?.nama_lengkap?.toLowerCase().includes(q) ||
       item.users?.username?.toLowerCase().includes(q) ||
       item.metode_pembayaran?.toLowerCase().includes(q) ||
       item.jenis_stok?.toLowerCase().includes(q);
@@ -169,30 +168,12 @@ export default function RekapPage() {
       if (res.success) {
         setShowEdit(false);
         setSelected(null);
-        setPageMsg({ type: "success", text: "Data rekap transaksi berhasil diperbarui" });
+        toast.success("Data rekap transaksi berhasil diperbarui", { position: "top-center" });
         await loadRekap();
       } else {
         setFormMsg({ type: "error", text: res.error || "Gagal memperbarui data" });
       }
     });
-  };
-
-  const downloadPDF = (base64Data: string, filename: string) => {
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   const handleExportPDF = async () => {
@@ -203,12 +184,39 @@ export default function RekapPage() {
     const katParam = filterKategori || undefined;
     const metodeParam = filterMetode || undefined;
 
-    const res = await exportRekapFiltered(typeParam, katParam, sDate, eDate, metodeParam);
-    if (res.success && res.data) {
-      downloadPDF(res.data as unknown as string, "rekap-transaksi.pdf");
-      setPageMsg({ type: "success", text: "PDF berhasil diunduh" });
-    } else {
-      setPageMsg({ type: "error", text: (res as any).error || "Gagal mengekspor PDF" });
+    try {
+      const res = await getRekapPdfData(typeParam, katParam, sDate, eDate, metodeParam);
+      if (!res.success || !res.data) {
+        toast.error((res as any).error || "Gagal mengambil data PDF", { position: "top-center" });
+      } else {
+        const blob = await pdf(
+          <RekapPdfDocument 
+            data={res.data} 
+            pengaturan={res.pengaturan} 
+            filters={{
+              type: typeParam,
+              kategori: katParam,
+              startDate: startDate || undefined,
+              endDate: endDate || undefined,
+              metode: metodeParam,
+            }} 
+          />
+        ).toBlob();
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "rekap-transaksi.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success("PDF berhasil diunduh", { position: "top-center" });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mengekspor PDF", { position: "top-center" });
     }
     setIsExporting(false);
   };
@@ -220,6 +228,24 @@ export default function RekapPage() {
       currency: "IDR",
       maximumFractionDigits: 0
     }).format(num);
+  };
+
+  const totalPages = Math.ceil(total / limit);
+
+  const getPaginationNumbers = (currentPage: number, totalPagesCount: number) => {
+    const pages: (number | string)[] = [];
+    if (totalPagesCount <= 5) {
+      for (let i = 1; i <= totalPagesCount; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPagesCount - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPagesCount - 2) pages.push("...");
+      pages.push(totalPagesCount);
+    }
+    return pages;
   };
 
   return (
@@ -303,7 +329,7 @@ export default function RekapPage() {
             {isFilterActive || searchQuery ? (
               <>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-medium text-indigo-600">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                   Filter aktif
@@ -313,7 +339,7 @@ export default function RekapPage() {
                   onClick={refreshFilters}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   Reset Filter
@@ -333,12 +359,12 @@ export default function RekapPage() {
             className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-60 shadow-sm shadow-emerald-100"
           >
             {isExporting ? (
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             )}
@@ -353,6 +379,7 @@ export default function RekapPage() {
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -365,17 +392,10 @@ export default function RekapPage() {
         />
       </div>
 
-      {pageMsg && (
-        <div className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium ${pageMsg.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}>
-          <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-          {pageMsg.text}
-        </div>
-      )}
-
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
-            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
@@ -445,26 +465,26 @@ export default function RekapPage() {
                         {item.keterangan || "-"}
                       </td>
                       <td className="py-4 px-6 text-slate-600 text-sm font-medium">
-                        {item.users?.username || "Sistem"}
+                        {item.users?.nama_lengkap || item.users?.username || "Sistem"}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => openDetailModal(item.id)}
+                            aria-label="Detail Transaksi"
                             className="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
-                            title="Detail Transaksi"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
                           <button
                             onClick={() => openEdit(item)}
+                            aria-label="Edit Transaksi"
                             className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
-                            title="Edit Transaksi"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
@@ -476,7 +496,7 @@ export default function RekapPage() {
                     <tr>
                       <td colSpan={10} className="py-16 text-center">
                         <div className="flex flex-col items-center gap-2 text-slate-400">
-                          <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                           </svg>
                           <p className="text-sm font-medium">
@@ -493,29 +513,67 @@ export default function RekapPage() {
               </table>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex items-center justify-between">
-              <p className="text-sm text-slate-600">
-                Halaman {page} • Total {total}
-              </p>
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 border border-slate-200 bg-white rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition"
-                  disabled={page === 1}
-                >
-                  Prev
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1.5 border border-slate-200 bg-white rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition"
-                  disabled={page * limit >= total}
-                >
-                  Next
-                </button>
+            {!loading && totalPages > 1 && (
+              <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <p className="text-sm text-slate-600">
+                  Halaman {page} • Total {total}
+                </p>
+                <nav className="flex items-center gap-1" aria-label="Navigasi halaman rekap">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label="Halaman sebelumnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {getPaginationNumbers(page, totalPages).map((pg, idx) =>
+                    typeof pg === "string" ? (
+                      <span key={`dot-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">...</span>
+                    ) : (
+                      <button
+                        key={pg}
+                        type="button"
+                        onClick={() => setPage(pg)}
+                        aria-label={`Halaman ${pg}`}
+                        aria-current={pg === page ? "page" : undefined}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                          pg === page
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "border border-slate-200 text-slate-600 hover:bg-slate-100"
+                        }`}
+                      >
+                        {pg}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={page === totalPages}
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    aria-label="Halaman berikutnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </nav>
               </div>
-            </div>
+            )}
+
+            {!loading && totalPages <= 1 && total > 0 && (
+              <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/50">
+                <p className="text-sm text-slate-600">
+                  Halaman {page} • Total {total}
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -524,7 +582,7 @@ export default function RekapPage() {
         <PortalModal onClose={() => setShowDetail(false)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
@@ -539,7 +597,7 @@ export default function RekapPage() {
               aria-label="Tutup detail"
               className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -548,7 +606,7 @@ export default function RekapPage() {
           <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
             {loadingDetail ? (
               <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
@@ -565,7 +623,17 @@ export default function RekapPage() {
                   </div>
                   <div>
                     <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Metode</span>
-                    <span className="block text-sm font-bold text-slate-700 mt-1">{detailData.metode_pembayaran}</span>
+                    <div className="mt-1">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
+                        detailData.metode_pembayaran === "CASH"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : detailData.metode_pembayaran === "TRANSFER"
+                          ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                          : "bg-amber-50 text-amber-700 border-amber-100"
+                      }`}>
+                        {detailData.metode_pembayaran}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Tanggal</span>
@@ -574,22 +642,23 @@ export default function RekapPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-slate-400 tracking-wider">Petugas</span>
-                    <span className="block text-sm font-medium text-slate-700 mt-1">{detailData.users?.username || "Sistem"}</span>
+                    <span className="block text-xs font-semibold text-slate-400 tracking-wider">PETUGAS</span>
+                    <span className="block text-sm font-medium text-slate-700 mt-1">{detailData.users?.nama_lengkap || detailData.users?.username || "Sistem"}</span>
                   </div>
                 </div>
 
                 <div className="border border-slate-100 rounded-xl">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[800px]">
+                    <table className="w-full text-left">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold tracking-wider">
-                          <th className="py-3 px-4">Nama Produk</th>
-                          <th className="py-3 px-4">Kategori</th>
-                          <th className="py-3 px-4 text-center">Jumlah</th>
-                          <th className="py-3 px-4 text-right">Harga Modal</th>
-                          <th className="py-3 px-4 text-right">Harga Jual</th>
-                          <th className="py-3 px-4 text-right">Subtotal</th>
+                          <th className="py-2.5 px-3">Nama Produk</th>
+                          <th className="py-2.5 px-3">Kategori</th>
+                          <th className="py-2.5 px-3 text-center">Jumlah</th>
+                          <th className="py-2.5 px-3 text-right">
+                            {detailData.jenis_stok.toLowerCase() === "masuk" ? "Harga Modal" : "Harga Jual"}
+                          </th>
+                          <th className="py-2.5 px-3 text-right">Subtotal</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-sm">
@@ -600,12 +669,11 @@ export default function RekapPage() {
 
                           return (
                             <tr key={item.id} className="text-slate-700">
-                              <td className="py-3 px-4 font-medium text-slate-800 whitespace-nowrap">{item.produk?.nama_produk}</td>
-                              <td className="py-3 px-4 text-slate-500 whitespace-nowrap">{item.produk?.kategori?.nama_kategori || "-"}</td>
-                              <td className="py-3 px-4 text-center font-semibold">{item.jumlah}</td>
-                              <td className="py-3 px-4 text-right whitespace-nowrap">{formatRupiah(item.harga_modal_real)}</td>
-                              <td className="py-3 px-4 text-right whitespace-nowrap">{formatRupiah(item.harga_jual_real)}</td>
-                              <td className="py-3 px-4 text-right font-bold text-slate-800 whitespace-nowrap">{formatRupiah(subtotal)}</td>
+                              <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">{item.produk?.nama_produk}</td>
+                              <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">{item.produk?.kategori?.nama_kategori || "-"}</td>
+                              <td className="py-2.5 px-3 text-center font-semibold">{item.jumlah}</td>
+                              <td className="py-2.5 px-3 text-right whitespace-nowrap">{formatRupiah(detailData.jenis_stok.toLowerCase() === "masuk" ? item.harga_modal_real : item.harga_jual_real)}</td>
+                              <td className="py-2.5 px-3 text-right font-bold text-slate-800 whitespace-nowrap">{formatRupiah(subtotal)}</td>
                             </tr>
                           );
                         })}
@@ -615,14 +683,18 @@ export default function RekapPage() {
                 </div>
 
                 <div className="flex flex-col items-end gap-2 border-t border-slate-100 pt-4 text-sm">
-                  <div className="flex justify-between w-full sm:w-64">
-                    <span className="text-slate-500 font-medium">Total Akumulasi Modal:</span>
-                    <span className="font-bold text-slate-800">{formatRupiah(detailData.total_harga_modal)}</span>
-                  </div>
-                  <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
-                    <span className="text-slate-500 font-medium">Total Akumulasi Jual:</span>
-                    <span className="font-bold text-slate-800">{formatRupiah(detailData.total_harga_jual)}</span>
-                  </div>
+                  {detailData.jenis_stok.toLowerCase() === "masuk" && (
+                    <div className="flex justify-between w-full sm:w-64">
+                      <span className="text-slate-500 font-medium">Total Akumulasi Modal:</span>
+                      <span className="font-bold text-slate-800">{formatRupiah(detailData.total_harga_modal)}</span>
+                    </div>
+                  )}
+                  {detailData.jenis_stok.toLowerCase() === "keluar" && (
+                    <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
+                      <span className="text-slate-500 font-medium">Total Akumulasi Jual:</span>
+                      <span className="font-bold text-slate-800">{formatRupiah(detailData.total_harga_jual)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between w-full sm:w-64 pt-1">
                     <span className="text-slate-700 font-bold">Total Nilai Aliran:</span>
                     <span className="text-lg font-black text-indigo-600">
@@ -659,7 +731,7 @@ export default function RekapPage() {
         <PortalModal onClose={() => setShowEdit(false)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -674,7 +746,7 @@ export default function RekapPage() {
               aria-label="Tutup edit"
               className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -682,7 +754,7 @@ export default function RekapPage() {
 
           <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
             {formMsg && (
-              <div className={`text-sm p-3 rounded-lg ${formMsg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
+              <div role="alert" className={`text-sm p-3 rounded-lg ${formMsg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
                 {formMsg.text}
               </div>
             )}
@@ -755,7 +827,7 @@ export default function RekapPage() {
                 className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isPending && (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>

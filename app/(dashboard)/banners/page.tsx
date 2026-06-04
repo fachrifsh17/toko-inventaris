@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import PortalModal from "@/components/PortalModal";
+import { toast } from "react-hot-toast";
 import {
   getBanners,
   addBannerAction,
@@ -9,7 +10,6 @@ import {
   deleteBannerAction,
 } from "@/actions/banners";
 
-// ─── Types ───────────────────────────────────────────
 type Banner = {
   id: number;
   judul_banner: string | null;
@@ -20,13 +20,10 @@ type Banner = {
   created_at: Date;
   updated_at: Date | null;
 };
-type Msg = { type: "success" | "error"; text: string };
 
-// ─── Shared Input style ───────────────────────────────
 const inputCls =
   "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
 
-// ─── Form Field ───────────────────────────────────────
 function Field({
   label,
   required,
@@ -47,7 +44,6 @@ function Field({
   );
 }
 
-// ─── Modal wrapper ────────────────────────────────────
 function Modal({
   onClose,
   children,
@@ -58,7 +54,6 @@ function Modal({
   return <PortalModal onClose={onClose}>{children}</PortalModal>;
 }
 
-// ─── Modal Header ─────────────────────────────────────
 function ModalHeader({
   title,
   color,
@@ -73,6 +68,7 @@ function ModalHeader({
       <div className="flex items-center gap-3">
         <div
           className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`}
+          aria-hidden="true"
         >
           <svg
             className="w-5 h-5"
@@ -92,7 +88,6 @@ function ModalHeader({
       </div>
       <button
         onClick={onClose}
-        title="Tutup"
         aria-label="Tutup modal"
         className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
       >
@@ -101,6 +96,7 @@ function ModalHeader({
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -114,7 +110,6 @@ function ModalHeader({
   );
 }
 
-// ─── Banner Form Fields ───────────────────────────────
 function BannerFormFields({
   defaultValues,
 }: {
@@ -219,7 +214,6 @@ function BannerFormFields({
         <Field label="Status" required>
           <select
             name="is_active"
-            title="Status Banner"
             aria-label="Pilih status aktif atau nonaktif banner"
             defaultValue={String(defaultValues?.is_active ?? true)}
             className={inputCls}
@@ -238,6 +232,7 @@ function BannerFormFields({
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -269,7 +264,7 @@ function BannerFormFields({
               <div className="w-48 h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
                 <img
                   src={previewUrl}
-                  alt="Preview"
+                  alt="Preview banner"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -280,6 +275,7 @@ function BannerFormFields({
                       className="w-5 h-5 animate-spin mx-auto"
                       fill="none"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <circle
                         className="opacity-25"
@@ -303,7 +299,6 @@ function BannerFormFields({
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  title="Hapus Gambar"
                   aria-label="Hapus gambar pratinjau"
                   className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
                 >
@@ -312,6 +307,7 @@ function BannerFormFields({
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -336,26 +332,20 @@ function BannerFormFields({
   );
 }
 
-// ════════════════════════════════════════════════════════
-//  MAIN PAGE
-// ════════════════════════════════════════════════════════
 export default function BannerPage() {
   const [bannerList, setBannerList] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pageMsg, setPageMsg] = useState<Msg | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
-  const [formMsg, setFormMsg] = useState<Msg | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // State tambahan untuk Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   const [isPending, startTransition] = useTransition();
 
-  // ── Load data ──
   const load = async () => {
     setLoading(true);
     try {
@@ -363,12 +353,12 @@ export default function BannerPage() {
       if (res.success && res.data) {
         setBannerList(res.data as Banner[]);
       } else {
-        setPageMsg({ type: "error", text: res.error || "Gagal mengambil data banner." });
+        toast.error(res.error || "Gagal mengambil data banner.", { position: "top-center" });
         setBannerList([]);
       }
     } catch (err) {
       console.error("Error loading banners:", err);
-      setPageMsg({ type: "error", text: "Gagal memuat data banner." });
+      toast.error("Gagal memuat data banner.", { position: "top-center" });
       setBannerList([]);
     } finally {
       setLoading(false);
@@ -379,27 +369,22 @@ export default function BannerPage() {
     load();
   }, []);
 
-  // Reset ke halaman 1 jika user sedang mengetik di kolom pencarian
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  useEffect(() => {
-    if (!pageMsg) return;
-    const t = setTimeout(() => setPageMsg(null), 3500);
-    return () => clearTimeout(t);
-  }, [pageMsg]);
-
-  // ── Handlers ──
   const openAdd = () => {
-    setFormMsg(null);
     setShowAdd(true);
   };
 
   const openEdit = (b: Banner) => {
     setSelectedBanner(b);
-    setFormMsg(null);
     setShowEdit(true);
+  };
+
+  const openDelete = (b: Banner) => {
+    setSelectedBanner(b);
+    setShowDelete(true);
   };
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -409,11 +394,11 @@ export default function BannerPage() {
       const res = await addBannerAction(null, fd);
       if (res.success) {
         setShowAdd(false);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Banner berhasil disimpan!", { position: "top-center" });
         await load();
         (e.target as HTMLFormElement).reset();
       } else {
-        setFormMsg({ type: "error", text: res.error! });
+        toast.error(res.error || "Gagal menyimpan banner.", { position: "top-center" });
       }
     });
   };
@@ -426,31 +411,33 @@ export default function BannerPage() {
       if (res.success) {
         setShowEdit(false);
         setSelectedBanner(null);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Perubahan berhasil disimpan!", { position: "top-center" });
         await load();
       } else {
-        setFormMsg({ type: "error", text: res.error! });
+        toast.error(res.error || "Gagal menyimpan perubahan.", { position: "top-center" });
       }
     });
   };
 
-  const handleDelete = (b: Banner) => {
-    if (!confirm(`Hapus banner "${b.judul_banner || "tanpa judul"}"? Tindakan ini tidak bisa dibatalkan.`))
-      return;
+  const handleDelete = () => {
+    if (!selectedBanner) return;
     startTransition(async () => {
       const fd = new FormData();
-      fd.append("id", String(b.id));
+      fd.append("id", String(selectedBanner.id));
       const res = await deleteBannerAction(null, fd);
       if (res.success) {
-        setPageMsg({ type: "success", text: res.message! });
+        setShowDelete(false);
+        setSelectedBanner(null);
+        toast.success(res.message || "Banner berhasil dihapus!", { position: "top-center" });
         await load();
       } else {
-        setPageMsg({ type: "error", text: res.error! });
+        setShowDelete(false);
+        setSelectedBanner(null);
+        toast.error(res.error || "Gagal menghapus banner.", { position: "top-center" });
       }
     });
   };
 
-  // ── Filtered & Paginated list ──
   const filteredBanners = bannerList.filter(
     (b) =>
       (b.judul_banner?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
@@ -461,20 +448,22 @@ export default function BannerPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedBanners = filteredBanners.slice(startIndex, startIndex + itemsPerPage);
 
-  // ── Alert sub-component ──
-  const Alert = ({ msg }: { msg: Msg }) => (
-    <div
-      className={`text-sm p-3 rounded-lg ${
-        msg.type === "error"
-          ? "bg-red-50 text-red-600 border border-red-100"
-          : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-      }`}
-    >
-      {msg.text}
-    </div>
-  );
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
 
-  // ── Form footer buttons ──
   const FormFooter = ({
     onCancel,
     submitLabel,
@@ -496,20 +485,9 @@ export default function BannerPage() {
         className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
       >
         {isPending && (
-          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
         )}
         {submitLabel}
@@ -519,25 +497,9 @@ export default function BannerPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 space-y-4">
-      {/* ── Page Header dengan Tombol Tambah ── */}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">Manajemen Banner</h1>
               <p className="text-slate-500 text-sm mt-0.5">
@@ -549,7 +511,7 @@ export default function BannerPage() {
             onClick={openAdd}
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0 w-full sm:w-auto justify-center"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Tambah Banner
@@ -557,51 +519,29 @@ export default function BannerPage() {
         </div>
       </div>
 
-      {/* ── Alert Banner ── */}
-      {pageMsg && (
-        <div
-          className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium ${
-            pageMsg.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-              : "bg-red-50 border-red-200 text-red-700"
-          }`}
-        >
-          {pageMsg.type === "success" ? (
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )}
-          {pageMsg.text}
-        </div>
-      )}
-
-      {/* ── Search (tanpa card) ── */}
       <div className="relative">
         <svg
           className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Cari banner"
           placeholder="Cari banner..."
           className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
         />
       </div>
 
-      {/* ── Banner Table ── */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-slate-400 gap-3">
-            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
@@ -634,18 +574,11 @@ export default function BannerPage() {
                             src={b.url_foto_banner}
                             alt={b.judul_banner || "Banner"}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-300">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           </div>
                         )}
@@ -663,10 +596,9 @@ export default function BannerPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-indigo-600 hover:text-indigo-800 text-xs font-medium truncate block max-w-[200px] hover:underline"
-                          title={b.link_tujuan}
                         >
                           {b.link_tujuan}
-                          <svg className="w-3 h-3 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </a>
@@ -694,31 +626,21 @@ export default function BannerPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEdit(b)}
+                          aria-label={`Edit banner ${b.judul_banner || "tanpa judul"}`}
                           className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
-                          title="Edit"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
                         <button
-                          onClick={() => handleDelete(b)}
+                          onClick={() => openDelete(b)}
                           disabled={isPending}
+                          aria-label={`Hapus banner ${b.judul_banner || "tanpa judul"}`}
                           className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors disabled:opacity-50"
-                          title="Hapus"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </div>
@@ -729,13 +651,8 @@ export default function BannerPage() {
                   <tr>
                     <td colSpan={7} className="py-20 text-center">
                       <div className="flex flex-col items-center gap-2 text-slate-400">
-                        <svg className="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
+                        <svg className="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <p className="text-sm font-medium">
                           {searchQuery ? "Banner tidak ditemukan" : "Belum ada banner"}
@@ -752,37 +669,69 @@ export default function BannerPage() {
           </div>
         )}
 
-        {/* ── Footer Tabel dengan Tombol Prev & Next ── */}
-        {!loading && filteredBanners.length > 0 && (
+        {!loading && totalPages > 1 && (
           <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-xs text-slate-400">
-              Menampilkan {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredBanners.length)} dari {filteredBanners.length} banner
+              Total <span className="font-semibold text-slate-600">{filteredBanners.length}</span> banner
             </p>
-            
-            {/* Tombol Pagination Sesuai Desain Gambar */}
-            <div className="flex items-center gap-2">
+            <nav className="flex items-center gap-1" aria-label="Navigasi halaman banner">
               <button
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className="px-4 py-1.5 border border-slate-800 text-slate-800 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Halaman sebelumnya"
+                className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Prev
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
+
+              {getPageNumbers().map((page, idx) =>
+                typeof page === "string" ? (
+                  <span key={`dot-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    aria-label={`Halaman ${page}`}
+                    aria-current={page === currentPage ? "page" : undefined}
+                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                      page === currentPage
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
               <button
                 type="button"
-                disabled={currentPage === totalPages || totalPages === 0}
+                disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                className="px-4 py-1.5 border border-slate-800 text-slate-800 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Halaman berikutnya"
+                className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Next
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
-            </div>
+            </nav>
+          </div>
+        )}
+
+        {!loading && totalPages <= 1 && filteredBanners.length > 0 && (
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{filteredBanners.length}</span> banner</p>
           </div>
         )}
       </div>
 
-      {/* ══════ ADD MODAL ══════ */}
       {showAdd && (
         <Modal onClose={() => setShowAdd(false)}>
           <ModalHeader
@@ -791,7 +740,6 @@ export default function BannerPage() {
             onClose={() => setShowAdd(false)}
           />
           <form onSubmit={handleAdd} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-            {formMsg && <Alert msg={formMsg} />}
             <BannerFormFields />
             <FormFooter
               onCancel={() => setShowAdd(false)}
@@ -801,7 +749,6 @@ export default function BannerPage() {
         </Modal>
       )}
 
-      {/* ══════ EDIT MODAL ══════ */}
       {showEdit && selectedBanner && (
         <Modal onClose={() => setShowEdit(false)}>
           <ModalHeader
@@ -811,13 +758,53 @@ export default function BannerPage() {
           />
           <form onSubmit={handleEdit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
             <input type="hidden" name="id" value={selectedBanner.id} />
-            {formMsg && <Alert msg={formMsg} />}
             <BannerFormFields defaultValues={selectedBanner} />
             <FormFooter
               onCancel={() => setShowEdit(false)}
               submitLabel="Simpan Perubahan"
             />
           </form>
+        </Modal>
+      )}
+
+      {showDelete && selectedBanner && (
+        <Modal onClose={() => { setShowDelete(false); setSelectedBanner(null); }}>
+          <div className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Hapus Banner</h3>
+              <p className="text-slate-500 text-sm mt-2">
+                Yakin ingin menghapus banner <span className="font-semibold text-slate-700">&quot;{selectedBanner.judul_banner || "tanpa judul"}&quot;</span>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowDelete(false); setSelectedBanner(null); }}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isPending}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {isPending && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                )}
+                Hapus
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

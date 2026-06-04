@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 import { getPengaturan } from "@/actions/pengaturan";
+import { Toaster } from "react-hot-toast";
 
 export default function DashboardLayout({
   children,
@@ -23,7 +24,6 @@ export default function DashboardLayout({
 
   return (
     <div className="relative min-h-screen bg-slate-50 font-sans flex">
-      {/* Sidebar - fixed and togglable */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
@@ -31,7 +31,6 @@ export default function DashboardLayout({
         urlLogo={pengaturan?.url_logo}
       />
 
-      {/* Backdrop overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
@@ -39,20 +38,19 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Main Content Area */}
       <div className="flex-1 min-w-0 flex flex-col lg:pl-64 min-h-screen">
-        {/* Navbar */}
         <Navbar 
           onMenuClick={() => setIsSidebarOpen(true)} 
           namaToko={pengaturan?.nama_toko || "Toko"} 
           urlLogo={pengaturan?.url_logo}
         />
 
-        {/* Content Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 animate-fade-in">
           {children}
         </main>
       </div>
+
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 }

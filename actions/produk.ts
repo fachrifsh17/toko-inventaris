@@ -5,14 +5,12 @@ import { revalidatePath } from "next/cache";
 import fs from "fs/promises";
 import path from "path";
 
-// ==================== GET ALL PRODUK ====================
 export async function getProduk(opts?: {
   page?: number;
   pageSize?: number;
   kategori_id?: number;
 }) {
   try {
-    // If pagination is requested, return paged data with total count
     if (
       opts &&
       typeof opts.page === "number" &&
@@ -33,7 +31,6 @@ export async function getProduk(opts?: {
       return { success: true, data: { rows, total } };
     }
 
-    // Fallback: return all products (existing behavior)
     const produk = await prisma.produk.findMany({
       include: { kategori: { select: { id: true, nama_kategori: true } } },
       orderBy: { created_at: "desc" },
@@ -50,7 +47,6 @@ export async function getProduk(opts?: {
   }
 }
 
-// ==================== GET ALL KATEGORI (for select) ====================
 export async function getKategori() {
   try {
     const kategori = await prisma.kategori.findMany({
@@ -67,7 +63,6 @@ export async function getKategori() {
   }
 }
 
-// ==================== ADD PRODUK ====================
 export async function addProdukAction(prevState: any, formData: FormData) {
   try {
     const nama_produk = (formData.get("nama_produk") as string)?.trim();
@@ -78,18 +73,16 @@ export async function addProdukAction(prevState: any, formData: FormData) {
     const kategori_id = formData.get("kategori_id")
       ? Number(formData.get("kategori_id"))
       : null;
-    // Prefer the uploaded URL (from the upload API) and fall back safely.
     const url_foto_uploaded =
       (formData.get("url_foto_uploaded") as string)?.trim() || "";
     const raw_url_foto = formData.get("url_foto");
     let url_foto = url_foto_uploaded || "";
 
-    // If the client submitted a File in `url_foto` (user didn't use the upload API),
-    // save it server-side into `public/uploads` and construct the URL.
     if (
       !url_foto &&
       raw_url_foto &&
-      typeof (raw_url_foto as any).name === "string"
+      typeof (raw_url_foto as any).name === "string" &&
+      (raw_url_foto as any).size > 0
     ) {
       try {
         const file: any = raw_url_foto;
@@ -136,7 +129,6 @@ export async function addProdukAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== EDIT PRODUK ====================
 export async function editProdukAction(prevState: any, formData: FormData) {
   try {
     const id = Number(formData.get("id"));
@@ -151,8 +143,52 @@ export async function editProdukAction(prevState: any, formData: FormData) {
     const kategori_id = formData.get("kategori_id")
       ? Number(formData.get("kategori_id"))
       : null;
-    const url_foto_uploaded =
-      (formData.get("url_foto_uploaded") as string)?.trim() || "";
+
+    const existing = await prisma.produk.findUnique({ where: { id } });
+    if (!existing) return { success: false, error: "Produk tidak ditemukan." };
+
+    const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
+    const raw_url_foto = formData.get("url_foto");
+    
+    let url_foto = existing.url_foto;
+    let apakah_foto_berubah = false;
+
+    if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
+      url_foto = url_foto_uploaded;
+      apakah_foto_berubah = true;
+    } else if (
+      raw_url_foto &&
+      typeof (raw_url_foto as any).name === "string" &&
+      (raw_url_foto as any).size > 0
+    ) {
+      try {
+        const file: any = raw_url_foto;
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const ext = path.extname(file.name) || ".jpg";
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        
+        await fs.mkdir(uploadsDir, { recursive: true });
+        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
+        
+        url_foto = `/uploads/${fileName}`;
+        apakah_foto_berubah = true;
+      } catch (err) {
+        console.error("Error saving uploaded file:", err);
+        return { success: false, error: "Gagal menyimpan file foto baru." };
+      }
+    }
+
+    if (apakah_foto_berubah && existing.url_foto && existing.url_foto.startsWith("/uploads/")) {
+      try {
+        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto);
+        await fs.unlink(oldFilePath);
+      } catch (unlinkErr) {
+        console.error("Gagal menghapus file foto lama dari server:", unlinkErr);
+      }
+    }
+
     const is_active = formData.get("is_active") === "true";
 
     if (!nama_produk)
@@ -161,9 +197,6 @@ export async function editProdukAction(prevState: any, formData: FormData) {
       return { success: false, error: "Harga jual tidak valid!" };
     if (isNaN(harga_modal) || harga_modal < 0)
       return { success: false, error: "Harga modal tidak valid!" };
-
-    const existing = await prisma.produk.findUnique({ where: { id } });
-    if (!existing) return { success: false, error: "Produk tidak ditemukan." };
 
     await prisma.produk.update({
       where: { id },
@@ -174,7 +207,7 @@ export async function editProdukAction(prevState: any, formData: FormData) {
         harga_modal,
         stok_sekarang,
         kategori_id,
-        url_foto: url_foto_uploaded || existing.url_foto,
+        url_foto,
         is_active,
         updated_at: new Date(),
       },
@@ -188,14 +221,26 @@ export async function editProdukAction(prevState: any, formData: FormData) {
   }
 }
 
-// ==================== DELETE PRODUK ====================
 export async function deleteProdukAction(prevState: any, formData: FormData) {
   try {
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0)
       return { success: false, error: "ID tidak valid." };
 
+    const existing = await prisma.produk.findUnique({ where: { id } });
+    if (!existing) return { success: false, error: "Produk tidak ditemukan." };
+
     await prisma.produk.delete({ where: { id } });
+
+    if (existing.url_foto && existing.url_foto.startsWith("/uploads/")) {
+      try {
+        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto);
+        await fs.unlink(oldFilePath);
+      } catch (unlinkErr) {
+        console.error("Gagal menghapus file foto saat hapus produk:", unlinkErr);
+      }
+    }
+
     revalidatePath("/produk");
     return { success: true, message: "Produk berhasil dihapus!" };
   } catch (error) {

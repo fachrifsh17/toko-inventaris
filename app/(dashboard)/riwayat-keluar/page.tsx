@@ -8,6 +8,7 @@ import {
 import { getProduk } from "@/actions/produk";
 import SearchSelect from "@/components/SearchSelect";
 import PortalModal from "@/components/PortalModal";
+import { toast } from "react-hot-toast";
 
 interface CartItem {
   produk_id: number;
@@ -22,9 +23,7 @@ export default function RiwayatKeluarPage() {
   const [produkList, setProdukList] = useState<any[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState(false);
-  const [formMsg, setFormMsg] = useState<{ type: string; text: string } | null>(
-    null,
-  );
+
   const [isPending, startTransition] = useTransition();
 
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -84,11 +83,11 @@ export default function RiwayatKeluarPage() {
 
   const handleAddToBag = () => {
     if (!selectedProduct) {
-      setFormMsg({ type: "error", text: "Pilih produk terlebih dahulu." });
+      toast.error("Pilih produk terlebih dahulu.", { position: "top-center" });
       return;
     }
     if (inputJumlah <= 0) {
-      setFormMsg({ type: "error", text: "Jumlah produk harus lebih dari 0." });
+      toast.error("Jumlah produk harus lebih dari 0.", { position: "top-center" });
       return;
     }
 
@@ -111,7 +110,6 @@ export default function RiwayatKeluarPage() {
     }
 
     setInputJumlah(1);
-    setFormMsg(null);
   };
 
   const handleRemoveFromBag = (index: number) => {
@@ -121,7 +119,7 @@ export default function RiwayatKeluarPage() {
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (cart.length === 0) {
-      setFormMsg({ type: "error", text: "Gagal: Keranjang belanja masih kosong!" });
+      toast.error("Gagal: Keranjang belanja masih kosong!", { position: "top-center" });
       return;
     }
 
@@ -132,7 +130,7 @@ export default function RiwayatKeluarPage() {
     startTransition(async () => {
       const res = await addRiwayatKeluarAction(null, fd);
       if (res.success) {
-        setFormMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Transaksi berhasil disimpan!", { position: "top-center" });
         form.reset();
         setCart([]);
         setSelectedProduct(null);
@@ -140,16 +138,10 @@ export default function RiwayatKeluarPage() {
         setHargaJualStr("0");
         await load();
       } else {
-        setFormMsg({ type: "error", text: res.error! });
+        toast.error(res.error || "Gagal menyimpan transaksi.", { position: "top-center" });
       }
     });
   };
-
-  useEffect(() => {
-    if (!formMsg) return;
-    const t = setTimeout(() => setFormMsg(null), 4500);
-    return () => clearTimeout(t);
-  }, [formMsg]);
 
   const renderMethodBadge = (m?: string) => {
     const method = (m || "").toUpperCase();
@@ -176,6 +168,24 @@ export default function RiwayatKeluarPage() {
         {m ?? "-"}
       </span>
     );
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
+
+  const getPaginationNumbers = (currentPage: number, totalPagesCount: number) => {
+    const pages: (number | string)[] = [];
+    if (totalPagesCount <= 5) {
+      for (let i = 1; i <= totalPagesCount; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPagesCount - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPagesCount - 2) pages.push("...");
+      pages.push(totalPagesCount);
+    }
+    return pages;
   };
 
   return (
@@ -220,7 +230,7 @@ export default function RiwayatKeluarPage() {
                       setEndDate(tempEnd);
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
                   >
                     Terapkan
                   </button>
@@ -233,7 +243,7 @@ export default function RiwayatKeluarPage() {
                       setEndDate("");
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 border rounded-md text-sm bg-white text-slate-700 hover:bg-slate-50"
+                    className="ml-2 px-3 py-1.5 border rounded-md text-sm bg-white text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     Reset
                   </button>
@@ -242,7 +252,13 @@ export default function RiwayatKeluarPage() {
             </div>
 
             {loading ? (
-              <p className="text-center py-6 text-slate-500">Loading data...</p>
+              <div className="flex items-center justify-center py-10 text-slate-400 gap-3">
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Memuat data...
+              </div>
             ) : (
               <div>
                 <div className="overflow-x-auto">
@@ -302,27 +318,65 @@ export default function RiwayatKeluarPage() {
                   </table>
                 </div>
 
-                <div className="px-4 py-3 border-t border-slate-50 bg-slate-50/50 flex items-center justify-end gap-3 mt-3 rounded-xl">
-                  <div className="text-sm text-slate-600 mr-auto">
-                    Halaman {page} • Total {total} Transaksi
+                {!loading && totalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-3 rounded-b-2xl">
+                    <p className="text-xs text-slate-400">
+                      Halaman {page} • Total <span className="font-semibold text-slate-600">{total}</span> Transaksi
+                    </p>
+                    <nav className="flex items-center gap-1" aria-label="Navigasi halaman riwayat">
+                      <button
+                        type="button"
+                        disabled={page === 1}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        aria-label="Halaman sebelumnya"
+                        className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+
+                      {getPaginationNumbers(page, totalPages).map((pg, idx) =>
+                        typeof pg === "string" ? (
+                          <span key={`dot-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">...</span>
+                        ) : (
+                          <button
+                            key={pg}
+                            type="button"
+                            onClick={() => setPage(pg)}
+                            aria-label={`Halaman ${pg}`}
+                            aria-current={pg === page ? "page" : undefined}
+                            className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                              pg === page
+                                ? "bg-indigo-600 text-white shadow-sm"
+                                : "border border-slate-200 text-slate-600 hover:bg-slate-100"
+                            }`}
+                          >
+                            {pg}
+                          </button>
+                        )
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={page === totalPages}
+                        onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                        aria-label="Halaman berikutnya"
+                        className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </nav>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 border rounded-md text-sm bg-white"
-                    disabled={page === 1}
-                  >
-                    Prev
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => p + 1)}
-                    className="px-3 py-1.5 border rounded-md text-sm bg-white"
-                    disabled={page * pageSize >= total}
-                  >
-                    Next
-                  </button>
-                </div>
+                )}
+
+                {!loading && totalPages <= 1 && total > 0 && (
+                  <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 mt-3 rounded-b-2xl">
+                    <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{total}</span> Transaksi</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -331,13 +385,6 @@ export default function RiwayatKeluarPage() {
         <div className="order-1 md:order-2">
           <div className="bg-white rounded-xl shadow p-4 sticky top-4">
             <h2 className="font-semibold mb-3">Tambah Riwayat Keluar</h2>
-            {formMsg && (
-              <div
-                className={`mb-3 p-2.5 rounded-xl text-sm font-medium ${formMsg.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}
-              >
-                {formMsg.text}
-              </div>
-            )}
 
             <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pilih Item Barang</span>
@@ -474,7 +521,7 @@ export default function RiwayatKeluarPage() {
         <PortalModal onClose={() => setActiveDetail(null)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
@@ -489,7 +536,7 @@ export default function RiwayatKeluarPage() {
               aria-label="Tutup detail"
               className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -503,7 +550,7 @@ export default function RiwayatKeluarPage() {
               </div>
               <div>
                 <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Metode</span>
-                <span className="block text-sm font-bold text-slate-700 mt-1">{activeDetail.metode_pembayaran}</span>
+                <div className="mt-1">{renderMethodBadge(activeDetail.metode_pembayaran)}</div>
               </div>
               <div>
                 <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Tanggal</span>
@@ -519,22 +566,22 @@ export default function RiwayatKeluarPage() {
 
             <div className="border border-slate-100 rounded-xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[600px]">
+                <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold tracking-wider">
-                      <th className="py-3 px-4">Nama Produk</th>
-                      <th className="py-3 px-4 text-center">Jumlah</th>
-                      <th className="py-3 px-4 text-right">Harga Jual</th>
-                      <th className="py-3 px-4 text-right">Subtotal</th>
+                      <th className="py-2.5 px-3">Nama Produk</th>
+                      <th className="py-2.5 px-3 text-center">Jumlah</th>
+                      <th className="py-2.5 px-3 text-right">Harga Jual</th>
+                      <th className="py-2.5 px-3 text-right">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {activeDetail.detail_transaksi?.map((dt: any) => (
                       <tr key={dt.id} className="text-slate-700">
-                        <td className="py-3 px-4 font-medium text-slate-800 whitespace-nowrap">{dt.produk?.nama_produk ?? "Produk Terhapus"}</td>
-                        <td className="py-3 px-4 text-center font-semibold">{dt.jumlah}</td>
-                        <td className="py-3 px-4 text-right whitespace-nowrap">{idr(dt.harga_jual_real)}</td>
-                        <td className="py-3 px-4 text-right font-bold text-slate-800 whitespace-nowrap">{idr(dt.jumlah * dt.harga_jual_real)}</td>
+                        <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">{dt.produk?.nama_produk ?? "Produk Terhapus"}</td>
+                        <td className="py-2.5 px-3 text-center font-semibold">{dt.jumlah}</td>
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap">{idr(dt.harga_jual_real)}</td>
+                        <td className="py-2.5 px-3 text-right font-bold text-slate-800 whitespace-nowrap">{idr(dt.jumlah * dt.harga_jual_real)}</td>
                       </tr>
                     ))}
                   </tbody>

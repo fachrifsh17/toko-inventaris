@@ -91,14 +91,13 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 w-64 bg-slate-950 text-slate-200 border-r border-slate-900/60 z-50 flex flex-col h-screen transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed inset-y-0 left-0 w-64 bg-white text-gray-700 border-r border-gray-200 z-50 flex flex-col h-screen transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
-      {/* Sidebar Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-slate-900/60">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
         <Link href="/dashboard" className="flex items-center gap-2.5 group w-full min-w-0">
           {urlLogo ? (
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-slate-800 bg-white">
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-gray-200 bg-white">
               <img 
                 src={urlLogo} 
                 alt={namaToko} 
@@ -115,16 +114,15 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
               </svg>
             </div>
           )}
-          <span className="font-bold text-base tracking-tight text-white group-hover:text-indigo-400 transition-colors truncate block">
+          <span className="font-bold text-base tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors truncate block">
             {namaToko}
           </span>
         </Link>
 
-        {/* Close Button on Mobile */}
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 hover:bg-slate-900 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
             aria-label="Close sidebar"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +132,6 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
         )}
       </div>
 
-      {/* Navigation Links */}
       <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
@@ -144,16 +141,15 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
               href={item.href}
               onClick={onClose}
               className={`relative flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 group overflow-hidden ${isActive
-                  ? 'bg-indigo-600/10 text-indigo-400 font-semibold'
-                  : 'text-slate-400 hover:bg-slate-900/60 hover:text-white'
+                  ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                 }`}
             >
-              {/* Active bar decoration */}
               {isActive && (
-                <span className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-r-md"></span>
+                <span className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-r-md"></span>
               )}
 
-              <span className={`transition-colors duration-200 ${isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-200'
+              <span className={`transition-colors duration-200 ${isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'
                 }`}>
                 {item.icon}
               </span>
@@ -163,11 +159,10 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
         })}
       </nav>
 
-      {/* Sidebar Footer */}
-      <div className="p-4 border-t border-slate-900/60 text-center">
-        <div className="py-2.5 px-3 rounded-xl bg-slate-900/40 border border-slate-900/60">
-          <p className="text-xs text-slate-500 font-medium">Sistem Inventaris</p>
-          <p className="text-[10px] text-slate-600 mt-0.5">v1.2.0 &bull; Beta</p>
+      <div className="p-4 border-t border-gray-200 text-center">
+        <div className="py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100">
+          <p className="text-xs text-gray-400 font-medium">Sistem Inventaris</p>
+          <p className="text-[10px] text-gray-300 mt-0.5">v1.2.0 &bull; Beta</p>
         </div>
       </div>
     </aside>

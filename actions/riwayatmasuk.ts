@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 interface ItemMasukInput {
   produk_id: number;
@@ -72,6 +73,13 @@ export async function addRiwayatMasukAction(
   formData: FormData,
 ) {
   try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("user_session")?.value;
+
+    if (!userId) {
+      return { success: false, error: "Sesi habis, silakan login kembali." };
+    }
+
     const itemsJson = formData.get("items") as string;
     if (!itemsJson) return { success: false, error: "Daftar barang kosong." };
 
@@ -83,7 +91,6 @@ export async function addRiwayatMasukAction(
     const metode_pembayaran = (formData.get("metode_pembayaran") as string) || "CASH";
     const keterangan = (formData.get("keterangan") as string) || null;
     const tanggal = formData.get("tanggal") ? new Date(String(formData.get("tanggal"))) : new Date();
-    const dicatat_oleh = formData.get("dicatat_oleh") ? Number(formData.get("dicatat_oleh")) : null;
 
     const result = await prisma.$transaction(async (tx) => {
       
@@ -106,7 +113,7 @@ export async function addRiwayatMasukAction(
           metode_pembayaran,
           keterangan,
           tanggal,
-          dicatat_oleh,
+          dicatat_oleh: parseInt(userId),
         },
       });
 

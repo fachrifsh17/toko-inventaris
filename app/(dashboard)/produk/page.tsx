@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import PortalModal from "@/components/PortalModal";
+import { toast } from "react-hot-toast";
 import {
   getProduk,
   addProdukAction,
@@ -84,44 +85,22 @@ function ModalHeader({
   onClose: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
+    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
       <div className="flex items-center gap-3">
-        <div
-          className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`}
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10"
-            />
+        <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`} aria-hidden="true">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
           </svg>
         </div>
         <h2 className="text-lg font-bold text-slate-800">{title}</h2>
       </div>
       <button
         onClick={onClose}
-        aria-label="Tutup"
+        aria-label="Tutup modal"
         className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
@@ -224,9 +203,7 @@ function ProdukFormFields({
       <div className="grid grid-cols-2 gap-4">
         <Field label="Harga Modal (Rp)">
           <div>
-            <label htmlFor="harga_modal_display" className="sr-only">
-              Harga Modal
-            </label>
+            <label htmlFor="harga_modal_display" className="sr-only">Harga Modal</label>
             <input
               id="harga_modal_display"
               type="text"
@@ -235,18 +212,12 @@ function ProdukFormFields({
               placeholder="0"
               className={inputCls}
             />
-            <input
-              type="hidden"
-              name="harga_modal"
-              value={parse(hargaModalStr)}
-            />
+            <input type="hidden" name="harga_modal" value={parse(hargaModalStr)} />
           </div>
         </Field>
         <Field label="Harga Jual (Rp)">
           <div>
-            <label htmlFor="harga_jual_display" className="sr-only">
-              Harga Jual
-            </label>
+            <label htmlFor="harga_jual_display" className="sr-only">Harga Jual</label>
             <input
               id="harga_jual_display"
               type="text"
@@ -255,11 +226,7 @@ function ProdukFormFields({
               placeholder="0"
               className={inputCls}
             />
-            <input
-              type="hidden"
-              name="harga_jual"
-              value={parse(hargaJualStr)}
-            />
+            <input type="hidden" name="harga_jual" value={parse(hargaJualStr)} />
           </div>
         </Field>
       </div>
@@ -267,9 +234,7 @@ function ProdukFormFields({
       <div className="grid grid-cols-2 gap-4">
         <Field label="Stok Sekarang">
           <div>
-            <label htmlFor="stok_sekarang_display" className="sr-only">
-              Stok Sekarang
-            </label>
+            <label htmlFor="stok_sekarang_display" className="sr-only">Stok Sekarang</label>
             <input
               id="stok_sekarang_display"
               type="text"
@@ -281,9 +246,7 @@ function ProdukFormFields({
           </div>
         </Field>
         <Field label="Kategori">
-          <label htmlFor="kategori_id" className="sr-only">
-            Pilih Kategori
-          </label>
+          <label htmlFor="kategori_id" className="sr-only">Pilih Kategori</label>
           <select
             id="kategori_id"
             name="kategori_id"
@@ -292,9 +255,7 @@ function ProdukFormFields({
           >
             <option value="">-- Pilih Kategori --</option>
             {kategoriList.map((k) => (
-              <option key={k.id} value={k.id}>
-                {k.nama_kategori}
-              </option>
+              <option key={k.id} value={k.id}>{k.nama_kategori}</option>
             ))}
           </select>
         </Field>
@@ -306,26 +267,12 @@ function ProdukFormFields({
             htmlFor="url_foto_file"
             className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors"
           >
-            <svg
-              className="w-8 h-8 text-slate-400 mb-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+            <svg className="w-8 h-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
-                Klik untuk upload atau drag file
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                JPG, PNG, GIF, WebP • Max 5MB
-              </p>
+              <p className="text-sm font-medium text-slate-700">Klik untuk upload atau drag file</p>
+              <p className="text-xs text-slate-500 mt-1">JPG, PNG, GIF, WebP • Max 5MB</p>
             </div>
             <input
               id="url_foto_file"
@@ -342,30 +289,15 @@ function ProdukFormFields({
             <div className="relative w-24 h-24">
               <img
                 src={previewUrl}
-                alt="Preview"
+                alt="Preview produk"
                 className="w-24 h-24 object-cover rounded-lg border border-slate-200"
               />
               {isUploading && (
                 <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                   <div className="text-white text-center">
-                    <svg
-                      className="w-4 h-4 animate-spin mx-auto"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      />
+                    <svg className="w-4 h-4 animate-spin mx-auto" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
                   </div>
                 </div>
@@ -373,18 +305,12 @@ function ProdukFormFields({
             </div>
           )}
 
-          <input
-            type="hidden"
-            name="url_foto_uploaded"
-            defaultValue={defaultValues?.url_foto || ""}
-          />
+          <input type="hidden" name="url_foto_uploaded" defaultValue={defaultValues?.url_foto || ""} />
         </div>
       </Field>
 
       <Field label="Status">
-        <label htmlFor="is_active" className="sr-only">
-          Status Aktif
-        </label>
+        <label htmlFor="is_active" className="sr-only">Status Aktif</label>
         <select
           id="is_active"
           name="is_active"
@@ -438,22 +364,25 @@ export default function ProdukPage() {
   const [kategoriFilter, setKategoriFilter] = useState<string>("");
   const [kategoriList, setKategoriList] = useState<Kategori[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pageMsg, setPageMsg] = useState<Msg | null>(null);
   const [showAddProduk, setShowAddProduk] = useState(false);
   const [showEditProduk, setShowEditProduk] = useState(false);
   const [selectedProduk, setSelectedProduk] = useState<Produk | null>(null);
   const [formMsg, setFormMsg] = useState<Msg | null>(null);
   const [searchProduk, setSearchProduk] = useState("");
 
+  const [showDeleteProduk, setShowDeleteProduk] = useState(false);
+  const [deleteProdukTarget, setDeleteProdukTarget] = useState<Produk | null>(null);
+
   const [kategoriEditList, setKategoriEditList] = useState<Kategori[]>([]);
   const [showAddKategori, setShowAddKategori] = useState(false);
   const [showEditKategori, setShowEditKategori] = useState(false);
-  const [selectedKategori, setSelectedKategori] = useState<Kategori | null>(
-    null,
-  );
+  const [selectedKategori, setSelectedKategori] = useState<Kategori | null>(null);
   const [searchKategori, setSearchKategori] = useState("");
   const [catPage, setCatPage] = useState<number>(1);
   const [catPageSize] = useState<number>(8);
+
+  const [showDeleteKategori, setShowDeleteKategori] = useState(false);
+  const [deleteKategoriTarget, setDeleteKategoriTarget] = useState<Kategori | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -465,12 +394,7 @@ export default function ProdukPage() {
         pageSize: produkPageSize,
         kategori_id: kategoriFilter === "" ? undefined : Number(kategoriFilter),
       });
-      console.debug("getProduk response:", p);
       if (!p.success) {
-        setPageMsg({
-          type: "error",
-          text: p.error || "Gagal mengambil data produk.",
-        });
         setProdukList([]);
         setProdukTotal(0);
       } else if (p.success && p.data) {
@@ -491,7 +415,6 @@ export default function ProdukPage() {
       }
     } catch (err) {
       console.error("Error loading produk/kategori:", err);
-      setPageMsg({ type: "error", text: "Gagal memuat data produk/kategori." });
       setProdukList([]);
       setProdukTotal(0);
     } finally {
@@ -511,12 +434,6 @@ export default function ProdukPage() {
     load();
     loadKategori();
   }, [produkPage, kategoriFilter]);
-
-  useEffect(() => {
-    if (!pageMsg) return;
-    const t = setTimeout(() => setPageMsg(null), 3500);
-    return () => clearTimeout(t);
-  }, [pageMsg]);
 
   const openAddProduk = () => {
     setFormMsg(null);
@@ -544,7 +461,7 @@ export default function ProdukPage() {
       const res = await addProdukAction(null, fd);
       if (res.success) {
         setShowAddProduk(false);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Produk berhasil disimpan!", { position: "top-center" });
         await load();
         (e.target as HTMLFormElement).reset();
       } else {
@@ -561,7 +478,7 @@ export default function ProdukPage() {
       if (res.success) {
         setShowEditProduk(false);
         setSelectedProduk(null);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Perubahan berhasil disimpan!", { position: "top-center" });
         await load();
       } else {
         setFormMsg({ type: "error", text: res.error! });
@@ -570,21 +487,25 @@ export default function ProdukPage() {
   };
 
   const handleDeleteProduk = (p: Produk) => {
-    if (
-      !confirm(
-        `Hapus produk "${p.nama_produk}"? Tindakan ini tidak bisa dibatalkan.`,
-      )
-    )
-      return;
+    setDeleteProdukTarget(p);
+    setShowDeleteProduk(true);
+  };
+
+  const executeDeleteProduk = () => {
+    if (!deleteProdukTarget) return;
     startTransition(async () => {
       const fd = new FormData();
-      fd.append("id", String(p.id));
+      fd.append("id", String(deleteProdukTarget.id));
       const res = await deleteProdukAction(null, fd);
       if (res.success) {
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Produk berhasil dihapus!", { position: "top-center" });
+        setShowDeleteProduk(false);
+        setDeleteProdukTarget(null);
         await load();
       } else {
-        setPageMsg({ type: "error", text: res.error! });
+        toast.error(res.error || "Gagal menghapus produk.", { position: "top-center" });
+        setShowDeleteProduk(false);
+        setDeleteProdukTarget(null);
       }
     });
   };
@@ -596,7 +517,7 @@ export default function ProdukPage() {
       const res = await addKategoriAction(null, fd);
       if (res.success) {
         setShowAddKategori(false);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Kategori berhasil disimpan!", { position: "top-center" });
         await loadKategori();
         (e.target as HTMLFormElement).reset();
       } else {
@@ -613,7 +534,7 @@ export default function ProdukPage() {
       if (res.success) {
         setShowEditKategori(false);
         setSelectedKategori(null);
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Perubahan berhasil disimpan!", { position: "top-center" });
         await loadKategori();
       } else {
         setFormMsg({ type: "error", text: res.error! });
@@ -622,21 +543,25 @@ export default function ProdukPage() {
   };
 
   const handleDeleteKategori = (k: Kategori) => {
-    if (
-      !confirm(
-        `Hapus kategori "${k.nama_kategori}"? Tindakan ini tidak bisa dibatalkan.`,
-      )
-    )
-      return;
+    setDeleteKategoriTarget(k);
+    setShowDeleteKategori(true);
+  };
+
+  const executeDeleteKategori = () => {
+    if (!deleteKategoriTarget) return;
     startTransition(async () => {
       const fd = new FormData();
-      fd.append("id", String(k.id));
+      fd.append("id", String(deleteKategoriTarget.id));
       const res = await deleteKategoriAction(null, fd);
       if (res.success) {
-        setPageMsg({ type: "success", text: res.message! });
+        toast.success(res.message || "Kategori berhasil dihapus!", { position: "top-center" });
+        setShowDeleteKategori(false);
+        setDeleteKategoriTarget(null);
         await loadKategori();
       } else {
-        setPageMsg({ type: "error", text: res.error! });
+        toast.error(res.error || "Gagal menghapus kategori.", { position: "top-center" });
+        setShowDeleteKategori(false);
+        setDeleteKategoriTarget(null);
       }
     });
   };
@@ -659,8 +584,28 @@ export default function ProdukPage() {
     catPage * catPageSize,
   );
 
+  const totalPagesProduk = Math.ceil(produkTotal / produkPageSize);
+  const totalPagesKategori = Math.ceil(filteredKategori.length / catPageSize);
+
+  const getPaginationNumbers = (currentPage: number, totalPages: number) => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   const Alert = ({ msg }: { msg: Msg }) => (
     <div
+      role="alert"
       className={`text-sm p-3 rounded-lg ${msg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}
     >
       {msg.text}
@@ -688,20 +633,9 @@ export default function ProdukPage() {
         className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
       >
         {isPending && (
-          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
         )}
         {submitLabel}
@@ -712,12 +646,8 @@ export default function ProdukPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 space-y-6">
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-800">
-          Manajemen Produk & Kategori
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Kelola produk dan kategori toko — tambah, edit, atau hapus.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">Manajemen Produk & Kategori</h1>
+        <p className="text-slate-500 text-sm mt-1">Kelola produk dan kategori toko — tambah, edit, atau hapus.</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1 flex gap-1 inline-flex">
@@ -726,18 +656,8 @@ export default function ProdukPage() {
           aria-label="Tab Produk"
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "produk" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
-          <svg
-            className="w-4 h-4 inline-block mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10"
-            />
+          <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
           </svg>
           Produk
         </button>
@@ -746,87 +666,26 @@ export default function ProdukPage() {
           aria-label="Tab Kategori"
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "kategori" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
-          <svg
-            className="w-4 h-4 inline-block mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-            />
+          <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
           </svg>
           Kategori
         </button>
       </div>
 
-      {pageMsg && (
-        <div
-          className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium ${pageMsg.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}
-        >
-          {pageMsg.type === "success" ? (
-            <svg
-              className="w-5 h-5 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-5 h-5 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          )}
-          {pageMsg.text}
-        </div>
-      )}
-
       {activeTab === "produk" && (
         <>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                Daftar Produk
-              </h2>
-              <p className="text-slate-500 text-sm mt-1">
-                Kelola semua produk toko anda
-              </p>
+              <h2 className="text-xl font-bold text-slate-800">Daftar Produk</h2>
+              <p className="text-slate-500 text-sm mt-1">Kelola semua produk toko anda</p>
             </div>
             <button
               onClick={openAddProduk}
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Tambah Produk
             </button>
@@ -834,21 +693,9 @@ export default function ProdukPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="relative md:col-span-2">
-              <label htmlFor="search_produk" className="sr-only">
-                Cari produk atau kategori
-              </label>
-              <svg
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
+              <label htmlFor="search_produk" className="sr-only">Cari produk atau kategori</label>
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 id="search_produk"
@@ -860,9 +707,7 @@ export default function ProdukPage() {
             </div>
 
             <div className="md:col-span-1">
-              <label htmlFor="filter_kategori" className="sr-only">
-                Filter kategori
-              </label>
+              <label htmlFor="filter_kategori" className="sr-only">Filter kategori</label>
               <select
                 id="filter_kategori"
                 value={kategoriFilter}
@@ -875,9 +720,7 @@ export default function ProdukPage() {
               >
                 <option value="">Semua Kategori</option>
                 {kategoriList.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama_kategori}
-                  </option>
+                  <option key={k.id} value={k.id}>{k.nama_kategori}</option>
                 ))}
               </select>
             </div>
@@ -886,24 +729,9 @@ export default function ProdukPage() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
-                <svg
-                  className="w-5 h-5 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 Memuat data...
               </div>
@@ -919,87 +747,50 @@ export default function ProdukPage() {
                       <th className="py-4 px-4 font-semibold">Harga Jual</th>
                       <th className="py-4 px-4 font-semibold">Stok</th>
                       <th className="py-4 px-4 font-semibold">Status</th>
-                      <th className="py-4 px-4 font-semibold text-center">
-                        Aksi
-                      </th>
+                      <th className="py-4 px-4 font-semibold text-center">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {filteredProduk.map((p, i) => (
-                      <tr
-                        key={p.id}
-                        className="hover:bg-slate-50/70 transition-colors"
-                      >
-                        <td className="py-4 px-4 text-slate-500 text-sm align-middle">
-                          {p.id}
-                        </td>
+                      <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-4 px-4 text-slate-500 text-sm align-middle">{p.id}</td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-4">
                             <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-100 shrink-0 bg-slate-50 flex items-center justify-center">
                               {p.url_foto ? (
-                                <img
-                                  src={p.url_foto}
-                                  alt={p.nama_produk}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                  }}
-                                />
+                                <img src={p.url_foto} alt={p.nama_produk} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                  <svg
-                                    className="w-8 h-8"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
+                                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                   </svg>
                                 </div>
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-slate-800 text-sm leading-tight truncate">
-                                {p.nama_produk}
-                              </p>
+                              <p className="font-semibold text-slate-800 text-sm leading-tight truncate">{p.nama_produk}</p>
                               {p.deskripsi && (
-                                <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 max-w-xs">
-                                  {p.deskripsi}
-                                </p>
+                                <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 max-w-xs">{p.deskripsi}</p>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           {p.kategori ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">
-                              {p.kategori.nama_kategori}
-                            </span>
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">{p.kategori.nama_kategori}</span>
                           ) : (
                             <span className="text-slate-400 text-xs">—</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-slate-600 text-sm font-medium">
-                          {idr(p.harga_modal)}
-                        </td>
-                        <td className="py-3 px-4 text-slate-800 text-sm font-semibold">
-                          {idr(p.harga_jual)}
-                        </td>
+                        <td className="py-3 px-4 text-slate-600 text-sm font-medium">{idr(p.harga_modal)}</td>
+                        <td className="py-3 px-4 text-slate-800 text-sm font-semibold">{idr(p.harga_jual)}</td>
                         <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${(p.stok_sekarang ?? 0) <= 0 ? "bg-red-50 text-red-600 border border-red-100" : (p.stok_sekarang ?? 0) <= 5 ? "bg-amber-50 text-amber-600 border border-amber-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100"}`}
-                          >
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${(p.stok_sekarang ?? 0) <= 0 ? "bg-red-50 text-red-600 border border-red-100" : (p.stok_sekarang ?? 0) <= 5 ? "bg-amber-50 text-amber-600 border border-amber-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100"}`}>
                             {p.stok_sekarang ?? 0}
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${p.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"}`}
-                          >
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${p.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
                             {p.is_active ? "Aktif" : "Nonaktif"}
                           </span>
                         </td>
@@ -1010,18 +801,8 @@ export default function ProdukPage() {
                               aria-label={`Edit produk ${p.nama_produk}`}
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                             </button>
                             <button
@@ -1030,18 +811,8 @@ export default function ProdukPage() {
                               aria-label={`Hapus produk ${p.nama_produk}`}
                               className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors disabled:opacity-50"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
                           </div>
@@ -1052,29 +823,11 @@ export default function ProdukPage() {
                       <tr>
                         <td colSpan={8} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-slate-400">
-                            <svg
-                              className="w-10 h-10 text-slate-200"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10"
-                              />
+                            <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
                             </svg>
-                            <p className="text-sm font-medium">
-                              {searchProduk
-                                ? "Produk tidak ditemukan"
-                                : "Belum ada produk"}
-                            </p>
-                            <p className="text-xs text-slate-300">
-                              {searchProduk
-                                ? "Coba kata kunci lain"
-                                : 'Klik "Tambah Produk" untuk mulai'}
-                            </p>
+                            <p className="text-sm font-medium">{searchProduk ? "Produk tidak ditemukan" : "Belum ada produk"}</p>
+                            <p className="text-xs text-slate-300">{searchProduk ? "Coba kata kunci lain" : 'Klik "Tambah Produk" untuk mulai'}</p>
                           </div>
                         </td>
                       </tr>
@@ -1083,31 +836,60 @@ export default function ProdukPage() {
                 </table>
               </div>
             )}
-            {!loading && filteredProduk.length > 0 && (
-              <div className="px-6 py-3 border-t border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                <p className="text-xs text-slate-400">
-                  Menampilkan {filteredProduk.length} dari {produkTotal}
-                </p>
-                <div className="space-x-2">
+            {!loading && totalPagesProduk > 1 && (
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{produkTotal}</span> produk</p>
+                <nav className="flex items-center gap-1" aria-label="Navigasi halaman produk">
                   <button
                     type="button"
-                    onClick={() => setProdukPage((p) => Math.max(1, p - 1))}
-                    aria-label="Halaman sebelumnya produk"
-                    className="px-3 py-1 border rounded text-sm"
                     disabled={produkPage === 1}
+                    onClick={() => setProdukPage((p) => Math.max(1, p - 1))}
+                    aria-label="Halaman sebelumnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Prev
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </button>
+
+                  {getPaginationNumbers(produkPage, totalPagesProduk).map((page, idx) =>
+                    typeof page === "string" ? (
+                      <span key={`dot-p-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">...</span>
+                    ) : (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setProdukPage(page)}
+                        aria-label={`Halaman ${page}`}
+                        aria-current={page === produkPage ? "page" : undefined}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                          page === produkPage
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "border border-slate-200 text-slate-600 hover:bg-slate-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => setProdukPage((p) => p + 1)}
-                    aria-label="Halaman berikutnya produk"
-                    className="px-3 py-1 border rounded text-sm"
-                    disabled={produkPage * produkPageSize >= produkTotal}
+                    disabled={produkPage === totalPagesProduk}
+                    onClick={() => setProdukPage((p) => Math.min(p + 1, totalPagesProduk))}
+                    aria-label="Halaman berikutnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
-                </div>
+                </nav>
+              </div>
+            )}
+            {!loading && totalPagesProduk <= 1 && filteredProduk.length > 0 && (
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{produkTotal}</span> produk</p>
               </div>
             )}
           </div>
@@ -1118,50 +900,24 @@ export default function ProdukPage() {
         <>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                Daftar Kategori
-              </h2>
-              <p className="text-slate-500 text-sm mt-1">
-                Kelola semua kategori produk
-              </p>
+              <h2 className="text-xl font-bold text-slate-800">Daftar Kategori</h2>
+              <p className="text-slate-500 text-sm mt-1">Kelola semua kategori produk</p>
             </div>
             <button
               onClick={openAddKategori}
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Tambah Kategori
             </button>
           </div>
 
           <div className="relative">
-            <label htmlFor="search_kategori" className="sr-only">
-              Cari kategori
-            </label>
-            <svg
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+            <label htmlFor="search_kategori" className="sr-only">Cari kategori</label>
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               id="search_kategori"
@@ -1175,24 +931,9 @@ export default function ProdukPage() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
-                <svg
-                  className="w-5 h-5 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 Memuat data...
               </div>
@@ -1205,34 +946,21 @@ export default function ProdukPage() {
                       <th className="py-4 px-4 font-semibold">Nama Kategori</th>
                       <th className="py-4 px-4 font-semibold">Slug</th>
                       <th className="py-4 px-4 font-semibold">Produk</th>
-                      <th className="py-4 px-4 font-semibold text-center">
-                        Aksi
-                      </th>
+                      <th className="py-4 px-4 font-semibold text-center">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {pagedKategori.map((k, i) => (
-                      <tr
-                        key={k.id}
-                        className="hover:bg-slate-50/70 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-slate-500 text-sm">
-                          {(catPage - 1) * catPageSize + i + 1}
+                      <tr key={k.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4 text-slate-500 text-sm">{(catPage - 1) * catPageSize + i + 1}</td>
+                        <td className="py-3 px-4">
+                          <p className="font-semibold text-slate-800 text-sm">{k.nama_kategori}</p>
                         </td>
                         <td className="py-3 px-4">
-                          <p className="font-semibold text-slate-800 text-sm">
-                            {k.nama_kategori}
-                          </p>
+                          <code className="text-xs bg-slate-100 px-2.5 py-1 rounded text-slate-600">{k.slug}</code>
                         </td>
                         <td className="py-3 px-4">
-                          <code className="text-xs bg-slate-100 px-2.5 py-1 rounded text-slate-600">
-                            {k.slug}
-                          </code>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                            {k._count?.produk ?? 0} produk
-                          </span>
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">{k._count?.produk ?? 0} produk</span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center gap-2">
@@ -1241,18 +969,8 @@ export default function ProdukPage() {
                               aria-label={`Edit kategori ${k.nama_kategori}`}
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                             </button>
                             <button
@@ -1261,18 +979,8 @@ export default function ProdukPage() {
                               aria-label={`Hapus kategori ${k.nama_kategori}`}
                               className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors disabled:opacity-50"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
                           </div>
@@ -1283,29 +991,11 @@ export default function ProdukPage() {
                       <tr>
                         <td colSpan={5} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-slate-400">
-                            <svg
-                              className="w-10 h-10 text-slate-200"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                              />
+                            <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                             </svg>
-                            <p className="text-sm font-medium">
-                              {searchKategori
-                                ? "Kategori tidak ditemukan"
-                                : "Belum ada kategori"}
-                            </p>
-                            <p className="text-xs text-slate-300">
-                              {searchKategori
-                                ? "Coba kata kunci lain"
-                                : 'Klik "Tambah Kategori" untuk mulai'}
-                            </p>
+                            <p className="text-sm font-medium">{searchKategori ? "Kategori tidak ditemukan" : "Belum ada kategori"}</p>
+                            <p className="text-xs text-slate-300">{searchKategori ? "Coba kata kunci lain" : 'Klik "Tambah Kategori" untuk mulai'}</p>
                           </div>
                         </td>
                       </tr>
@@ -1314,32 +1004,60 @@ export default function ProdukPage() {
                 </table>
               </div>
             )}
-            {!loading && filteredKategori.length > 0 && (
-              <div className="px-6 py-3 border-t border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                <p className="text-xs text-slate-400">
-                  Menampilkan {pagedKategori.length} dari{" "}
-                  {filteredKategori.length}
-                </p>
-                <div className="space-x-2">
+            {!loading && totalPagesKategori > 1 && (
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{filteredKategori.length}</span> kategori</p>
+                <nav className="flex items-center gap-1" aria-label="Navigasi halaman kategori">
                   <button
                     type="button"
-                    onClick={() => setCatPage((p) => Math.max(1, p - 1))}
-                    aria-label="Halaman sebelumnya kategori"
-                    className="px-3 py-1 border rounded text-sm"
                     disabled={catPage === 1}
+                    onClick={() => setCatPage((p) => Math.max(1, p - 1))}
+                    aria-label="Halaman sebelumnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Prev
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </button>
+
+                  {getPaginationNumbers(catPage, totalPagesKategori).map((page, idx) =>
+                    typeof page === "string" ? (
+                      <span key={`dot-k-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">...</span>
+                    ) : (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCatPage(page)}
+                        aria-label={`Halaman ${page}`}
+                        aria-current={page === catPage ? "page" : undefined}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                          page === catPage
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "border border-slate-200 text-slate-600 hover:bg-slate-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => setCatPage((p) => p + 1)}
-                    aria-label="Halaman berikutnya kategori"
-                    className="px-3 py-1 border rounded text-sm"
-                    disabled={catPage * catPageSize >= filteredKategori.length}
+                    disabled={catPage === totalPagesKategori}
+                    onClick={() => setCatPage((p) => Math.min(p + 1, totalPagesKategori))}
+                    aria-label="Halaman berikutnya"
+                    className="w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
-                </div>
+                </nav>
+              </div>
+            )}
+            {!loading && totalPagesKategori <= 1 && filteredKategori.length > 0 && (
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{filteredKategori.length}</span> kategori</p>
               </div>
             )}
           </div>
@@ -1348,78 +1066,129 @@ export default function ProdukPage() {
 
       {showAddProduk && (
         <Modal onClose={() => setShowAddProduk(false)}>
-          <ModalHeader
-            title="Tambah Produk"
-            color="bg-indigo-100 text-indigo-600"
-            onClose={() => setShowAddProduk(false)}
-          />
+          <ModalHeader title="Tambah Produk" color="bg-indigo-100 text-indigo-600" onClose={() => setShowAddProduk(false)} />
           <form onSubmit={handleAddProduk} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <ProdukFormFields kategoriList={kategoriList} />
-            <FormFooter
-              onCancel={() => setShowAddProduk(false)}
-              submitLabel="Simpan Produk"
-            />
+            <FormFooter onCancel={() => setShowAddProduk(false)} submitLabel="Simpan Produk" />
           </form>
         </Modal>
       )}
 
       {showEditProduk && selectedProduk && (
         <Modal onClose={() => setShowEditProduk(false)}>
-          <ModalHeader
-            title="Edit Produk"
-            color="bg-emerald-100 text-emerald-600"
-            onClose={() => setShowEditProduk(false)}
-          />
+          <ModalHeader title="Edit Produk" color="bg-emerald-100 text-emerald-600" onClose={() => setShowEditProduk(false)} />
           <form onSubmit={handleEditProduk} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedProduk.id} />
             {formMsg && <Alert msg={formMsg} />}
-            <ProdukFormFields
-              kategoriList={kategoriList}
-              defaultValues={selectedProduk}
-            />
-            <FormFooter
-              onCancel={() => setShowEditProduk(false)}
-              submitLabel="Simpan Perubahan"
-            />
+            <ProdukFormFields kategoriList={kategoriList} defaultValues={selectedProduk} />
+            <FormFooter onCancel={() => setShowEditProduk(false)} submitLabel="Simpan Perubahan" />
           </form>
+        </Modal>
+      )}
+
+      {showDeleteProduk && deleteProdukTarget && (
+        <Modal onClose={() => { setShowDeleteProduk(false); setDeleteProdukTarget(null); }}>
+          <div className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Hapus Produk</h3>
+              <p className="text-slate-500 text-sm mt-2">
+                Yakin ingin menghapus produk <span className="font-semibold text-slate-700">&quot;{deleteProdukTarget.nama_produk}&quot;</span>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteProduk(false); setDeleteProdukTarget(null); }}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={executeDeleteProduk}
+                disabled={isPending}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {isPending && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                )}
+                Hapus
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
       {showAddKategori && (
         <Modal onClose={() => setShowAddKategori(false)}>
-          <ModalHeader
-            title="Tambah Kategori"
-            color="bg-indigo-100 text-indigo-600"
-            onClose={() => setShowAddKategori(false)}
-          />
+          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" onClose={() => setShowAddKategori(false)} />
           <form onSubmit={handleAddKategori} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields />
-            <FormFooter
-              onCancel={() => setShowAddKategori(false)}
-              submitLabel="Simpan Kategori"
-            />
+            <FormFooter onCancel={() => setShowAddKategori(false)} submitLabel="Simpan Kategori" />
           </form>
         </Modal>
       )}
 
       {showEditKategori && selectedKategori && (
         <Modal onClose={() => setShowEditKategori(false)}>
-          <ModalHeader
-            title="Edit Kategori"
-            color="bg-emerald-100 text-emerald-600"
-            onClose={() => setShowEditKategori(false)}
-          />
+          <ModalHeader title="Edit Kategori" color="bg-emerald-100 text-emerald-600" onClose={() => setShowEditKategori(false)} />
           <form onSubmit={handleEditKategori} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedKategori.id} />
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields defaultValues={selectedKategori} />
-            <FormFooter
-              onCancel={() => setShowEditKategori(false)}
-              submitLabel="Simpan Perubahan"
-            />
+            <FormFooter onCancel={() => setShowEditKategori(false)} submitLabel="Simpan Perubahan" />
           </form>
+        </Modal>
+      )}
+
+      {showDeleteKategori && deleteKategoriTarget && (
+        <Modal onClose={() => { setShowDeleteKategori(false); setDeleteKategoriTarget(null); }}>
+          <div className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Hapus Kategori</h3>
+              <p className="text-slate-500 text-sm mt-2">
+                Yakin ingin menghapus kategori <span className="font-semibold text-slate-700">&quot;{deleteKategoriTarget.nama_kategori}&quot;</span>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteKategori(false); setDeleteKategoriTarget(null); }}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={executeDeleteKategori}
+                disabled={isPending}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {isPending && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                )}
+                Hapus
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
