@@ -166,6 +166,10 @@ export async function addTransaksiDigitalAction(
         return { error: "Akun saldo sudah nonaktif." };
       }
 
+      if (saldo.total_saldo <= 0) {
+        return { error: "Transaksi tidak dapat dilakukan karena saldo kosong." };
+      }
+
       const total_bayar = nominal + biayaAdmin.nominal_biaya + biaya_lain_lain;
 
       if (status === "Belum_Lunas") {
@@ -351,6 +355,28 @@ export async function editTransaksiDigitalAction(
       });
       const currentSaldoVal = currentSaldo?.total_saldo ?? 0;
 
+      if (currentSaldoVal <= 0) {
+        if (existing.status === "Belum_Lunas") {
+          await tx.saldo.update({
+            where: { id: existing.saldo_id },
+            data: {
+              total_saldo: { decrement: existing.nominal },
+              updated_at: new Date(),
+            },
+          });
+        } else if (existing.status === "Lunas") {
+          const oldNetChange = existing.biaya_admin.nominal_biaya - existing.biaya_lain_lain;
+          await tx.saldo.update({
+            where: { id: existing.saldo_id },
+            data: {
+              total_saldo: oldNetChange >= 0 ? { increment: oldNetChange } : { decrement: Math.abs(oldNetChange) },
+              updated_at: new Date(),
+            },
+          });
+        }
+        return { error: "Transaksi tidak dapat dilakukan karena saldo kosong." };
+      }
+
       if (status === "Belum_Lunas") {
         if (currentSaldoVal < nominal) {
           if (existing.status === "Belum_Lunas") {
@@ -359,8 +385,8 @@ export async function editTransaksiDigitalAction(
               data: {
                 total_saldo: { decrement: existing.nominal },
                 updated_at: new Date(),
-              },
-            });
+                  },
+                });
           } else if (existing.status === "Lunas") {
             const oldNetChange = existing.biaya_admin.nominal_biaya - existing.biaya_lain_lain;
             await tx.saldo.update({
@@ -496,6 +522,9 @@ export async function updateStatusTransaksiDigitalAction(
         });
         if (!saldo) {
           return { error: "Akun saldo tidak ditemukan." };
+        }
+        if (saldo.total_saldo <= 0) {
+          return { error: "Transaksi tidak dapat dilakukan karena saldo kosong." };
         }
         const requiredAmount = existing.nominal + existing.biaya_admin.nominal_biaya - existing.biaya_lain_lain;
         if (saldo.total_saldo < requiredAmount) {

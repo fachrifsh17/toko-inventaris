@@ -5,15 +5,20 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('user_session');
   const { pathname } = request.nextUrl;
 
+  // Halaman privat yang membutuhkan login admin
   const privateRoutes = [
     '/dashboard',
+    '/admin-dan-saldo',
     '/banners',
     '/edit-profile',
     '/pengaturan',
     '/produk',
     '/rekap',
+    '/rekap-saldo',
     '/riwayat-keluar',
     '/riwayat-masuk',
+    '/saldo-masuk',
+    '/transaksi-digital',
     '/user'
   ];
 
@@ -53,13 +58,17 @@ export const config = {
   matcher: [
     '/login',
     '/dashboard/:path*',
+    '/admin-dan-saldo/:path*',
     '/banners/:path*',
     '/edit-profile/:path*',
     '/pengaturan/:path*',
     '/produk/:path*',
     '/rekap/:path*',
+    '/rekap-saldo/:path*',
     '/riwayat-keluar/:path*',
     '/riwayat-masuk/:path*',
+    '/saldo-masuk/:path*',
+    '/transaksi-digital/:path*',
     '/user/:path*'
   ],
 };

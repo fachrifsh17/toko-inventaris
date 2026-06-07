@@ -642,7 +642,7 @@ export default function RekapPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-slate-400 tracking-wider">PETUGAS</span>
+                    <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">PETUGAS</span>
                     <span className="block text-sm font-medium text-slate-700 mt-1">{detailData.users?.nama_lengkap || detailData.users?.username || "Sistem"}</span>
                   </div>
                 </div>
@@ -731,7 +731,7 @@ export default function RekapPage() {
         <PortalModal onClose={() => setShowEdit(false)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center" aria-hidden="true">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -752,7 +752,7 @@ export default function RekapPage() {
             </button>
           </div>
 
-          <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+          <form key={selected.id} onSubmit={handleEditSubmit} className="p-6 space-y-4">
             {formMsg && (
               <div role="alert" className={`text-sm p-3 rounded-lg ${formMsg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
                 {formMsg.text}

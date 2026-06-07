@@ -147,7 +147,7 @@ export async function addSaldoMasukAction(
   }
 }
 
-export async function deleteSaldoMasukAction(
+export async function updateSaldoMasukAction(
   prevState: any,
   formData: FormData,
 ) {
@@ -160,31 +160,110 @@ export async function deleteSaldoMasukAction(
     }
 
     const id = Number(formData.get("id"));
+    const newSaldoId = Number(formData.get("saldo_id"));
+    const newNominal = Number(formData.get("nominal"));
+    const tanggal = formData.get("tanggal")
+      ? new Date(String(formData.get("tanggal")))
+      : undefined;
+    const keterangan = (formData.get("keterangan") as string) || undefined;
+
     if (isNaN(id) || id <= 0) {
-      return { success: false, error: "ID tidak valid." };
+      return { success: false, error: "ID saldo masuk tidak valid." };
+    }
+
+    if (isNaN(newNominal) || newNominal <= 0) {
+      return { success: false, error: "Nominal harus lebih dari 0." };
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const saldoMasuk = await tx.saldo_masuk.findUnique({
+      const existingMasuk = await tx.saldo_masuk.findUnique({
         where: { id },
       });
 
-      if (!saldoMasuk) {
+      if (!existingMasuk) {
         return { error: "Data saldo masuk tidak ditemukan." };
       }
 
-      await tx.saldo.update({
-        where: { id: saldoMasuk.saldo_id },
-        data: {
-          total_saldo: {
-            decrement: saldoMasuk.nominal,
-          },
-          updated_at: new Date(),
-        },
-      });
+      if (isNaN(newSaldoId) || newSaldoId <= 0) {
+        return { error: "Akun saldo tidak valid." };
+      }
 
-      await tx.saldo_masuk.delete({
+      const oldSaldoId = existingMasuk.saldo_id;
+      const oldNominal = existingMasuk.nominal;
+      const isSaldoChanged = oldSaldoId !== newSaldoId;
+
+      if (isSaldoChanged) {
+        const oldSaldo = await tx.saldo.findUnique({
+          where: { id: oldSaldoId },
+        });
+
+        if (!oldSaldo) {
+          return { error: "Akun saldo lama tidak ditemukan." };
+        }
+
+        const newSaldo = await tx.saldo.findUnique({
+          where: { id: newSaldoId },
+        });
+
+        if (!newSaldo) {
+          return { error: "Akun saldo baru tidak ditemukan." };
+        }
+
+        if (!newSaldo.is_active) {
+          return { error: "Akun saldo tujuan sudah nonaktif." };
+        }
+
+        await tx.saldo.update({
+          where: { id: oldSaldoId },
+          data: {
+            total_saldo: {
+              decrement: oldNominal,
+            },
+            updated_at: new Date(),
+          },
+        });
+
+        await tx.saldo.update({
+          where: { id: newSaldoId },
+          data: {
+            total_saldo: {
+              increment: newNominal,
+            },
+            updated_at: new Date(),
+          },
+        });
+      } else {
+        const selisih = newNominal - oldNominal;
+
+        if (selisih !== 0) {
+          const currentSaldo = await tx.saldo.findUnique({
+            where: { id: oldSaldoId },
+          });
+
+          if (!currentSaldo) {
+            return { error: "Akun saldo tidak ditemukan." };
+          }
+
+          await tx.saldo.update({
+            where: { id: oldSaldoId },
+            data: {
+              total_saldo: {
+                increment: selisih,
+              },
+              updated_at: new Date(),
+            },
+          });
+        }
+      }
+
+      await tx.saldo_masuk.update({
         where: { id },
+        data: {
+          saldo_id: newSaldoId,
+          nominal: newNominal,
+          ...(tanggal && { tanggal }),
+          ...(keterangan !== undefined && { keterangan }),
+        },
       });
 
       return { success: true };
@@ -198,9 +277,9 @@ export async function deleteSaldoMasukAction(
     revalidatePath("/admin-dan-saldo");
     revalidatePath("/dashboard");
 
-    return { success: true, message: "Saldo masuk berhasil dihapus." };
+    return { success: true, message: "Saldo masuk berhasil diperbarui." };
   } catch (error) {
-    console.error("Error deleteSaldoMasukAction:", error);
-    return { success: false, error: "Gagal menghapus saldo masuk." };
+    console.error("Error updateSaldoMasukAction:", error);
+    return { success: false, error: "Gagal memperbarui saldo masuk." };
   }
 }

@@ -45,7 +45,6 @@ export async function getRekapData(
     if (providerBank && providerBank.trim() !== "") {
       where.provider_bank = {
         contains: providerBank.trim(),
-        mode: "insensitive",
       };
     }
 
@@ -60,9 +59,6 @@ export async function getRekapData(
         where.tanggal.lte = d;
       }
     }
-
-    console.log("=== SERVER getRekapData WHERE ===");
-    console.log(JSON.stringify(where));
 
     const [rows, total] = await Promise.all([
       prisma.transaksi_digital.findMany({
@@ -80,11 +76,6 @@ export async function getRekapData(
       }),
       prisma.transaksi_digital.count({ where }),
     ]);
-
-    console.log("=== SERVER getRekapData RESULT ===");
-    console.log("rows length:", rows.length);
-    console.log("total:", total);
-    console.log("first row:", rows[0] ? JSON.stringify(rows[0]) : "EMPTY");
 
     const data = rows.map((t) => {
       const total_biaya_admin = t.biaya_admin?.nominal_biaya || 0;
@@ -116,8 +107,6 @@ export async function getRekapData(
 
     return { data, total, page: pageNum, limit: pageSize };
   } catch (error) {
-    console.error("=== SERVER getRekapData ERROR ===");
-    console.error(error);
     return { data: [], total: 0, page: Number(page) || 1, limit: Number(limit) || 10, error: (error as Error).message };
   }
 }
@@ -166,7 +155,6 @@ export async function getRekapDetail(id: number) {
       total_semua,
     };
   } catch (error) {
-    console.error("Gagal memuat detail rekap:", error);
     return null;
   }
 }
@@ -196,17 +184,74 @@ export async function updateRekap(id: number, formData: FormData) {
 
     const status = rawStatus === "Belum_Lunas" ? "Belum_Lunas" : "Lunas";
 
-    await prisma.transaksi_digital.update({
-      where: { id: Number(id) },
-      data: {
-        status,
-        keterangan,
-        nama_pelanggan,
-        tanggal,
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.transaksi_digital.findUnique({
+        where: { id: Number(id) },
+        include: { biaya_admin: true },
+      });
+
+      if (!existing) {
+        return { error: "Transaksi digital tidak ditemukan." };
+      }
+
+      if (existing.status !== status) {
+        const amountDiff = existing.nominal + existing.biaya_admin.nominal_biaya - existing.biaya_lain_lain;
+
+        if (existing.status === "Lunas" && status === "Belum_Lunas") {
+          const saldo = await tx.saldo.findUnique({
+            where: { id: existing.saldo_id },
+          });
+
+          if (!saldo) {
+            return { error: "Akun saldo tidak ditemukan." };
+          }
+
+          if (saldo.total_saldo < amountDiff) {
+            return { error: `Saldo tidak mencukupi untuk mengubah status. (Sisa: ${saldo.total_saldo}, Dibutuhkan: ${amountDiff})` };
+          }
+
+          await tx.saldo.update({
+            where: { id: existing.saldo_id },
+            data: {
+              total_saldo: { decrement: amountDiff },
+              updated_at: new Date(),
+            },
+          });
+        }
+
+        if (existing.status === "Belum_Lunas" && status === "Lunas") {
+          await tx.saldo.update({
+            where: { id: existing.saldo_id },
+            data: {
+              total_saldo: { increment: amountDiff },
+              updated_at: new Date(),
+            },
+          });
+        }
+      }
+
+      await tx.transaksi_digital.update({
+        where: { id: Number(id) },
+        data: {
+          status,
+          keterangan,
+          nama_pelanggan,
+          tanggal,
+        },
+      });
+
+      return { success: true };
     });
 
+    if (result && "error" in result) {
+      return { success: false, error: result.error };
+    }
+
     revalidatePath("/rekap-saldo");
+    revalidatePath("/admin-dan-saldo");
+    revalidatePath("/dashboard");
+    revalidatePath("/transaksi-digital");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: (error as Error).message };
@@ -298,7 +343,6 @@ export async function exportRekapFiltered(
     if (providerBank && providerBank.trim() !== "") {
       where.provider_bank = {
         contains: providerBank.trim(),
-        mode: "insensitive",
       };
     }
 
@@ -356,7 +400,6 @@ export async function exportRekapFiltered(
 
     return { success: true, data };
   } catch (error) {
-    console.error("Gagal melakukan export terfilter:", error);
     return { success: false, error: (error as Error).message };
   }
 }

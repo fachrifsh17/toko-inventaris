@@ -48,6 +48,9 @@ const idr = (n: number) =>
 const inputCls =
   "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
 
+const iconCube = "M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10";
+const iconEdit = "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z";
+
 function Field({
   label,
   children,
@@ -78,10 +81,12 @@ function Modal({
 function ModalHeader({
   title,
   color,
+  iconPath,
   onClose,
 }: {
   title: string;
   color: string;
+  iconPath: string;
   onClose: () => void;
 }) {
   return (
@@ -89,7 +94,7 @@ function ModalHeader({
       <div className="flex items-center gap-3">
         <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center`} aria-hidden="true">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
           </svg>
         </div>
         <h2 className="text-lg font-bold text-slate-800">{title}</h2>
@@ -1066,7 +1071,7 @@ export default function ProdukPage() {
 
       {showAddProduk && (
         <Modal onClose={() => setShowAddProduk(false)}>
-          <ModalHeader title="Tambah Produk" color="bg-indigo-100 text-indigo-600" onClose={() => setShowAddProduk(false)} />
+          <ModalHeader title="Tambah Produk" color="bg-indigo-100 text-indigo-600" iconPath={iconCube} onClose={() => setShowAddProduk(false)} />
           <form onSubmit={handleAddProduk} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <ProdukFormFields kategoriList={kategoriList} />
@@ -1077,8 +1082,8 @@ export default function ProdukPage() {
 
       {showEditProduk && selectedProduk && (
         <Modal onClose={() => setShowEditProduk(false)}>
-          <ModalHeader title="Edit Produk" color="bg-emerald-100 text-emerald-600" onClose={() => setShowEditProduk(false)} />
-          <form onSubmit={handleEditProduk} className="p-6 space-y-4">
+          <ModalHeader title="Edit Produk" color="bg-amber-100 text-amber-600" iconPath={iconEdit} onClose={() => setShowEditProduk(false)} />
+          <form key={selectedProduk.id} onSubmit={handleEditProduk} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedProduk.id} />
             {formMsg && <Alert msg={formMsg} />}
             <ProdukFormFields kategoriList={kategoriList} defaultValues={selectedProduk} />
@@ -1130,7 +1135,7 @@ export default function ProdukPage() {
 
       {showAddKategori && (
         <Modal onClose={() => setShowAddKategori(false)}>
-          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" onClose={() => setShowAddKategori(false)} />
+          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" iconPath={iconCube} onClose={() => setShowAddKategori(false)} />
           <form onSubmit={handleAddKategori} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields />
@@ -1141,8 +1146,8 @@ export default function ProdukPage() {
 
       {showEditKategori && selectedKategori && (
         <Modal onClose={() => setShowEditKategori(false)}>
-          <ModalHeader title="Edit Kategori" color="bg-emerald-100 text-emerald-600" onClose={() => setShowEditKategori(false)} />
-          <form onSubmit={handleEditKategori} className="p-6 space-y-4">
+          <ModalHeader title="Edit Kategori" color="bg-amber-100 text-amber-600" iconPath={iconEdit} onClose={() => setShowEditKategori(false)} />
+          <form key={selectedKategori.id} onSubmit={handleEditKategori} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedKategori.id} />
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields defaultValues={selectedKategori} />

@@ -80,13 +80,13 @@ export async function getDashboardSummary() {
       }),
       prisma.transaksi_digital.count(),
       prisma.transaksi_digital.count({
-        where: { status: StatusBayarDigital.LUNAS },
+        where: { status: StatusBayarDigital.Lunas },
       }),
       prisma.transaksi_digital.count({
-        where: { status: StatusBayarDigital.BELUM_LUNAS },
+        where: { status: StatusBayarDigital.Belum_Lunas },
       }),
-      prisma.transaksi_digital.aggregate({
-        _sum: { nominal: true },
+      prisma.saldo.aggregate({
+        _sum: { total_saldo: true },
       }),
     ]);
 
@@ -156,7 +156,7 @@ export async function getDashboardSummary() {
         },
         rekapTransaksiDigital: {
           totalTransaksi: rekapTotal,
-          totalNominal: rekapNominal._sum.nominal ?? 0,
+          totalNominal: rekapNominal._sum.total_saldo ?? 0,
           totalLunas: rekapLunas,
           totalBelumLunas: rekapBelumLunas,
         },

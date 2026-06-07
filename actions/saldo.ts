@@ -187,39 +187,3 @@ export async function deleteSaldoAction(prevState: any, formData: FormData) {
     };
   }
 }
-
-export async function updateSaldoTotalAction(prevState: any, formData: FormData) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
-    const id = Number(formData.get("id"));
-    const total_saldo = Number(formData.get("total_saldo"));
-
-    if (isNaN(id) || id <= 0)
-      return { success: false, error: "ID tidak valid." };
-    if (isNaN(total_saldo) || total_saldo < 0)
-      return { success: false, error: "Total saldo tidak valid!" };
-
-    const existing = await prisma.saldo.findUnique({ where: { id } });
-    if (!existing) return { success: false, error: "Akun saldo tidak ditemukan." };
-
-    await prisma.saldo.update({
-      where: { id },
-      data: {
-        total_saldo,
-        updated_at: new Date(),
-      },
-    });
-
-    revalidatePath("/saldo");
-    return { success: true, message: "Saldo berhasil diperbarui!" };
-  } catch (error) {
-    console.error("Error updateSaldoTotalAction:", error);
-    return { success: false, error: "Gagal memperbarui saldo." };
-  }
-}

@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 
 const enumToStatus = (v: any) => {
   if (v === "LUNAS" || v === "Lunas") return "Lunas";
-  if (v === "BELUM_LUNAS" || v === "Belum Lunas") return "Belum Lunas";
+  if (v === "BELUM_LUNAS" || v === "Belum_Lunas" || v === "Belum Lunas") return "Belum Lunas";
   return String(v);
 };
 
@@ -237,7 +237,7 @@ export default function TransaksiDigitalPage() {
     fd.append("nomor_target", nomorTarget.trim());
     fd.append("nominal", String(parseNum(nominalStr)));
     fd.append("biaya_lain_lain", String(parseNum(biayaLainStr)));
-    fd.append("status", status);
+    fd.append("status", status === "Lunas" ? "Lunas" : "Belum_Lunas");
     fd.append("tanggal", tanggal);
     if (namaPelanggan.trim()) fd.append("nama_pelanggan", namaPelanggan.trim());
     if (keterangan.trim()) fd.append("keterangan", keterangan.trim());
@@ -267,7 +267,7 @@ export default function TransaksiDigitalPage() {
     fd.append("nomor_target", nomorTarget.trim());
     fd.append("nominal", String(parseNum(nominalStr)));
     fd.append("biaya_lain_lain", String(parseNum(biayaLainStr)));
-    fd.append("status", status);
+    fd.append("status", status === "Lunas" ? "Lunas" : "Belum_Lunas");
     if (namaPelanggan.trim()) fd.append("nama_pelanggan", namaPelanggan.trim());
     if (keterangan.trim()) fd.append("keterangan", keterangan.trim());
 
@@ -305,7 +305,7 @@ export default function TransaksiDigitalPage() {
     startTransition(async () => {
       const fd = new FormData();
       fd.append("id", String(item.id));
-      fd.append("status", newStatus);
+      fd.append("status", newStatus === "Lunas" ? "Lunas" : "Belum_Lunas");
       const res = await updateStatusTransaksiDigitalAction(null, fd);
       if (res.success) {
         toast.success(res.message || "Status berhasil diperbarui!", { position: "top-center" });
@@ -649,9 +649,9 @@ export default function TransaksiDigitalPage() {
         <PortalModal onClose={() => setActiveDetail(null)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center" aria-hidden="true">
+              <div  className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
@@ -754,9 +754,9 @@ export default function TransaksiDigitalPage() {
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
+                <svg className="w-5 h-5" fill="none" stroke="#f97316" viewBox="0 0 24 24">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+               </svg>
               </div>
               <h2 className="text-lg font-bold text-slate-800">Edit Transaksi Digital</h2>
             </div>
@@ -766,7 +766,7 @@ export default function TransaksiDigitalPage() {
               </svg>
             </button>
           </div>
-          <form onSubmit={handleEdit} className="p-6 space-y-4">
+          <form key={editData.id} onSubmit={handleEdit} className="p-6 space-y-4">
             {formMsg && (
               <div role="alert" className={`text-sm p-3 rounded-lg ${formMsg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
                 {formMsg.text}

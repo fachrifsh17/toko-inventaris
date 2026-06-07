@@ -14,10 +14,15 @@ export async function getBiayaAdmin(opts?: {
       typeof opts.page === "number" &&
       typeof opts.pageSize === "number"
     ) {
-      const where: any = { is_active: true };
-      const total = await prisma.biaya_admin.count({ where });
+      const total = await prisma.biaya_admin.count();
       const rows = await prisma.biaya_admin.findMany({
-        where,
+        include: {
+          _count: {
+            select: {
+              transaksi_digital: true,
+            },
+          },
+        },
         orderBy: { created_at: "desc" },
         skip: (opts.page - 1) * opts.pageSize,
         take: opts.pageSize,
@@ -26,6 +31,13 @@ export async function getBiayaAdmin(opts?: {
     }
 
     const biayaAdmin = await prisma.biaya_admin.findMany({
+      include: {
+        _count: {
+          select: {
+            transaksi_digital: true,
+          },
+        },
+      },
       orderBy: { created_at: "desc" },
     });
     return { success: true, data: biayaAdmin };

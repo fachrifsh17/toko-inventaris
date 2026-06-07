@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { getSaldoMasuk, addSaldoMasukAction, deleteSaldoMasukAction } from "@/actions/saldomasuk";
+import { getSaldoMasuk, addSaldoMasukAction, updateSaldoMasukAction } from "@/actions/saldomasuk";
 import { getSaldoActive } from "@/actions/saldo";
 import PortalModal from "@/components/PortalModal";
 import { toast } from "react-hot-toast";
@@ -19,7 +19,9 @@ export default function SaldoMasukPage() {
   const [keterangan, setKeterangan] = useState<string>("");
 
   const [activeDetail, setActiveDetail] = useState<any | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editData, setEditData] = useState<any | null>(null);
+  const [formMsg, setFormMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -77,7 +79,23 @@ export default function SaldoMasukPage() {
     setTempFilterSaldoId(filterSaldoId);
   }, [startDate, endDate, filterSaldoId]);
 
-  const totalNominalList = list.reduce((sum, item) => sum + item.nominal, 0);
+  const resetForm = () => {
+    setSelectedSaldoId(0);
+    setNominalStr("0");
+    setKeterangan("");
+    setTanggal(new Date().toISOString().split("T")[0]);
+    setFormMsg(null);
+  };
+
+  const openEdit = (item: any) => {
+    setEditData(item);
+    setSelectedSaldoId(item.saldo_id);
+    setNominalStr(String(item.nominal));
+    setTanggal(item.tanggal ? new Date(item.tanggal).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+    setKeterangan(item.keterangan || "");
+    setFormMsg(null);
+    setShowEdit(true);
+  };
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -101,10 +119,7 @@ export default function SaldoMasukPage() {
       const res = await addSaldoMasukAction(null, fd);
       if (res.success) {
         toast.success(res.message || "Saldo masuk berhasil dicatat!", { position: "top-center" });
-        setNominalStr("0");
-        setKeterangan("");
-        setTanggal(new Date().toISOString().split("T")[0]);
-        setSelectedSaldoId(0);
+        resetForm();
         await load();
       } else {
         toast.error(res.error || "Gagal menyimpan saldo masuk.", { position: "top-center" });
@@ -112,19 +127,27 @@ export default function SaldoMasukPage() {
     });
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
+  const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editData) return;
+
+    const fd = new FormData();
+    fd.append("id", String(editData.id));
+    fd.append("saldo_id", String(selectedSaldoId));
+    fd.append("nominal", String(parseNominal(nominalStr)));
+    fd.append("tanggal", tanggal);
+    if (keterangan.trim()) fd.append("keterangan", keterangan.trim());
+
     startTransition(async () => {
-      const fd = new FormData();
-      fd.append("id", String(deleteTarget.id));
-      const res = await deleteSaldoMasukAction(null, fd);
+      const res = await updateSaldoMasukAction(null, fd);
       if (res.success) {
-        toast.success(res.message || "Saldo masuk berhasil dihapus!", { position: "top-center" });
-        setDeleteTarget(null);
+        toast.success(res.message || "Saldo masuk berhasil diperbarui!", { position: "top-center" });
+        setShowEdit(false);
+        setEditData(null);
+        resetForm();
         await load();
       } else {
-        toast.error(res.error || "Gagal menghapus saldo masuk.", { position: "top-center" });
-        setDeleteTarget(null);
+        setFormMsg({ type: "error", text: res.error! });
       }
     });
   };
@@ -238,13 +261,6 @@ export default function SaldoMasukPage() {
               </div>
             ) : (
               <div>
-                {list.length > 0 && (
-                  <div className="mb-3 bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex justify-between items-center">
-                    <span className="text-xs font-semibold text-emerald-700">Total Nominal (halaman ini)</span>
-                    <span className="text-sm font-black text-emerald-700">{idr(totalNominalList)}</span>
-                  </div>
-                )}
-
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[600px]">
                     <thead>
@@ -287,10 +303,10 @@ export default function SaldoMasukPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setDeleteTarget(item)}
-                                  className="text-xs bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                  onClick={() => openEdit(item)}
+                                  className="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
                                 >
-                                  Hapus
+                                  Edit
                                 </button>
                               </div>
                             </td>
@@ -451,9 +467,9 @@ export default function SaldoMasukPage() {
         <PortalModal onClose={() => setActiveDetail(null)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center" aria-hidden="true">
+              <div  className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
@@ -520,34 +536,103 @@ export default function SaldoMasukPage() {
         </PortalModal>
       )}
 
-      {deleteTarget && (
-        <PortalModal onClose={() => setDeleteTarget(null)}>
-          <div className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      {showEdit && editData && (
+        <PortalModal onClose={() => { setShowEdit(false); setEditData(null); resetForm(); }}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold text-slate-800">Edit Saldo Masuk</h2>
+            </div>
+            <button
+              onClick={() => { setShowEdit(false); setEditData(null); resetForm(); }}
+              aria-label="Tutup edit"
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleEdit} className="p-6 space-y-4">
+            {formMsg && (
+              <div role="alert" className={`text-sm p-3 rounded-lg ${formMsg.type === "error" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>
+                {formMsg.text}
+              </div>
+            )}
+
+            <input type="hidden" name="id" value={editData.id} />
+
+            <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">Edit Saldo Masuk</span>
+
+              <div>
+                <label htmlFor="edit_saldo_id" className="block text-xs text-slate-500 mb-1">Akun Saldo</label>
+                <select
+                  id="edit_saldo_id"
+                  value={selectedSaldoId}
+                  onChange={(e) => setSelectedSaldoId(Number(e.target.value))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value={0}>-- Pilih Akun Saldo --</option>
+                  {saldoList.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nama_akun} (Saldo: {idr(s.total_saldo)})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="edit_nominal" className="block text-xs text-slate-500 mb-1">Nominal (Rp)</label>
+                <input
+                  id="edit_nominal"
+                  type="text"
+                  value={formatNominal(nominalStr)}
+                  onChange={(e) => setNominalStr(String(parseNominal(e.target.value)))}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit_tanggal" className="block text-xs text-slate-500 mb-1">Tanggal</label>
+                <input
+                  id="edit_tanggal"
+                  type="date"
+                  value={tanggal}
+                  onChange={(e) => setTanggal(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit_keterangan" className="block text-xs text-slate-500 mb-1">Keterangan</label>
+                <textarea
+                  id="edit_keterangan"
+                  value={keterangan}
+                  onChange={(e) => setKeterangan(e.target.value)}
+                  rows={2}
+                  placeholder="Contoh: Transfer dari BCA"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+                />
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-800">Hapus Saldo Masuk</h3>
-              <p className="text-slate-500 text-sm mt-2">
-                Yakin ingin menghapus saldo masuk <span className="font-semibold text-slate-700">{idr(deleteTarget.nominal)}</span> dari akun <span className="font-semibold text-slate-700">&quot;{deleteTarget.saldo?.nama_akun}&quot;</span>?
-              </p>
-              <p className="text-red-500 text-xs mt-2">Saldo akun akan dikurangi secara otomatis.</p>
-            </div>
-            <div className="flex justify-center gap-3 pt-2">
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-100 mt-2">
               <button
                 type="button"
-                onClick={() => setDeleteTarget(null)}
+                onClick={() => { setShowEdit(false); setEditData(null); resetForm(); }}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
               >
                 Batal
               </button>
               <button
-                type="button"
-                onClick={handleDelete}
+                type="submit"
                 disabled={isPending}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -555,10 +640,10 @@ export default function SaldoMasukPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
                 )}
-                Hapus
+                Simpan Perubahan
               </button>
             </div>
-          </div>
+          </form>
         </PortalModal>
       )}
     </div>

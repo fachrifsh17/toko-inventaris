@@ -8,7 +8,6 @@ import {
   addSaldoAction,
   editSaldoAction,
   deleteSaldoAction,
-  updateSaldoTotalAction,
 } from "@/actions/saldo";
 import {
   getBiayaAdmin,
@@ -82,10 +81,12 @@ function Modal({
 function ModalHeader({
   title,
   color,
+  iconPath,
   onClose,
 }: {
   title: string;
   color: string;
+  iconPath: string;
   onClose: () => void;
 }) {
   return (
@@ -105,7 +106,7 @@ function ModalHeader({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10"
+              d={iconPath}
             />
           </svg>
         </div>
@@ -261,53 +262,10 @@ function BiayaAdminFormFields({
   );
 }
 
-function UpdateSaldoFormFields({ defaultValues }: { defaultValues: Saldo }) {
-  const [saldoStr, setSaldoStr] = useState<string>(
-    String(defaultValues.total_saldo)
-  );
-
-  const format = (v: string | number) => {
-    const n = Number(String(v).replace(/[^0-9-]/g, "")) || 0;
-    return n.toLocaleString("id-ID");
-  };
-  const parse = (s: string) =>
-    Number(String(s).replace(/[^0-9-]/g, "")) || 0;
-
-  return (
-    <>
-      <div className="bg-slate-50 rounded-xl p-4 mb-4">
-        <p className="text-sm text-slate-500">Akun Saldo</p>
-        <p className="font-semibold text-slate-800">
-          {defaultValues.nama_akun}
-        </p>
-        <p className="text-xs text-slate-400 mt-1">
-          Saldo saat ini: {idr(defaultValues.total_saldo)}
-        </p>
-      </div>
-
-      <Field label="Total Saldo Baru (Rp)">
-        <div>
-          <label htmlFor="update_saldo_display" className="sr-only">
-            Total Saldo Baru
-          </label>
-          <input
-            id="update_saldo_display"
-            type="text"
-            value={format(saldoStr)}
-            onChange={(e) => setSaldoStr(String(parse(e.target.value)))}
-            placeholder="0"
-            className={inputCls}
-          />
-          <input
-            type="hidden"
-            name="total_saldo"
-            value={parse(saldoStr)}
-          />
-        </div>
-      </Field>
-    </>
-  );
-}
+// Icon paths - sama dengan icon di tab
+const iconSaldo = "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z";
+const iconBiayaAdmin = "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z";
+const iconEdit = "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z";
 
 export default function SaldoBiayaAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("saldo");
@@ -329,7 +287,6 @@ export default function SaldoBiayaAdminPage() {
 
   const [showAddSaldo, setShowAddSaldo] = useState(false);
   const [showEditSaldo, setShowEditSaldo] = useState(false);
-  const [showUpdateSaldo, setShowUpdateSaldo] = useState(false);
   const [selectedSaldo, setSelectedSaldo] = useState<Saldo | null>(null);
   const [showDeleteSaldo, setShowDeleteSaldo] = useState(false);
   const [deleteSaldoTarget, setDeleteSaldoTarget] = useState<Saldo | null>(
@@ -419,11 +376,6 @@ export default function SaldoBiayaAdminPage() {
     setFormMsg(null);
     setShowEditSaldo(true);
   };
-  const openUpdateSaldo = (s: Saldo) => {
-    setSelectedSaldo(s);
-    setFormMsg(null);
-    setShowUpdateSaldo(true);
-  };
   const openAddBiayaAdmin = () => {
     setFormMsg(null);
     setShowAddBiayaAdmin(true);
@@ -461,24 +413,6 @@ export default function SaldoBiayaAdminPage() {
         setShowEditSaldo(false);
         setSelectedSaldo(null);
         toast.success(res.message || "Perubahan berhasil disimpan!", {
-          position: "top-center",
-        });
-        await loadSaldo();
-      } else {
-        setFormMsg({ type: "error", text: res.error! });
-      }
-    });
-  };
-
-  const handleUpdateSaldo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    startTransition(async () => {
-      const res = await updateSaldoTotalAction(null, fd);
-      if (res.success) {
-        setShowUpdateSaldo(false);
-        setSelectedSaldo(null);
-        toast.success(res.message || "Saldo berhasil diperbarui!", {
           position: "top-center",
         });
         await loadSaldo();
@@ -699,7 +633,7 @@ export default function SaldoBiayaAdminPage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+              d={iconSaldo}
             />
           </svg>
           Saldo
@@ -724,7 +658,7 @@ export default function SaldoBiayaAdminPage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+              d={iconBiayaAdmin}
             />
           </svg>
           Biaya Admin
@@ -832,7 +766,7 @@ export default function SaldoBiayaAdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {filteredSaldo.map((s, i) => (
+                    {filteredSaldo.map((s) => (
                       <tr
                         key={s.id}
                         className="hover:bg-slate-50/70 transition-colors"
@@ -854,7 +788,7 @@ export default function SaldoBiayaAdminPage() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                  d={iconSaldo}
                                 />
                               </svg>
                             </div>
@@ -904,27 +838,6 @@ export default function SaldoBiayaAdminPage() {
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => openUpdateSaldo(s)}
-                              aria-label={`Update saldo ${s.nama_akun}`}
-                              className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center transition-colors"
-                              title="Update Saldo"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                />
-                              </svg>
-                            </button>
-                            <button
                               onClick={() => openEditSaldo(s)}
                               aria-label={`Edit saldo ${s.nama_akun}`}
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
@@ -940,7 +853,7 @@ export default function SaldoBiayaAdminPage() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  d={iconEdit}
                                 />
                               </svg>
                             </button>
@@ -984,7 +897,7 @@ export default function SaldoBiayaAdminPage() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={1.5}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                d={iconSaldo}
                               />
                             </svg>
                             <p className="text-sm font-medium">
@@ -1197,7 +1110,7 @@ export default function SaldoBiayaAdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {filteredBiayaAdmin.map((b, i) => (
+                    {filteredBiayaAdmin.map((b) => (
                       <tr
                         key={b.id}
                         className="hover:bg-slate-50/70 transition-colors"
@@ -1206,9 +1119,27 @@ export default function SaldoBiayaAdminPage() {
                           {b.id}
                         </td>
                         <td className="py-3 px-4">
-                          <span className="font-bold text-slate-800 text-sm">
-                            {idr(b.nominal_biaya)}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0">
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d={iconBiayaAdmin}
+                                />
+                              </svg>
+                            </div>
+                            <span className="font-bold text-slate-800 text-sm">
+                              {idr(b.nominal_biaya)}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-3 px-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
@@ -1251,7 +1182,7 @@ export default function SaldoBiayaAdminPage() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  d={iconEdit}
                                 />
                               </svg>
                             </button>
@@ -1295,14 +1226,14 @@ export default function SaldoBiayaAdminPage() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={1.5}
-                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                                d={iconBiayaAdmin}
                               />
                             </svg>
                             <p className="text-sm font-medium">
                               Belum ada biaya admin
                             </p>
                             <p className="text-xs text-slate-300">
-                              Klik "Tambah Biaya Admin" untuk mulai
+                              Klik &quot;Tambah Biaya Admin&quot; untuk mulai
                             </p>
                           </div>
                         </td>
@@ -1433,6 +1364,7 @@ export default function SaldoBiayaAdminPage() {
           <ModalHeader
             title="Tambah Akun Saldo"
             color="bg-indigo-100 text-indigo-600"
+            iconPath={iconSaldo}
             onClose={() => setShowAddSaldo(false)}
           />
           <form onSubmit={handleAddSaldo} className="p-6 space-y-4">
@@ -1450,35 +1382,17 @@ export default function SaldoBiayaAdminPage() {
         <Modal onClose={() => setShowEditSaldo(false)}>
           <ModalHeader
             title="Edit Akun Saldo"
-            color="bg-emerald-100 text-emerald-600"
+            color="bg-amber-100 text-amber-600"
+            iconPath={iconSaldo}
             onClose={() => setShowEditSaldo(false)}
           />
-          <form onSubmit={handleEditSaldo} className="p-6 space-y-4">
+          <form key={selectedSaldo.id} onSubmit={handleEditSaldo} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedSaldo.id} />
             {formMsg && <Alert msg={formMsg} />}
             <SaldoFormFields defaultValues={selectedSaldo} />
             <FormFooter
               onCancel={() => setShowEditSaldo(false)}
               submitLabel="Simpan Perubahan"
-            />
-          </form>
-        </Modal>
-      )}
-
-      {showUpdateSaldo && selectedSaldo && (
-        <Modal onClose={() => setShowUpdateSaldo(false)}>
-          <ModalHeader
-            title="Update Saldo"
-            color="bg-emerald-100 text-emerald-600"
-            onClose={() => setShowUpdateSaldo(false)}
-          />
-          <form onSubmit={handleUpdateSaldo} className="p-6 space-y-4">
-            <input type="hidden" name="id" value={selectedSaldo.id} />
-            {formMsg && <Alert msg={formMsg} />}
-            <UpdateSaldoFormFields defaultValues={selectedSaldo} />
-            <FormFooter
-              onCancel={() => setShowUpdateSaldo(false)}
-              submitLabel="Update Saldo"
             />
           </form>
         </Modal>
@@ -1572,7 +1486,8 @@ export default function SaldoBiayaAdminPage() {
         <Modal onClose={() => setShowAddBiayaAdmin(false)}>
           <ModalHeader
             title="Tambah Biaya Admin"
-            color="bg-indigo-100 text-indigo-600"
+            color="bg-emerald-100 text-emerald-600"
+            iconPath={iconBiayaAdmin}
             onClose={() => setShowAddBiayaAdmin(false)}
           />
           <form onSubmit={handleAddBiayaAdmin} className="p-6 space-y-4">
@@ -1590,10 +1505,11 @@ export default function SaldoBiayaAdminPage() {
         <Modal onClose={() => setShowEditBiayaAdmin(false)}>
           <ModalHeader
             title="Edit Biaya Admin"
-            color="bg-emerald-100 text-emerald-600"
+            color="bg-amber-100 text-amber-600"
+            iconPath={iconBiayaAdmin}
             onClose={() => setShowEditBiayaAdmin(false)}
           />
-          <form onSubmit={handleEditBiayaAdmin} className="p-6 space-y-4">
+          <form key={selectedBiayaAdmin.id} onSubmit={handleEditBiayaAdmin} className="p-6 space-y-4">
             <input
               type="hidden"
               name="id"
