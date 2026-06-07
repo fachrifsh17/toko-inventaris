@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { Prisma } from "@prisma/client";
+import { Prisma, StatusBayarDigital } from "@prisma/client";
 
 type TransaksiWithDetails = Prisma.transaksiGetPayload<{
   include: {
@@ -39,6 +39,10 @@ export async function getDashboardSummary() {
       stokKeluarHariIni,
       produkBerlabel,
       transaksiTerbaru,
+      rekapTotal,
+      rekapLunas,
+      rekapBelumLunas,
+      rekapNominal,
     ] = await Promise.all([
       prisma.produk.count(),
       prisma.kategori.count(),
@@ -73,6 +77,16 @@ export async function getDashboardSummary() {
             },
           },
         },
+      }),
+      prisma.transaksi_digital.count(),
+      prisma.transaksi_digital.count({
+        where: { status: StatusBayarDigital.LUNAS },
+      }),
+      prisma.transaksi_digital.count({
+        where: { status: StatusBayarDigital.BELUM_LUNAS },
+      }),
+      prisma.transaksi_digital.aggregate({
+        _sum: { nominal: true },
       }),
     ]);
 
@@ -139,6 +153,12 @@ export async function getDashboardSummary() {
           jumlahTransaksiMasuk: stokMasukHariIni._count,
           stokKeluar: sumKeluarQty._sum.jumlah ?? 0,
           jumlahTransaksiKeluar: stokKeluarHariIni._count,
+        },
+        rekapTransaksiDigital: {
+          totalTransaksi: rekapTotal,
+          totalNominal: rekapNominal._sum.nominal ?? 0,
+          totalLunas: rekapLunas,
+          totalBelumLunas: rekapBelumLunas,
         },
         riwayatTerbaru,
       },

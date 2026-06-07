@@ -44,6 +44,88 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Transaksi Digital
+              </span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
+                {summary.rekapTransaksiDigital.totalTransaksi}
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                Total transaksi tercatat
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Nominal Digital
+              </span>
+              <span className="text-lg sm:text-xl font-extrabold text-slate-900 block leading-tight py-1">
+                {formatRupiah(summary.rekapTransaksiDigital.totalNominal)}
+              </span>
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 mt-1">
+                Total keseluruhan
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-emerald-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider block">
+                Lunas
+              </span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 block leading-tight">
+                {summary.rekapTransaksiDigital.totalLunas}
+              </span>
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 mt-1">
+                Transaksi selesai
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-red-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider block">
+                Belum Lunas
+              </span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-red-500 block leading-tight">
+                {summary.rekapTransaksiDigital.totalBelumLunas}
+              </span>
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-red-50 text-red-600 mt-1">
+                Menunggu pembayaran
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
                 Total Produk
               </span>
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">

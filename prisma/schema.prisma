@@ -7,14 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// --- TABEL EXISTING ---
+
 model users {
-  id           Int         @id @default(autoincrement())
-  username     String      @unique @db.VarChar(100)
-  password     String      @db.VarChar(255)
-  nama_lengkap String      @db.VarChar(150)
-  created_at   DateTime    @default(now()) @db.Timestamp(0)
-  updated_at   DateTime    @default(now()) @db.Timestamp(0)
-  transaksi    transaksi[]
+  id                Int                 @id @default(autoincrement())
+  username          String              @unique @db.VarChar(100)
+  password          String              @db.VarChar(255)
+  nama_lengkap      String              @db.VarChar(150)
+  created_at        DateTime            @default(now()) @db.Timestamp(0)
+  updated_at        DateTime            @default(now()) @db.Timestamp(0)
+  
+  // Relasi
+  transaksi         transaksi[]
+  transaksi_digital transaksi_digital[]
 }
 
 model pengaturan {
@@ -23,7 +28,7 @@ model pengaturan {
   tagline        String?  @default("Pancarkan Pesona Alami Kulitmu") @db.VarChar(255)
   deskripsi      String?  @db.Text
   no_wa_toko     String   @db.VarChar(20)
-  email          String?  @db.VarChar(255) // Kolom baru ditambahkan di sini
+  email          String?  @db.VarChar(255)
   url_logo       String?  @db.VarChar(255)
   link_instagram String?  @db.VarChar(255)
   link_facebook  String?  @db.VarChar(255)
@@ -81,12 +86,77 @@ model transaksi {
 }
 
 model detail_transaksi {
-  id               Int        @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   transaksi_id     Int
   produk_id        Int?
   jumlah           Int
   harga_modal_real Int
-  harga_jual_real  Int?       @default(0)
-  transaksi        transaksi  @relation(fields: [transaksi_id], references: [id], onDelete: Cascade)
-  produk           produk?    @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+  harga_jual_real  Int?      @default(0)
+  transaksi        transaksi @relation(fields: [transaksi_id], references: [id], onDelete: Cascade)
+  produk           produk?   @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+}
+
+// --- TABEL BARU (TRANSAKSI DIGITAL & SALDO) ---
+
+enum JenisTransaksiDigital {
+  top_up
+  transfer
+  tarik_tunai
+  ppob
+}
+
+enum StatusBayarDigital {
+  Lunas
+  Belum_Lunas @map("Belum Lunas")
+}
+
+model biaya_admin {
+  id                Int                 @id @default(autoincrement())
+  nominal_biaya     Int
+  is_active         Boolean?            @default(true)
+  created_at        DateTime            @default(now()) @db.Timestamp(0)
+  transaksi_digital transaksi_digital[]
+}
+
+model saldo {
+  id                Int                 @id @default(autoincrement())
+  nama_akun         String              @db.VarChar(100)
+  total_saldo       Int                 @default(0)
+  is_active         Boolean?            @default(true)
+  updated_at        DateTime            @default(now()) @db.Timestamp(0)
+  saldo_masuk       saldo_masuk[]
+  transaksi_digital transaksi_digital[]
+}
+
+model saldo_masuk {
+  id         Int      @id @default(autoincrement())
+  saldo_id   Int
+  nominal    Int
+  tanggal    DateTime @db.Date
+  keterangan String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  saldo      saldo    @relation(fields: [saldo_id], references: [id], onDelete: Cascade)
+}
+
+model transaksi_digital {
+  id              Int                   @id @default(autoincrement())
+  biaya_admin_id  Int
+  saldo_id        Int
+  nama_pelanggan  String?               @db.VarChar(150)
+  jenis           JenisTransaksiDigital
+  provider_bank   String                @db.VarChar(50)
+  nomor_target    String                @db.VarChar(50)
+  nominal         Int
+  biaya_lain_lain Int                   @default(0)
+  total_bayar     Int
+  status          StatusBayarDigital    @default(Lunas)
+  keterangan      String?               @db.Text
+  dicatat_oleh    Int
+  tanggal         DateTime              @db.Date
+  created_at      DateTime              @default(now()) @db.Timestamp(0)
+
+  // Relasi
+  biaya_admin     biaya_admin           @relation(fields: [biaya_admin_id], references: [id])
+  saldo           saldo                 @relation(fields: [saldo_id], references: [id])
+  users           users                 @relation(fields: [dicatat_oleh], references: [id])
 }
