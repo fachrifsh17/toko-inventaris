@@ -227,7 +227,7 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
       <div className="p-4 border-t border-gray-200 text-center">
         <div className="py-2.5 px-3 rounded-xl bg-gray-50 border-gray-100">
           <p className="text-xs text-gray-400 font-medium">Sistem Inventaris</p>
-          <p className="text-[10px] text-gray-300 mt-0.5">v1.2.0 &bull; Beta</p>
+          <p className="text-[10px] text-gray-300 mt-0.5">v1.1.0 &bull; Beta</p>
         </div>
       </div>
     </aside>

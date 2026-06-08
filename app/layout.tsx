@@ -3,7 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Toko - Admin Dashboard",
+  title: "Rofa ID Store",
   description: "Kelola operasional dan persediaan produk dengan mudah dan modern.",
 };
 

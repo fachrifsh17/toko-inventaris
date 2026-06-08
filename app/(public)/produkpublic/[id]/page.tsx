@@ -58,7 +58,7 @@ export default function ProdukDetailPage() {
   const waLink = `https://wa.me/${
     pengaturan?.no_wa_toko?.replace(/^0/, "62") || ""
   }?text=${encodeURIComponent(
-    `Halo ${pengaturan?.nama_toko || "GlowAura SkinLab"}, saya ingin memesan:\n\n*${produk?.nama_produk}*\nHarga: ${produk ? formatRupiah(produk.harga_jual) : ""}\n\nLink: ${produkLink}\n\nMohon info ketersediaan stok. Terima kasih!`
+    `Halo ${pengaturan?.nama_toko || "Toko"}, saya ingin memesan:\n\n*${produk?.nama_produk}*\nHarga: ${produk ? formatRupiah(produk.harga_jual) : ""}\n\nLink: ${produkLink}\n\nMohon info ketersediaan stok. Terima kasih!`
   )}`
 
   if (loading) {

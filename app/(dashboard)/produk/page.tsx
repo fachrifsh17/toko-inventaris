@@ -49,6 +49,7 @@ const inputCls =
   "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
 
 const iconCube = "M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10";
+const iconTag = "M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01";
 const iconEdit = "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z";
 
 function Field({
@@ -662,7 +663,7 @@ export default function ProdukPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "produk" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconCube} />
           </svg>
           Produk
         </button>
@@ -672,7 +673,7 @@ export default function ProdukPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "kategori" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconTag} />
           </svg>
           Kategori
         </button>
@@ -807,7 +808,7 @@ export default function ProdukPage() {
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconEdit} />
                               </svg>
                             </button>
                             <button
@@ -829,7 +830,7 @@ export default function ProdukPage() {
                         <td colSpan={8} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-slate-400">
                             <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={iconCube} />
                             </svg>
                             <p className="text-sm font-medium">{searchProduk ? "Produk tidak ditemukan" : "Belum ada produk"}</p>
                             <p className="text-xs text-slate-300">{searchProduk ? "Coba kata kunci lain" : 'Klik "Tambah Produk" untuk mulai'}</p>
@@ -975,7 +976,7 @@ export default function ProdukPage() {
                               className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconEdit} />
                               </svg>
                             </button>
                             <button
@@ -997,7 +998,7 @@ export default function ProdukPage() {
                         <td colSpan={5} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-slate-400">
                             <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={iconTag} />
                             </svg>
                             <p className="text-sm font-medium">{searchKategori ? "Kategori tidak ditemukan" : "Belum ada kategori"}</p>
                             <p className="text-xs text-slate-300">{searchKategori ? "Coba kata kunci lain" : 'Klik "Tambah Kategori" untuk mulai'}</p>
@@ -1082,7 +1083,7 @@ export default function ProdukPage() {
 
       {showEditProduk && selectedProduk && (
         <Modal onClose={() => setShowEditProduk(false)}>
-          <ModalHeader title="Edit Produk" color="bg-amber-100 text-amber-600" iconPath={iconEdit} onClose={() => setShowEditProduk(false)} />
+          <ModalHeader title="Edit Produk" color="bg-amber-100 text-amber-600" iconPath={iconCube} onClose={() => setShowEditProduk(false)} />
           <form key={selectedProduk.id} onSubmit={handleEditProduk} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedProduk.id} />
             {formMsg && <Alert msg={formMsg} />}
@@ -1135,7 +1136,7 @@ export default function ProdukPage() {
 
       {showAddKategori && (
         <Modal onClose={() => setShowAddKategori(false)}>
-          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" iconPath={iconCube} onClose={() => setShowAddKategori(false)} />
+          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" iconPath={iconTag} onClose={() => setShowAddKategori(false)} />
           <form onSubmit={handleAddKategori} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields />
@@ -1146,7 +1147,7 @@ export default function ProdukPage() {
 
       {showEditKategori && selectedKategori && (
         <Modal onClose={() => setShowEditKategori(false)}>
-          <ModalHeader title="Edit Kategori" color="bg-amber-100 text-amber-600" iconPath={iconEdit} onClose={() => setShowEditKategori(false)} />
+          <ModalHeader title="Edit Kategori" color="bg-amber-100 text-amber-600" iconPath={iconTag} onClose={() => setShowEditKategori(false)} />
           <form key={selectedKategori.id} onSubmit={handleEditKategori} className="p-6 space-y-4">
             <input type="hidden" name="id" value={selectedKategori.id} />
             {formMsg && <Alert msg={formMsg} />}

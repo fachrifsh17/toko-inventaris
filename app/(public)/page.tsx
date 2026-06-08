@@ -133,7 +133,7 @@ export default function HomePage() {
   }
 
   const waLink = `https://wa.me/${pengaturan?.no_wa_toko?.replace(/^0/, "62") || ""}`
-  const waMessage = `Halo ${pengaturan?.nama_toko || "GlowAura SkinLab"}, saya ingin bertanya tentang produk Anda.`
+  const waMessage = `Halo ${pengaturan?.nama_toko || "Toko"}, saya ingin bertanya tentang produk Anda.`
 
   return (
     <div className="bg-white text-gray-900 selection:bg-violet-200 selection:text-violet-900 min-h-screen font-sans antialiased">
@@ -150,7 +150,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-gray-900 mb-6 leading-[1.1]">
-            {pengaturan?.nama_toko || "GlowAura"}{" "}
+            {pengaturan?.nama_toko || "Toko"}{" "}
             <span className="font-serif italic bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent block sm:inline">
               SkinLab
             </span>
@@ -328,7 +328,7 @@ export default function HomePage() {
               Philosophy
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif text-gray-900 tracking-tight mt-2">
-              Mengapa Memilih {pengaturan?.nama_toko || "GlowAura"}?
+              Mengapa Memilih {pengaturan?.nama_toko || "Toko"}?
             </h2>
             <p className="text-sm sm:text-base text-gray-500 font-light leading-relaxed mt-4">
               {pengaturan?.deskripsi ||

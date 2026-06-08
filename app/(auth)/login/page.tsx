@@ -25,7 +25,7 @@ function SubmitButton() {
         </>
       ) : (
         <>
-          <span>Masuk ke Dashboard</span>
+          <span>Masuk</span>
           <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
@@ -37,14 +37,14 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const [state, action] = useActionState(loginAction, undefined);
-  const [namaToko, setNamaToko] = useState("GlowAura");
+  const [namaToko, setNamaToko] = useState("Toko");
   const [tagline, setTagline] = useState("Masuk ke pusat kendali operasional skincare");
   const [urlLogo, setUrlLogo] = useState("");
 
   useEffect(() => {
     getPengaturan().then((result) => {
       if (result.success && result.data) {
-        setNamaToko(result.data.nama_toko || "GlowAura");
+        setNamaToko(result.data.nama_toko || "Toko");
         setTagline(result.data.tagline || "Masuk ke pusat kendali operasional");
         setUrlLogo(result.data.url_logo || "");
       }

@@ -46,7 +46,7 @@ export default function FooterPublic({
                 </div>
               )}
               <span className="text-sm sm:text-lg font-semibold text-gray-900 truncate">
-                {pengaturan?.nama_toko || "GlowAura SkinLab"}
+                {pengaturan?.nama_toko || "Toko"}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
@@ -199,7 +199,7 @@ export default function FooterPublic({
         <div className="border-t border-gray-200 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
           <p className="text-[10px] sm:text-xs text-gray-300 text-center sm:text-left">
             © {new Date().getFullYear()}{" "}
-            {pengaturan?.nama_toko || "GlowAura SkinLab"}. All rights reserved.
+            {pengaturan?.nama_toko || "Toko"}. All rights reserved.
           </p>
           <p className="text-[10px] sm:text-xs text-gray-300">
             Crafted with care for your skin

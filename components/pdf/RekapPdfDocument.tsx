@@ -108,10 +108,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
   },
-  colItemName: { width: "40%", fontSize: 9, color: "#4b5563" },
-  colQty: { width: "15%", fontSize: 9, color: "#4b5563", textAlign: "center" },
-  colPrice: { width: "22.5%", fontSize: 9, color: "#4b5563", textAlign: "right" },
-  colSubtotal: { width: "22.5%", fontSize: 9, color: "#4b5563", textAlign: "right" },
+  colItemName4: { width: "35%", fontSize: 9, color: "#4b5563" },
+  colItemName5: { width: "30%", fontSize: 9, color: "#4b5563" },
+  colQty4: { width: "15%", fontSize: 9, color: "#4b5563", textAlign: "center" },
+  colQty5: { width: "10%", fontSize: 9, color: "#4b5563", textAlign: "center" },
+  colPrice4: { width: "25%", fontSize: 9, color: "#4b5563", textAlign: "right" },
+  colSubtotal4: { width: "25%", fontSize: 9, color: "#4b5563", textAlign: "right" },
+  colModal5: { width: "18%", fontSize: 9, color: "#4b5563", textAlign: "right" },
+  colJual5: { width: "18%", fontSize: 9, color: "#4b5563", textAlign: "right" },
+  colSubtotal5: { width: "24%", fontSize: 9, color: "#4b5563", textAlign: "right" },
   itemHeaderText: {
     fontSize: 8,
     fontWeight: "bold",
@@ -119,24 +124,98 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   transactionFooter: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: "column",
+    alignItems: "flex-end",
     padding: 8,
     backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
   },
+  footerRow: {
+    flexDirection: "row",
+    width: "50%",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  footerRowLast: {
+    flexDirection: "row",
+    width: "50%",
+    justifyContent: "space-between",
+    marginTop: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: "#d1d5db",
+  },
+  footerRowCredit: {
+    flexDirection: "row",
+    width: "50%",
+    justifyContent: "space-between",
+    marginTop: 2,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: "#fca5a5",
+  },
   footerLabel: {
     fontSize: 9,
     fontWeight: "bold",
     color: "#374151",
-    marginRight: 10,
+  },
+  footerLabelBiaya: {
+    fontSize: 9,
+    color: "#92400e",
   },
   footerValue: {
     fontSize: 9,
     fontWeight: "bold",
     color: "#111827",
-    width: "22.5%",
+    textAlign: "right",
+  },
+  footerValueBiaya: {
+    fontSize: 9,
+    color: "#92400e",
+    textAlign: "right",
+  },
+  footerValueGrand: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#111827",
+    textAlign: "right",
+  },
+  footerValueTotal: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#111827",
+    textAlign: "right",
+  },
+  footerLabelCredit: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#991b1b",
+  },
+  footerValueCredit: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#991b1b",
+    textAlign: "right",
+  },
+  footerLabelBayar: {
+    fontSize: 9,
+    color: "#166534",
+  },
+  footerValueBayar: {
+    fontSize: 9,
+    color: "#166534",
+    textAlign: "right",
+  },
+  footerLabelLunas: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#166534",
+  },
+  footerValueLunas: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#166534",
     textAlign: "right",
   },
   summaryContainer: {
@@ -180,6 +259,25 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: "#cbd5e1",
+  },
+  summaryCreditContainer: {
+    marginTop: 10,
+    padding: 12,
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fca5a5",
+    borderRadius: 6,
+    alignSelf: "flex-end",
+    width: 250,
+  },
+  summaryCreditTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#991b1b",
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fca5a5",
+    paddingBottom: 5,
   },
   pageFooter: {
     position: "absolute",
@@ -241,12 +339,23 @@ const RekapPdfDocument = ({
     });
   };
 
+  const keluarData = data.filter((t) => t.jenis_stok === "KELUAR");
+  const hasKeluar = keluarData.length > 0;
+
   const totalModal = data.reduce(
     (sum, t) => sum + (t.total_harga_modal || 0),
     0,
   );
   const totalJual = data.reduce((sum, t) => sum + (t.total_harga_jual || 0), 0);
-  const totalLaba = totalJual - totalModal;
+  const totalBiayaLain = data.reduce((sum, t) => sum + (t.biaya_lain_lain || 0), 0);
+  const totalGrandKeluar = keluarData.reduce((sum, t) => sum + (t.grand_total || 0), 0);
+  const totalLaba = totalJual - keluarData.reduce((sum, t) => sum + (t.total_harga_modal || 0), 0);
+
+  const kreditList = data.filter((t) => t.isCredit && (t.sisa_kredit || 0) > 0);
+  const kreditLunasList = data.filter((t) => t.isCredit && t.isLunas);
+  const totalTagihanKredit = kreditList.reduce((sum, t) => sum + (t.grand_total || 0), 0);
+  const totalDibayarKredit = kreditList.reduce((sum, t) => sum + (t.total_bayar || 0), 0);
+  const totalSisaKredit = kreditList.reduce((sum, t) => sum + (t.sisa_kredit || 0), 0);
 
   return (
     <Document>
@@ -287,7 +396,11 @@ const RekapPdfDocument = ({
         {data.map((transaksi, tIndex) => {
           const isMasuk = transaksi.jenis_stok === "MASUK";
           const isKeluar = transaksi.jenis_stok === "KELUAR";
-          const totalTransaksi = isMasuk ? transaksi.total_harga_modal : transaksi.total_harga_jual;
+          const biayaLain = transaksi.biaya_lain_lain || 0;
+          const grandTotal = transaksi.grand_total || 0;
+          const isCredit = transaksi.isCredit;
+          const sisaKredit = transaksi.sisa_kredit || 0;
+          const isLunas = transaksi.isLunas;
 
           return (
             <View key={transaksi.id || tIndex} style={styles.transactionBlock} wrap={false}>
@@ -304,7 +417,9 @@ const RekapPdfDocument = ({
                 </View>
                 <View style={styles.thCol3}>
                   <Text style={styles.thText}>Metode</Text>
-                  <Text style={styles.thValue}>{transaksi.metode_pembayaran || "CASH"}</Text>
+                  <Text style={[styles.thValue, { color: isCredit ? "#c2410c" : "#111827" }]}>
+                    {transaksi.metode_pembayaran || "CASH"}
+                  </Text>
                 </View>
                 <View style={styles.thCol4}>
                   <Text style={styles.thText}>Petugas</Text>
@@ -313,33 +428,94 @@ const RekapPdfDocument = ({
               </View>
 
               <View style={styles.itemTable}>
-                <View style={styles.itemHeaderRow}>
-                  <Text style={[styles.colItemName, styles.itemHeaderText]}>Nama Produk</Text>
-                  <Text style={[styles.colQty, styles.itemHeaderText]}>Qty</Text>
-                  <Text style={[styles.colPrice, styles.itemHeaderText]}>
-                    {isMasuk ? "Harga Beli" : "Harga Jual"}
-                  </Text>
-                  <Text style={[styles.colSubtotal, styles.itemHeaderText]}>Subtotal</Text>
-                </View>
+                {isMasuk ? (
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={[styles.colItemName4, styles.itemHeaderText]}>Nama Produk</Text>
+                    <Text style={[styles.colQty4, styles.itemHeaderText]}>Qty</Text>
+                    <Text style={[styles.colPrice4, styles.itemHeaderText]}>Harga Modal</Text>
+                    <Text style={[styles.colSubtotal4, styles.itemHeaderText]}>Subtotal</Text>
+                  </View>
+                ) : (
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={[styles.colItemName5, styles.itemHeaderText]}>Nama Produk</Text>
+                    <Text style={[styles.colQty5, styles.itemHeaderText]}>Qty</Text>
+                    <Text style={[styles.colModal5, styles.itemHeaderText]}>H. Modal</Text>
+                    <Text style={[styles.colJual5, styles.itemHeaderText]}>H. Jual</Text>
+                    <Text style={[styles.colSubtotal5, styles.itemHeaderText]}>Subtotal Jual</Text>
+                  </View>
+                )}
 
                 {transaksi.detail_transaksi?.map((item: any, iIndex: number) => {
-                  const hargaSatuan = isMasuk ? item.harga_modal_real : item.harga_jual_real;
-                  const subtotal = (hargaSatuan || 0) * (item.jumlah || 0);
+                  if (isMasuk) {
+                    const hargaModal = item.harga_modal_real || 0;
+                    const subtotal = hargaModal * (item.jumlah || 0);
+                    return (
+                      <View key={iIndex} style={styles.itemRow}>
+                        <Text style={styles.colItemName4}>{item.produk?.nama_produk || "Produk Tidak Diketahui"}</Text>
+                        <Text style={styles.colQty4}>{item.jumlah}x</Text>
+                        <Text style={styles.colPrice4}>{formatCurrency(hargaModal)}</Text>
+                        <Text style={styles.colSubtotal4}>{formatCurrency(subtotal)}</Text>
+                      </View>
+                    );
+                  }
 
+                  const hargaModal = item.harga_modal_real || 0;
+                  const hargaJual = item.harga_jual_real || 0;
+                  const subtotalJual = hargaJual * (item.jumlah || 0);
                   return (
                     <View key={iIndex} style={styles.itemRow}>
-                      <Text style={styles.colItemName}>{item.produk?.nama_produk || "Produk Tidak Diketahui"}</Text>
-                      <Text style={styles.colQty}>{item.jumlah}x</Text>
-                      <Text style={styles.colPrice}>{formatCurrency(hargaSatuan || 0)}</Text>
-                      <Text style={styles.colSubtotal}>{formatCurrency(subtotal)}</Text>
+                      <Text style={styles.colItemName5}>{item.produk?.nama_produk || "Produk Tidak Diketahui"}</Text>
+                      <Text style={styles.colQty5}>{item.jumlah}x</Text>
+                      <Text style={styles.colModal5}>{formatCurrency(hargaModal)}</Text>
+                      <Text style={styles.colJual5}>{formatCurrency(hargaJual)}</Text>
+                      <Text style={styles.colSubtotal5}>{formatCurrency(subtotalJual)}</Text>
                     </View>
                   );
                 })}
               </View>
 
               <View style={styles.transactionFooter}>
-                <Text style={styles.footerLabel}>Total Transaksi:</Text>
-                <Text style={styles.footerValue}>{formatCurrency(totalTransaksi)}</Text>
+                {isKeluar && (
+                  <View style={styles.footerRow}>
+                    <Text style={styles.footerLabel}>Subtotal Jual:</Text>
+                    <Text style={styles.footerValue}>{formatCurrency(transaksi.total_harga_jual)}</Text>
+                  </View>
+                )}
+                {isKeluar && biayaLain > 0 && (
+                  <View style={styles.footerRow}>
+                    <Text style={styles.footerLabelBiaya}>Biaya Lain-lain:</Text>
+                    <Text style={styles.footerValueBiaya}>{formatCurrency(biayaLain)}</Text>
+                  </View>
+                )}
+                {isKeluar ? (
+                  <View style={styles.footerRowLast}>
+                    <Text style={styles.footerLabel}>Grand Total:</Text>
+                    <Text style={styles.footerValueGrand}>{formatCurrency(grandTotal)}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.footerRowLast}>
+                    <Text style={styles.footerLabel}>Total Modal:</Text>
+                    <Text style={styles.footerValueTotal}>{formatCurrency(transaksi.total_harga_modal)}</Text>
+                  </View>
+                )}
+                {isCredit && (
+                  <View style={styles.footerRowCredit}>
+                    <Text style={styles.footerLabelBayar}>Dibayar:</Text>
+                    <Text style={styles.footerValueBayar}>{formatCurrency(transaksi.total_bayar || 0)}</Text>
+                  </View>
+                )}
+                {isCredit && sisaKredit > 0 && (
+                  <View style={styles.footerRowCredit}>
+                    <Text style={styles.footerLabelCredit}>Sisa Kredit:</Text>
+                    <Text style={styles.footerValueCredit}>{formatCurrency(sisaKredit)}</Text>
+                  </View>
+                )}
+                {isLunas && (
+                  <View style={styles.footerRowCredit}>
+                    <Text style={styles.footerLabelLunas}>Status:</Text>
+                    <Text style={styles.footerValueLunas}>LUNAS</Text>
+                  </View>
+                )}
               </View>
             </View>
           );
@@ -348,22 +524,70 @@ const RekapPdfDocument = ({
         <View style={styles.summaryContainer} wrap={false}>
           <Text style={styles.summaryTitle}>Ringkasan Keseluruhan</Text>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Nilai Masuk (Modal):</Text>
+            <Text style={styles.summaryLabel}>Total Modal:</Text>
             <Text style={styles.summaryValue}>{formatCurrency(totalModal)}</Text>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Nilai Keluar (Jual):</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(totalJual)}</Text>
-          </View>
-          <View style={styles.labaRow}>
-            <Text style={[styles.summaryLabel, { color: totalLaba >= 0 ? "#166534" : "#991b1b" }]}>
-              {totalLaba >= 0 ? "Potensi Laba Kotor:" : "Potensi Rugi Kotor:"}
-            </Text>
-            <Text style={[styles.summaryValue, { color: totalLaba >= 0 ? "#166534" : "#991b1b" }]}>
-              {formatCurrency(Math.abs(totalLaba))}
-            </Text>
-          </View>
+          {hasKeluar && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Jual:</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(totalJual)}</Text>
+            </View>
+          )}
+          {hasKeluar && totalBiayaLain > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: "#92400e" }]}>Total Biaya Lain-lain:</Text>
+              <Text style={[styles.summaryValue, { color: "#92400e" }]}>{formatCurrency(totalBiayaLain)}</Text>
+            </View>
+          )}
+          {hasKeluar && totalBiayaLain > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Grand Total Keluar:</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(totalGrandKeluar)}</Text>
+            </View>
+          )}
+          {hasKeluar && (
+            <View style={styles.labaRow}>
+              <Text style={[styles.summaryLabel, { color: totalLaba >= 0 ? "#166534" : "#991b1b" }]}>
+                {totalLaba >= 0 ? "Laba Kotor:" : "Rugi Kotor:"}
+              </Text>
+              <Text style={[styles.summaryValue, { color: totalLaba >= 0 ? "#166534" : "#991b1b" }]}>
+                {formatCurrency(Math.abs(totalLaba))}
+              </Text>
+            </View>
+          )}
         </View>
+
+        {kreditList.length > 0 && (
+          <View style={styles.summaryCreditContainer} wrap={false}>
+            <Text style={styles.summaryCreditTitle}>Ringkasan Kredit Belum Lunas ({kreditList.length} Transaksi)</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Tagihan Kredit:</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(totalTagihanKredit)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: "#166534" }]}>Total Sudah Dibayar:</Text>
+              <Text style={[styles.summaryValue, { color: "#166534" }]}>{formatCurrency(totalDibayarKredit)}</Text>
+            </View>
+            <View style={styles.labaRow}>
+              <Text style={[styles.summaryLabel, { color: "#991b1b" }]}>Total Sisa Kredit:</Text>
+              <Text style={[styles.summaryValue, { color: "#991b1b", fontSize: 11 }]}>{formatCurrency(totalSisaKredit)}</Text>
+            </View>
+          </View>
+        )}
+
+        {kreditLunasList.length > 0 && (
+          <View style={[styles.summaryCreditContainer, { backgroundColor: "#f0fdf4", borderColor: "#86efac" }]} wrap={false}>
+            <Text style={[styles.summaryCreditTitle, { color: "#166534", borderBottomColor: "#86efac" }]}>Kredit Sudah Lunas ({kreditLunasList.length} Transaksi)</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Tagihan:</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(kreditLunasList.reduce((s, t) => s + (t.grand_total || 0), 0))}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: "#166534" }]}>Total Dibayar:</Text>
+              <Text style={[styles.summaryValue, { color: "#166534" }]}>{formatCurrency(kreditLunasList.reduce((s, t) => s + (t.total_bayar || 0), 0))}</Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.pageFooter} fixed>
           <Text style={styles.pageFooterText}>Dicetak pada: {new Date().toLocaleString("id-ID")}</Text>

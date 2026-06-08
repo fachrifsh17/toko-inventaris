@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import {
   getRiwayatKeluar,
   addRiwayatKeluarAction,
+  updateRiwayatKeluarAction,
 } from "@/actions/riwayatkeluar";
 import { getProduk } from "@/actions/produk";
 import { getPengaturan } from "@/actions/pengaturan";
@@ -29,20 +30,38 @@ export default function RiwayatKeluarPage() {
   const [pengaturan, setPengaturan] = useState<any>(null);
 
   const [isPending, startTransition] = useTransition();
+  const [isEditPending, startEditTransition] = useTransition();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [inputJumlah, setInputJumlah] = useState<number>(1);
   const [hargaJual, setHargaJual] = useState<number>(0);
   const [hargaJualStr, setHargaJualStr] = useState<string>("0");
+  const [namaPelanggan, setNamaPelanggan] = useState<string>("");
+  const [totalBayar, setTotalBayar] = useState<string>("0");
+  const [formMetode, setFormMetode] = useState<string>("CASH");
+  const [biayaLain, setBiayaLain] = useState<string>("0");
 
   const [activeDetail, setActiveDetail] = useState<any | null>(null);
   const [strukPopup, setStrukPopup] = useState<any | null>(null);
+
+  const [activeEdit, setActiveEdit] = useState<any | null>(null);
+  const [editCart, setEditCart] = useState<CartItem[]>([]);
+  const [editSelectedProduct, setEditSelectedProduct] = useState<any | null>(null);
+  const [editInputJumlah, setEditInputJumlah] = useState<number>(1);
+  const [editHargaJual, setEditHargaJual] = useState<number>(0);
+  const [editHargaJualStr, setEditHargaJualStr] = useState<string>("0");
+  const [editNamaPelanggan, setEditNamaPelanggan] = useState<string>("");
+  const [editTotalBayar, setEditTotalBayar] = useState<string>("0");
+  const [editFormMetode, setEditFormMetode] = useState<string>("CASH");
+  const [editBiayaLain, setEditBiayaLain] = useState<string>("0");
 
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [tempStart, setTempStart] = useState<string>("");
   const [tempEnd, setTempEnd] = useState<string>("");
+  const [metodePembayaran, setMetodePembayaran] = useState<string>("ALL");
+  const [tempMetode, setTempMetode] = useState<string>("ALL");
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(10);
 
@@ -61,6 +80,7 @@ export default function RiwayatKeluarPage() {
         pageSize,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
+        metodePembayaran: metodePembayaran !== "ALL" ? metodePembayaran : undefined,
       }),
       getProduk(),
       getPengaturan(),
@@ -80,15 +100,35 @@ export default function RiwayatKeluarPage() {
 
   useEffect(() => {
     load();
-  }, [page, startDate, endDate]);
+  }, [page, startDate, endDate, metodePembayaran]);
 
   useEffect(() => {
     setTempStart(startDate);
     setTempEnd(endDate);
-  }, [startDate, endDate]);
+    setTempMetode(metodePembayaran);
+  }, [startDate, endDate, metodePembayaran]);
 
+  const biayaLainNum = Number(biayaLain) || 0;
   const totalItemDiForm = cart.reduce((sum, item) => sum + item.jumlah, 0);
   const totalHargaDiForm = cart.reduce((sum, item) => sum + (item.harga_jual_real * item.jumlah), 0);
+  const grandTotalAdd = totalHargaDiForm + biayaLainNum;
+  const totalBayarNum = Number(totalBayar) || 0;
+  const kembalian = totalBayarNum - grandTotalAdd;
+  const isCash = formMetode === "CASH";
+  const isCredit = formMetode === "CREDIT";
+  const isTransfer = formMetode === "TRANSFER";
+  const displayTotalBayar = isTransfer ? grandTotalAdd : totalBayarNum;
+
+  const editBiayaLainNum = Number(editBiayaLain) || 0;
+  const editTotalItemDiForm = editCart.reduce((sum, item) => sum + item.jumlah, 0);
+  const editTotalHargaDiForm = editCart.reduce((sum, item) => sum + (item.harga_jual_real * item.jumlah), 0);
+  const editGrandTotal = editTotalHargaDiForm + editBiayaLainNum;
+  const editTotalBayarNum = Number(editTotalBayar) || 0;
+  const editKembalian = editTotalBayarNum - editGrandTotal;
+  const editIsCash = editFormMetode === "CASH";
+  const editIsCredit = editFormMetode === "CREDIT";
+  const editIsTransfer = editFormMetode === "TRANSFER";
+  const editDisplayTotalBayar = editIsTransfer ? editGrandTotal : editTotalBayarNum;
 
   const handleAddToBag = () => {
     if (!selectedProduct) {
@@ -135,6 +175,11 @@ export default function RiwayatKeluarPage() {
     const form = e.currentTarget;
     const fd = new FormData(form);
     fd.append("items", JSON.stringify(cart));
+    fd.append("nama_pelanggan", namaPelanggan);
+    fd.append("biaya_lain_lain", String(biayaLainNum));
+    if (isCash || isCredit) {
+      fd.append("total_bayar", String(totalBayarNum));
+    }
 
     startTransition(async () => {
       const res = await addRiwayatKeluarAction(null, fd);
@@ -145,6 +190,10 @@ export default function RiwayatKeluarPage() {
         setSelectedProduct(null);
         setHargaJual(0);
         setHargaJualStr("0");
+        setNamaPelanggan("");
+        setTotalBayar("0");
+        setFormMetode("CASH");
+        setBiayaLain("0");
         await load();
         const resData = (res as any).data;
         if (resData) {
@@ -157,6 +206,90 @@ export default function RiwayatKeluarPage() {
         }
       } else {
         toast.error(res.error || "Gagal menyimpan transaksi.", { position: "top-center" });
+      }
+    });
+  };
+
+  const openEdit = (transaksi: any) => {
+    setActiveEdit(transaksi);
+    setEditNamaPelanggan(transaksi.nama_pelanggan || "");
+    setEditFormMetode(transaksi.metode_pembayaran || "CASH");
+    setEditTotalBayar(transaksi.total_bayar ? String(transaksi.total_bayar) : "0");
+    setEditBiayaLain(transaksi.biaya_lain_lain ? String(transaksi.biaya_lain_lain) : "0");
+    setEditCart(
+      transaksi.detail_transaksi?.map((d: any) => ({
+        produk_id: d.produk_id,
+        nama_produk: d.produk?.nama_produk || "Produk Terhapus",
+        jumlah: d.jumlah,
+        harga_modal_real: d.harga_modal_real || 0,
+        harga_jual_real: d.harga_jual_real || 0,
+      })) || []
+    );
+    setEditSelectedProduct(null);
+    setEditInputJumlah(1);
+    setEditHargaJual(0);
+    setEditHargaJualStr("0");
+  };
+
+  const handleEditAddToBag = () => {
+    if (!editSelectedProduct) {
+      toast.error("Pilih produk terlebih dahulu.", { position: "top-center" });
+      return;
+    }
+    if (editInputJumlah <= 0) {
+      toast.error("Jumlah produk harus lebih dari 0.", { position: "top-center" });
+      return;
+    }
+
+    const existingIndex = editCart.findIndex((item) => item.produk_id === editSelectedProduct.id);
+    if (existingIndex > -1) {
+      const updatedCart = [...editCart];
+      updatedCart[existingIndex].jumlah += editInputJumlah;
+      setEditCart(updatedCart);
+    } else {
+      setEditCart([
+        ...editCart,
+        {
+          produk_id: editSelectedProduct.id,
+          nama_produk: editSelectedProduct.nama_produk,
+          jumlah: editInputJumlah,
+          harga_modal_real: editSelectedProduct.harga_modal || 0,
+          harga_jual_real: editHargaJual,
+        },
+      ]);
+    }
+
+    setEditInputJumlah(1);
+  };
+
+  const handleEditRemoveFromBag = (index: number) => {
+    setEditCart(editCart.filter((_, i) => i !== index));
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (editCart.length === 0) {
+      toast.error("Gagal: Keranjang belanja masih kosong!", { position: "top-center" });
+      return;
+    }
+
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    fd.append("items", JSON.stringify(editCart));
+    fd.append("nama_pelanggan", editNamaPelanggan);
+    fd.append("biaya_lain_lain", String(editBiayaLainNum));
+    if (editIsCash || editIsCredit) {
+      fd.append("total_bayar", String(editTotalBayarNum));
+    }
+
+    startEditTransition(async () => {
+      const res = await updateRiwayatKeluarAction(activeEdit.id, null, fd);
+      if (res.success) {
+        toast.success(res.message || "Transaksi berhasil diperbarui!", { position: "top-center" });
+        setActiveEdit(null);
+        await load();
+      } else {
+        toast.error(res.error || "Gagal memperbarui transaksi.", { position: "top-center" });
       }
     });
   };
@@ -206,6 +339,53 @@ export default function RiwayatKeluarPage() {
     return pages;
   };
 
+  const renderKembalianOrSisa = (metode: string | undefined, kembalianVal: number) => {
+    const isCreditMethod = (metode || "").toUpperCase() === "CREDIT";
+    const hasSisaKredit = isCreditMethod && kembalianVal < 0;
+    const hasKembalian = kembalianVal > 0;
+
+    if (hasSisaKredit) {
+      return (
+        <div className="flex justify-between w-full sm:w-64">
+          <span className="text-rose-600 font-bold">Sisa Kredit:</span>
+          <span className="text-lg font-black text-rose-600">{idr(Math.abs(kembalianVal))}</span>
+        </div>
+      );
+    }
+    if (hasKembalian) {
+      return (
+        <div className="flex justify-between w-full sm:w-64">
+          <span className="text-slate-700 font-bold">Kembalian:</span>
+          <span className="text-lg font-black text-indigo-600">{idr(kembalianVal)}</span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const resetAddForm = () => {
+    setCart([]);
+    setSelectedProduct(null);
+    setHargaJual(0);
+    setHargaJualStr("0");
+    setNamaPelanggan("");
+    setTotalBayar("0");
+    setFormMetode("CASH");
+    setBiayaLain("0");
+  };
+
+  const resetEditForm = () => {
+    setEditCart([]);
+    setEditSelectedProduct(null);
+    setEditInputJumlah(1);
+    setEditHargaJual(0);
+    setEditHargaJualStr("0");
+    setEditNamaPelanggan("");
+    setEditTotalBayar("0");
+    setEditFormMetode("CASH");
+    setEditBiayaLain("0");
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -217,7 +397,7 @@ export default function RiwayatKeluarPage() {
           <div className="bg-white rounded-xl shadow p-4">
             <h2 className="font-semibold mb-3">Daftar Riwayat Keluar</h2>
             <div className="mb-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 items-end">
                 <div>
                   <label htmlFor="filterDari" className="text-sm text-slate-600 block">Dari</label>
                   <input
@@ -240,12 +420,28 @@ export default function RiwayatKeluarPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div>
+                  <label htmlFor="filterMetode" className="text-sm text-slate-600 block">Metode</label>
+                  <select
+                    id="filterMetode"
+                    value={tempMetode}
+                    onChange={(e) => setTempMetode(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                  >
+                    <option value="ALL">Semua Metode</option>
+                    <option value="CASH">CASH</option>
+                    <option value="TRANSFER">TRANSFER</option>
+                    <option value="CREDIT">CREDIT</option>
+                  </select>
+                </div>
+
+                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setStartDate(tempStart);
                       setEndDate(tempEnd);
+                      setMetodePembayaran(tempMetode);
                       setPage(1);
                     }}
                     className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
@@ -257,8 +453,10 @@ export default function RiwayatKeluarPage() {
                     onClick={() => {
                       setTempStart("");
                       setTempEnd("");
+                      setTempMetode("ALL");
                       setStartDate("");
                       setEndDate("");
+                      setMetodePembayaran("ALL");
                       setPage(1);
                     }}
                     className="ml-2 px-3 py-1.5 border rounded-md text-sm bg-white text-slate-700 hover:bg-slate-50 transition-colors"
@@ -300,6 +498,7 @@ export default function RiwayatKeluarPage() {
                         list.map((transaksi) => {
                           const totalItem = transaksi.detail_transaksi?.reduce((sum: number, d: any) => sum + d.jumlah, 0) ?? 0;
                           const totalHarga = transaksi.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0;
+                          const grandTotal = totalHarga + (transaksi.biaya_lain_lain || 0);
 
                           return (
                             <tr key={transaksi.id} className="border-t hover:bg-slate-50/80 transition-colors">
@@ -317,7 +516,7 @@ export default function RiwayatKeluarPage() {
                                 )}
                               </td>
                               <td className="py-3 text-center font-semibold text-slate-700">{totalItem} Pcs</td>
-                              <td className="py-3 font-semibold text-emerald-600">{idr(totalHarga)}</td>
+                              <td className="py-3 font-semibold text-emerald-600">{idr(grandTotal)}</td>
                               <td className="py-3">{renderMethodBadge(transaksi.metode_pembayaran)}</td>
                               <td className="py-3 text-center">
                                 <div className="flex items-center justify-center gap-1.5">
@@ -336,6 +535,13 @@ export default function RiwayatKeluarPage() {
                                     className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
                                   >
                                     Detail
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openEdit(transaksi)}
+                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
+                                  >
+                                    Edit
                                   </button>
                                 </div>
                               </td>
@@ -454,7 +660,7 @@ export default function RiwayatKeluarPage() {
                     type="text"
                     value={Number(hargaJualStr).toLocaleString("id-ID")}
                     onChange={(e) => {
-                      const cleaned = String(e.target.value).replace(/[^0-9-]/g, "");
+                      const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
                       setHargaJualStr(cleaned);
                       setHargaJual(Number(cleaned) || 0);
                     }}
@@ -509,10 +715,27 @@ export default function RiwayatKeluarPage() {
               )}
 
               <div>
+                <label htmlFor="inputNamaPelanggan" className="block text-sm text-slate-600 mb-1">Nama Pelanggan</label>
+                <input
+                  id="inputNamaPelanggan"
+                  type="text"
+                  value={namaPelanggan}
+                  onChange={(e) => setNamaPelanggan(e.target.value)}
+                  placeholder="Nama Pengguna"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="selectMetode" className="block text-sm text-slate-600 mb-1">Metode Pembayaran</label>
                 <select
                   id="selectMetode"
                   name="metode_pembayaran"
+                  value={formMetode}
+                  onChange={(e) => {
+                    setFormMetode(e.target.value);
+                    setTotalBayar("0");
+                  }}
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 >
                   <option value="CASH">CASH</option>
@@ -522,12 +745,71 @@ export default function RiwayatKeluarPage() {
               </div>
 
               <div>
+                <label htmlFor="inputBiayaLain" className="block text-sm text-slate-600 mb-1">Biaya Lain-lain</label>
+                <input
+                  id="inputBiayaLain"
+                  type="text"
+                  value={Number(biayaLain).toLocaleString("id-ID")}
+                  onChange={(e) => {
+                    const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
+                    setBiayaLain(cleaned);
+                  }}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+
+              {cart.length > 0 && (isCash || isCredit || isTransfer) && (
+                <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span>Subtotal Barang:</span>
+                    <span className="font-bold">{idr(totalHargaDiForm)}</span>
+                  </div>
+                  {biayaLainNum > 0 && (
+                    <div className="flex justify-between">
+                      <span>Biaya Lain-lain:</span>
+                      <span className="font-bold">{idr(biayaLainNum)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                    <span>Grand Total:</span>
+                    <span>{idr(grandTotalAdd)}</span>
+                  </div>
+                  <div>
+                    <label htmlFor="inputTotalBayar" className="block text-slate-500 mb-1">Total Bayar</label>
+                    <input
+                      id="inputTotalBayar"
+                      type="text"
+                      value={displayTotalBayar.toLocaleString("id-ID")}
+                      onChange={isTransfer ? undefined : (e) => {
+                        const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
+                        setTotalBayar(cleaned);
+                      }}
+                      placeholder="0"
+                      readOnly={isTransfer}
+                      className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
+                    />
+                  </div>
+                  {!isTransfer && displayTotalBayar > 0 && (
+                    <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                        {isCredit && kembalian < 0 ? "Sisa Kredit:" : "Kembalian:"}
+                      </span>
+                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                        {isCredit && kembalian < 0 ? idr(Math.abs(kembalian)) : kembalian < 0 ? `- ${idr(Math.abs(kembalian))}` : idr(kembalian)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
                 <label htmlFor="inputKeterangan" className="block text-sm text-slate-600 mb-1">Keterangan / Catatan</label>
                 <textarea
                   id="inputKeterangan"
                   name="keterangan"
                   rows={2}
-                  placeholder="Contoh: Pembelian Grosir Toko A"
+                  placeholder="Contoh: Pembelian Toko"
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 />
               </div>
@@ -593,6 +875,13 @@ export default function RiwayatKeluarPage() {
               </div>
             </div>
 
+            {activeDetail.nama_pelanggan && (
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Pelanggan</span>
+                <p className="text-sm font-medium text-slate-800">{activeDetail.nama_pelanggan}</p>
+              </div>
+            )}
+
             <div className="border border-slate-100 rounded-xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -623,16 +912,35 @@ export default function RiwayatKeluarPage() {
                 <span className="text-slate-500 font-medium">Total Barang Keluar:</span>
                 <span className="font-bold text-slate-800">{activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + d.jumlah, 0) ?? 0} Pcs</span>
               </div>
-              <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
-                <span className="text-slate-500 font-medium">Total Akumulasi Harga:</span>
+              <div className="flex justify-between w-full sm:w-64">
+                <span className="text-slate-500 font-medium">Total Barang:</span>
                 <span className="font-bold text-slate-800">{idr(activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0)}</span>
               </div>
-              <div className="flex justify-between w-full sm:w-64 pt-1">
-                <span className="text-slate-700 font-bold">Total Nilai Transaksi:</span>
-                <span className="text-lg font-black text-indigo-600">
-                  {idr(activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0)}
-                </span>
+              {activeDetail.biaya_lain_lain > 0 && (
+                <div className="flex justify-between w-full sm:w-64">
+                  <span className="text-amber-600 font-medium">Biaya Lain-lain:</span>
+                  <span className="font-bold text-amber-600">{idr(activeDetail.biaya_lain_lain)}</span>
+                </div>
+              )}
+              <div className="flex justify-between w-full sm:w-64 border-t border-slate-100 pt-2">
+                <span className="text-slate-700 font-bold">Grand Total:</span>
+                <span className="font-bold text-slate-800">{idr((activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0) + (activeDetail.biaya_lain_lain || 0))}</span>
               </div>
+              {activeDetail.total_bayar != null && activeDetail.total_bayar > 0 && (
+                <div className="flex justify-between w-full sm:w-64 pt-1">
+                  <span className="text-emerald-600 font-medium">Total Dibayar:</span>
+                  <span className="font-bold text-emerald-600">{idr(activeDetail.total_bayar)}</span>
+                </div>
+              )}
+              {renderKembalianOrSisa(activeDetail.metode_pembayaran, activeDetail.kembalian ?? 0)}
+              {(!activeDetail.total_bayar || activeDetail.total_bayar <= 0) && (activeDetail.kembalian == null || activeDetail.kembalian === 0) && (
+                <div className="flex justify-between w-full sm:w-64 pt-1">
+                  <span className="text-slate-700 font-bold">Total Nilai Transaksi:</span>
+                  <span className="text-lg font-black text-indigo-600">
+                    {idr((activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0) + (activeDetail.biaya_lain_lain || 0))}
+                  </span>
+                </div>
+              )}
             </div>
 
             {activeDetail.keterangan && (
@@ -660,6 +968,251 @@ export default function RiwayatKeluarPage() {
               </button>
             </div>
           </div>
+        </PortalModal>
+      )}
+
+      {activeEdit && (
+        <PortalModal onClose={() => { setActiveEdit(null); resetEditForm(); }}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+</svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Edit Transaksi</h2>
+                <p className="text-xs text-slate-400">ID: #{activeEdit.id}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setActiveEdit(null); resetEditForm(); }}
+              aria-label="Tutup edit"
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleEditSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pilih Item Barang</span>
+              <div>
+                <label htmlFor="edit_produk_id_select" className="block text-xs text-slate-500 mb-1">Produk</label>
+                <div id="edit_produk_id_select">
+                  <SearchSelect
+                    products={produkList}
+                    name="edit_temp_produk_id"
+                    placeholder="Cari nama barang..."
+                    onSelect={(p) => {
+                      setEditSelectedProduct(p);
+                      if (p) {
+                        setEditHargaJual(p.harga_jual || 0);
+                        setEditHargaJualStr(String(p.harga_jual || 0));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="edit_inputJumlah" className="block text-xs text-slate-500 mb-1">Jumlah</label>
+                  <input
+                    id="edit_inputJumlah"
+                    type="number"
+                    min={1}
+                    value={editInputJumlah}
+                    onChange={(e) => setEditInputJumlah(Math.max(1, Number(e.target.value)))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit_inputHargaJual" className="block text-xs text-slate-500 mb-1">Harga Satuan</label>
+                  <input
+                    id="edit_inputHargaJual"
+                    type="text"
+                    value={Number(editHargaJualStr).toLocaleString("id-ID")}
+                    onChange={(e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
+                      setEditHargaJualStr(cleaned);
+                      setEditHargaJual(Number(cleaned) || 0);
+                    }}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleEditAddToBag}
+                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+              >
+                + Masukkan Daftar Belanja
+              </button>
+            </div>
+
+            {editCart.length > 0 && (
+              <div className="border border-dashed border-slate-200 rounded-xl p-3 bg-white max-h-[180px] overflow-y-auto space-y-2">
+                <span className="text-xs font-semibold text-slate-500 block mb-1">List Barang Dipilih:</span>
+                {editCart.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded-lg border">
+                    <div className="pr-2">
+                      <p className="font-medium text-slate-800 line-clamp-1">{item.nama_produk}</p>
+                      <p className="text-slate-500">{item.jumlah} pcs x {idr(item.harga_jual_real)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleEditRemoveFromBag(index)}
+                      className="text-rose-500 hover:bg-rose-50 p-1 rounded-md font-bold text-sm"
+                      aria-label={`Hapus ${item.nama_produk}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {editCart.length > 0 && (
+              <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-3 text-slate-700 space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span>Total Item Pilihan:</span>
+                  <span className="font-bold">{editTotalItemDiForm} Pcs</span>
+                </div>
+                <div className="flex justify-between text-sm text-rose-700 font-bold border-t pt-1.5 border-rose-100">
+                  <span>Total Transaksi:</span>
+                  <span>{idr(editTotalHargaDiForm)}</span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="edit_inputNamaPelanggan" className="block text-sm font-medium text-slate-700 mb-1.5">Nama Pelanggan</label>
+              <input
+                id="edit_inputNamaPelanggan"
+                type="text"
+                value={editNamaPelanggan}
+                onChange={(e) => setEditNamaPelanggan(e.target.value)}
+                placeholder="Umum / walk-in"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit_selectMetode" className="block text-sm font-medium text-slate-700 mb-1.5">Metode Pembayaran</label>
+              <select
+                id="edit_selectMetode"
+                name="metode_pembayaran"
+                value={editFormMetode}
+                onChange={(e) => {
+                  setEditFormMetode(e.target.value);
+                  setEditTotalBayar("0");
+                }}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              >
+                <option value="CASH">CASH</option>
+                <option value="TRANSFER">TRANSFER</option>
+                <option value="CREDIT">CREDIT</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="edit_inputBiayaLain" className="block text-sm font-medium text-slate-700 mb-1.5">Biaya Lain-lain</label>
+              <input
+                id="edit_inputBiayaLain"
+                type="text"
+                value={Number(editBiayaLain).toLocaleString("id-ID")}
+                onChange={(e) => {
+                  const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
+                  setEditBiayaLain(cleaned);
+                }}
+                placeholder="0"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              />
+            </div>
+
+            {editCart.length > 0 && (editIsCash || editIsCredit || editIsTransfer) && (
+              <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span>Subtotal Barang:</span>
+                  <span className="font-bold">{idr(editTotalHargaDiForm)}</span>
+                </div>
+                {editBiayaLainNum > 0 && (
+                  <div className="flex justify-between">
+                    <span>Biaya Lain-lain:</span>
+                    <span className="font-bold">{idr(editBiayaLainNum)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                  <span>Grand Total:</span>
+                  <span>{idr(editGrandTotal)}</span>
+                </div>
+                <div>
+                  <label htmlFor="edit_inputTotalBayar" className="block text-slate-500 mb-1">Total Bayar</label>
+                  <input
+                    id="edit_inputTotalBayar"
+                    type="text"
+                    value={editDisplayTotalBayar.toLocaleString("id-ID")}
+                    onChange={editIsTransfer ? undefined : (e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9]/g, "");
+                      setEditTotalBayar(cleaned);
+                    }}
+                    placeholder="0"
+                    readOnly={editIsTransfer}
+                    className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${editIsTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
+                  />
+                </div>
+                {!editIsTransfer && editDisplayTotalBayar > 0 && (
+                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                      {editIsCredit && editKembalian < 0 ? "Sisa Kredit:" : "Kembalian:"}
+                    </span>
+                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                      {editIsCredit && editKembalian < 0 ? idr(Math.abs(editKembalian)) : editKembalian < 0 ? `- ${idr(Math.abs(editKembalian))}` : idr(editKembalian)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="edit_inputKeterangan" className="block text-sm font-medium text-slate-700 mb-1.5">Keterangan / Catatan</label>
+              <textarea
+                id="edit_inputKeterangan"
+                name="keterangan"
+                rows={2}
+                defaultValue={activeEdit.keterangan || ""}
+                placeholder="Contoh: Pembelian Grosir Toko A"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setActiveEdit(null); resetEditForm(); }}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isEditPending || editCart.length === 0}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {isEditPending && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                )}
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
         </PortalModal>
       )}
 

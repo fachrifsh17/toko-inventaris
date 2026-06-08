@@ -174,3 +174,161 @@ export async function addRiwayatMasukAction(
     return { success: false, error: "Gagal menambahkan riwayat masuk." };
   }
 }
+
+export async function updateRiwayatMasukAction(
+  id: number,
+  prevState: any,
+  formData: FormData,
+) {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("user_session")?.value;
+
+    if (!sessionCookie) {
+      return { success: false, error: "Sesi habis, silakan login kembali." };
+    }
+
+    let userId: number = 0;
+    if (!isNaN(Number(sessionCookie))) {
+      userId = Number(sessionCookie);
+    } else {
+      try {
+        const parsed = JSON.parse(sessionCookie);
+        userId = parseInt(
+          parsed?.id ??
+          parsed?.user?.id ??
+          parsed?.userId ??
+          parsed?.user_id ??
+          NaN
+        );
+      } catch {
+        userId = 0;
+      }
+    }
+
+    if (!userId || isNaN(userId)) {
+      return { success: false, error: "Sesi tidak valid." };
+    }
+
+    const itemsJson = formData.get("items") as string;
+    if (!itemsJson) return { success: false, error: "Daftar barang kosong." };
+
+    let items: ItemMasukInput[];
+    try {
+      items = JSON.parse(itemsJson);
+    } catch {
+      return { success: false, error: "Format data barang tidak valid." };
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return { success: false, error: "Minimal pilih satu barang." };
+    }
+
+    const metode_pembayaran = (formData.get("metode_pembayaran") as string)?.toUpperCase() || "CASH";
+    const keterangan = (formData.get("keterangan") as string) || null;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const existingTransaksi = await tx.transaksi.findUnique({
+        where: { id },
+        include: { detail_transaksi: true },
+      });
+
+      if (!existingTransaksi) {
+        return { error: "Transaksi tidak ditemukan." };
+      }
+
+      if (existingTransaksi.jenis_stok !== "MASUK") {
+        return { error: "Transaksi ini bukan transaksi masuk." };
+      }
+
+      // Reverse old stock increments
+      for (const oldItem of existingTransaksi.detail_transaksi) {
+        if (oldItem.produk_id) {
+          await tx.produk.update({
+            where: { id: oldItem.produk_id },
+            data: {
+              stok_sekarang: {
+                decrement: oldItem.jumlah,
+              },
+            },
+          });
+        }
+      }
+
+      // Delete old detail items
+      await tx.detail_transaksi.deleteMany({
+        where: { transaksi_id: id },
+      });
+
+      // Validate new items
+      for (const item of items) {
+        if (!item.produk_id) return { error: "Ada produk yang tidak valid." };
+        if (isNaN(item.jumlah) || item.jumlah <= 0) return { error: "Jumlah barang harus lebih dari 0." };
+
+        const produk = await tx.produk.findUnique({
+          where: { id: item.produk_id, is_active: true },
+        });
+
+        if (!produk) {
+          return { error: `Produk ID ${item.produk_id} tidak ditemukan atau sudah tidak aktif.` };
+        }
+      }
+
+      // Update master transaksi
+      await tx.transaksi.update({
+        where: { id },
+        data: {
+          metode_pembayaran,
+          keterangan,
+          dicatat_oleh: userId,
+        },
+      });
+
+      // Create new detail items and increment stock
+      for (const item of items) {
+        await tx.detail_transaksi.create({
+          data: {
+            transaksi_id: id,
+            produk_id: item.produk_id,
+            jumlah: item.jumlah,
+            harga_modal_real: item.harga_modal_real,
+            harga_jual_real: item.harga_jual_real,
+          },
+        });
+
+        const updateData: any = {
+          stok_sekarang: {
+            increment: item.jumlah,
+          },
+        };
+
+        if (item.harga_modal_real && item.harga_modal_real > 0) {
+          updateData.harga_modal = item.harga_modal_real;
+        }
+        if (item.harga_jual_real && item.harga_jual_real > 0) {
+          updateData.harga_jual = item.harga_jual_real;
+        }
+
+        await tx.produk.update({
+          where: { id: item.produk_id },
+          data: updateData,
+        });
+      }
+
+      return { success: true };
+    });
+
+    if (result && "error" in result) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/produk");
+    revalidatePath("/riwayat-masuk");
+    revalidatePath("/dashboard");
+
+    return { success: true, message: "Transaksi riwayat masuk berhasil diperbarui." };
+  } catch (error) {
+    console.error("Error updateRiwayatMasukAction:", error);
+    return { success: false, error: "Gagal memperbarui riwayat masuk." };
+  }
+}

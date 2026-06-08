@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { getRiwayatMasuk, addRiwayatMasukAction } from "@/actions/riwayatmasuk";
+import { getRiwayatMasuk, addRiwayatMasukAction, updateRiwayatMasukAction } from "@/actions/riwayatmasuk";
 import { getProduk } from "@/actions/produk";
 import SearchSelect from "@/components/SearchSelect";
 import PortalModal from "@/components/PortalModal";
@@ -31,6 +31,18 @@ export default function RiwayatMasukPage() {
   const [hargaJualStr, setHargaJualStr] = useState<string>("0");
 
   const [activeDetail, setActiveDetail] = useState<any | null>(null);
+
+  const [editData, setEditData] = useState<any | null>(null);
+  const [editCart, setEditCart] = useState<CartItem[]>([]);
+  const [editSelectedProduct, setEditSelectedProduct] = useState<any | null>(null);
+  const [editInputJumlah, setEditInputJumlah] = useState<number>(1);
+  const [editHargaModal, setEditHargaModal] = useState<number>(0);
+  const [editHargaModalStr, setEditHargaModalStr] = useState<string>("0");
+  const [editHargaJual, setEditHargaJual] = useState<number>(0);
+  const [editHargaJualStr, setEditHargaJualStr] = useState<string>("0");
+  const [editMetode, setEditMetode] = useState<string>("CASH");
+  const [editKeterangan, setEditKeterangan] = useState<string>("");
+  const [isEditPending, startEditTransition] = useTransition();
 
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -113,6 +125,88 @@ export default function RiwayatMasukPage() {
   const handleRemoveFromBag = (index: number) => {
     setCart(cart.filter((_, i) => i !== index));
   };
+
+  const openEditModal = (transaksi: any) => {
+    setEditData(transaksi);
+    const items: CartItem[] = (transaksi.detail_transaksi || []).map((dt: any) => ({
+      produk_id: dt.produk_id,
+      nama_produk: dt.produk?.nama_produk || "Produk Terhapus",
+      jumlah: dt.jumlah,
+      harga_modal_real: dt.harga_modal_real,
+      harga_jual_real: dt.harga_jual_real || 0,
+    }));
+    setEditCart(items);
+    setEditMetode(transaksi.metode_pembayaran || "CASH");
+    setEditKeterangan(transaksi.keterangan || "");
+    setEditSelectedProduct(null);
+    setEditInputJumlah(1);
+    setEditHargaModal(0);
+    setEditHargaModalStr("0");
+    setEditHargaJual(0);
+    setEditHargaJualStr("0");
+  };
+
+  const handleEditAddToBag = () => {
+    if (!editSelectedProduct) {
+      toast.error("Pilih produk terlebih dahulu.", { position: "top-center" });
+      return;
+    }
+    if (editInputJumlah <= 0) {
+      toast.error("Jumlah produk harus lebih dari 0.", { position: "top-center" });
+      return;
+    }
+
+    const existingIndex = editCart.findIndex((item) => item.produk_id === editSelectedProduct.id);
+    if (existingIndex > -1) {
+      const updatedCart = [...editCart];
+      updatedCart[existingIndex].jumlah += editInputJumlah;
+      setEditCart(updatedCart);
+    } else {
+      setEditCart([
+        ...editCart,
+        {
+          produk_id: editSelectedProduct.id,
+          nama_produk: editSelectedProduct.nama_produk,
+          jumlah: editInputJumlah,
+          harga_modal_real: editHargaModal,
+          harga_jual_real: editHargaJual,
+        },
+      ]);
+    }
+    setEditInputJumlah(1);
+  };
+
+  const handleEditRemoveFromBag = (index: number) => {
+    setEditCart(editCart.filter((_, i) => i !== index));
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editData) return;
+    if (editCart.length === 0) {
+      toast.error("Gagal: Daftar barang masih kosong!", { position: "top-center" });
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("items", JSON.stringify(editCart));
+    fd.append("metode_pembayaran", editMetode);
+    fd.append("keterangan", editKeterangan);
+
+    startEditTransition(async () => {
+      const res = await updateRiwayatMasukAction(editData.id, null, fd);
+      if (res.success) {
+        toast.success(res.message || "Transaksi berhasil diperbarui!", { position: "top-center" });
+        setEditData(null);
+        await load();
+      } else {
+        toast.error(res.error || "Gagal memperbarui transaksi.", { position: "top-center" });
+      }
+    });
+  };
+
+  const editTotalItem = editCart.reduce((sum, item) => sum + item.jumlah, 0);
+  const editTotalHarga = editCart.reduce((sum, item) => sum + (item.harga_modal_real * item.jumlah), 0);
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -302,13 +396,22 @@ export default function RiwayatMasukPage() {
                               <td className="py-3 font-semibold text-emerald-600">{idr(totalHarga)}</td>
                               <td className="py-3">{renderMethodBadge(transaksi.metode_pembayaran)}</td>
                               <td className="py-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveDetail(transaksi)}
-                                  className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
-                                >
-                                  Detail
-                                </button>
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveDetail(transaksi)}
+                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                  >
+                                    Detail
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditModal(transaksi)}
+                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -617,7 +720,7 @@ export default function RiwayatMasukPage() {
               </div>
               <div className="flex justify-between w-full sm:w-64 pt-1">
                 <span className="text-slate-700 font-bold">Total Nilai Transaksi:</span>
-                <span className="text-lg font-black text-indigo-600">
+                <span className="text-lg font-black text-emerald-600">
                   {idr(activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_modal_real), 0) ?? 0)}
                 </span>
               </div>
@@ -640,6 +743,187 @@ export default function RiwayatMasukPage() {
               </button>
             </div>
           </div>
+        </PortalModal>
+      )}
+
+      {editData && (
+        <PortalModal onClose={() => setEditData(null)}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Edit Transaksi Masuk</h2>
+                <p className="text-xs text-slate-400">Ubah data item, metode, atau keterangan.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setEditData(null)}
+              aria-label="Tutup edit"
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleEditSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Tambah / Ganti Item Barang</span>
+              <div>
+                <label htmlFor="editProdukSelect" className="block text-xs text-slate-500 mb-1">Produk</label>
+                <div id="editProdukSelect">
+                  <SearchSelect
+                    products={produkList}
+                    name="edit_temp_produk_id"
+                    placeholder="Cari nama barang..."
+                    onSelect={(p: any) => {
+                      setEditSelectedProduct(p);
+                      if (p) {
+                        setEditHargaModal(p.harga_modal || 0);
+                        setEditHargaModalStr(String(p.harga_modal || 0));
+                        setEditHargaJual(p.harga_jual || 0);
+                        setEditHargaJualStr(String(p.harga_jual || 0));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="editInputJumlah" className="block text-xs text-slate-500 mb-1">Jumlah</label>
+                <input
+                  id="editInputJumlah"
+                  type="number"
+                  min={1}
+                  value={editInputJumlah}
+                  onChange={(e) => setEditInputJumlah(Math.max(1, Number(e.target.value)))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="editInputHargaModal" className="block text-xs text-slate-500 mb-1">Harga Modal</label>
+                  <input
+                    id="editInputHargaModal"
+                    type="text"
+                    value={Number(editHargaModalStr).toLocaleString("id-ID")}
+                    onChange={(e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9-]/g, "");
+                      setEditHargaModalStr(cleaned);
+                      setEditHargaModal(Number(cleaned) || 0);
+                    }}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editInputHargaJual" className="block text-xs text-slate-500 mb-1">Harga Jual</label>
+                  <input
+                    id="editInputHargaJual"
+                    type="text"
+                    value={Number(editHargaJualStr).toLocaleString("id-ID")}
+                    onChange={(e) => {
+                      const cleaned = String(e.target.value).replace(/[^0-9-]/g, "");
+                      setEditHargaJualStr(cleaned);
+                      setEditHargaJual(Number(cleaned) || 0);
+                    }}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleEditAddToBag}
+                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+              >
+                + Masukkan Daftar
+              </button>
+            </div>
+
+            {editCart.length > 0 && (
+              <div className="border border-dashed border-slate-200 rounded-xl p-3 bg-white max-h-[180px] overflow-y-auto space-y-2">
+                <span className="text-xs font-semibold text-slate-500 block mb-1">List Barang:</span>
+                {editCart.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded-lg border">
+                    <div className="pr-2">
+                      <p className="font-medium text-slate-800 line-clamp-1">{item.nama_produk}</p>
+                      <p className="text-slate-500">{item.jumlah} pcs x {idr(item.harga_modal_real)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleEditRemoveFromBag(index)}
+                      className="text-rose-500 hover:bg-rose-50 p-1 rounded-md font-bold text-sm"
+                      aria-label={`Hapus ${item.nama_produk}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {editCart.length > 0 && (
+              <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 text-slate-700 space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span>Total Item:</span>
+                  <span className="font-bold">{editTotalItem} Pcs</span>
+                </div>
+                <div className="flex justify-between text-sm text-emerald-700 font-bold border-t pt-1.5 border-emerald-100">
+                  <span>Total Modal:</span>
+                  <span>{idr(editTotalHarga)}</span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="editSelectMetode" className="block text-sm text-slate-600 mb-1">Metode Pembayaran</label>
+              <select
+                id="editSelectMetode"
+                value={editMetode}
+                onChange={(e) => setEditMetode(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              >
+                <option value="CASH">CASH</option>
+                <option value="TRANSFER">TRANSFER</option>
+                <option value="CREDIT">CREDIT</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="editInputKeterangan" className="block text-sm text-slate-600 mb-1">Keterangan / Catatan</label>
+              <textarea
+                id="editInputKeterangan"
+                value={editKeterangan}
+                onChange={(e) => setEditKeterangan(e.target.value)}
+                rows={2}
+                placeholder="Contoh: Restok dari Distributor A"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditData(null)}
+                className="flex-1 px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isEditPending || editCart.length === 0}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isEditPending ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </form>
         </PortalModal>
       )}
     </div>

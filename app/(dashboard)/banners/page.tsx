@@ -753,7 +753,7 @@ export default function BannerPage() {
         <Modal onClose={() => setShowEdit(false)}>
           <ModalHeader
             title="Edit Banner"
-            color="bg-emerald-100 text-emerald-600"
+            color="bg-orange-100 text-orange-600"
             onClose={() => setShowEdit(false)}
           />
           <form onSubmit={handleEdit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">

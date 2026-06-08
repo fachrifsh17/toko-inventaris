@@ -83,12 +83,17 @@ export async function getRekapData(
 
       const total_item = t.detail_transaksi.reduce((sum, item) => sum + (item.jumlah || 0), 0);
 
-      return { ...t, total_harga_modal, total_harga_jual, total_item };
+      const biaya_lain_lain = t.biaya_lain_lain ?? 0;
+
+      const grand_total = isKeluar
+        ? total_harga_jual + biaya_lain_lain
+        : total_harga_modal;
+
+      return { ...t, total_harga_modal, total_harga_jual, total_item, biaya_lain_lain, grand_total };
     });
 
     return { data, total, page, limit };
   } catch (error) {
-    console.error("Error:", error);
     return { data: [], total: 0, page, limit };
   }
 }
@@ -127,9 +132,14 @@ export async function getRekapDetail(id: number) {
 
     const total_item = transaksi.detail_transaksi.reduce((sum, item) => sum + (item.jumlah || 0), 0);
 
-    return { ...transaksi, total_harga_modal, total_harga_jual, total_item };
+    const biaya_lain_lain = transaksi.biaya_lain_lain ?? 0;
+
+    const grand_total = isKeluar
+      ? total_harga_jual + biaya_lain_lain
+      : total_harga_modal;
+
+    return { ...transaksi, total_harga_modal, total_harga_jual, total_item, biaya_lain_lain, grand_total };
   } catch (error) {
-    console.error("Error:", error);
     return null;
   }
 }
@@ -147,14 +157,64 @@ export async function updateRekap(id: number, formData: FormData) {
     const tanggal = new Date(formData.get("tanggal") as string);
     const jenis_stok = formData.get("jenis_stok") as string;
     const metode_pembayaran = (formData.get("metode_pembayaran") as string) || "CASH";
+    const nama_pelanggan = (formData.get("nama_pelanggan") as string) || null;
+    const biaya_lain_lain = parseInt(formData.get("biaya_lain_lain") as string) || 0;
+    const total_bayar = parseInt(formData.get("total_bayar") as string) || 0;
+
+    if (biaya_lain_lain < 0) {
+      return { success: false, error: "Biaya lain-lain tidak boleh negatif." };
+    }
+
+    const transaksi = await prisma.transaksi.findUnique({
+      where: { id },
+      include: {
+        detail_transaksi: true,
+      },
+    });
+
+    if (!transaksi) {
+      return { success: false, error: "Transaksi tidak ditemukan." };
+    }
+
+    const targetJenisStok = jenis_stok.toUpperCase();
+    const isKeluar = targetJenisStok === "KELUAR";
+    const isMasuk = targetJenisStok === "MASUK";
+
+    const total_harga_modal = isKeluar
+      ? 0
+      : transaksi.detail_transaksi.reduce((sum, item) => sum + (item.harga_modal_real || 0) * (item.jumlah || 0), 0);
+
+    const total_harga_jual = isMasuk
+      ? 0
+      : transaksi.detail_transaksi.reduce((sum, item) => sum + (item.harga_jual_real || 0) * (item.jumlah || 0), 0);
+
+    const grand_total = isKeluar
+      ? total_harga_jual + biaya_lain_lain
+      : total_harga_modal;
+
+    let kembalian = 0;
+    const metodeUpper = metode_pembayaran.toUpperCase();
+
+    if (metodeUpper === "CASH") {
+      kembalian = total_bayar - grand_total;
+      if (kembalian < 0) kembalian = 0;
+    } else if (metodeUpper === "TRANSFER") {
+      kembalian = 0;
+    } else if (metodeUpper === "CREDIT") {
+      kembalian = total_bayar - grand_total;
+    }
 
     await prisma.transaksi.update({
       where: { id },
       data: {
-        jenis_stok: jenis_stok.toUpperCase(),
+        jenis_stok: targetJenisStok,
         metode_pembayaran,
         keterangan,
         tanggal,
+        nama_pelanggan,
+        biaya_lain_lain,
+        total_bayar,
+        kembalian,
       },
     });
 
@@ -199,9 +259,15 @@ export async function exportRekapIndividual(id: number) {
 
     const total_item = transaksi.detail_transaksi.reduce((sum, item) => sum + (item.jumlah || 0), 0);
 
+    const biaya_lain_lain = transaksi.biaya_lain_lain ?? 0;
+
+    const grand_total = isKeluar
+      ? total_harga_jual + biaya_lain_lain
+      : total_harga_modal;
+
     return {
       success: true,
-      data: { ...transaksi, total_harga_modal, total_harga_jual, total_item },
+      data: { ...transaksi, total_harga_modal, total_harga_jual, total_item, biaya_lain_lain, grand_total },
     };
   } catch (error) {
     return { success: false, error: (error as Error).message };
@@ -279,7 +345,13 @@ export async function exportRekapFiltered(
 
       const total_item = t.detail_transaksi.reduce((sum, item) => sum + (item.jumlah || 0), 0);
 
-      return { ...t, total_harga_modal, total_harga_jual, total_item };
+      const biaya_lain_lain = t.biaya_lain_lain ?? 0;
+
+      const grand_total = isKeluar
+        ? total_harga_jual + biaya_lain_lain
+        : total_harga_modal;
+
+      return { ...t, total_harga_modal, total_harga_jual, total_item, biaya_lain_lain, grand_total };
     });
 
     return { success: true, data };

@@ -110,7 +110,7 @@ export async function addTransaksiDigitalAction(
     const statusInput = (formData.get("status") as string) || "Lunas";
     const keterangan = (formData.get("keterangan") as string)?.trim() || null;
 
-    const status = statusInput === "Belum Lunas" ? "Belum_Lunas" : "Lunas";
+    const status = (statusInput === "Belum Lunas" || statusInput === "Belum_Lunas") ? "Belum_Lunas" : "Lunas";
 
     let tanggal = new Date();
     const tanggalInput = formData.get("tanggal");
@@ -268,7 +268,7 @@ export async function editTransaksiDigitalAction(
     const statusInput = (formData.get("status") as string) || "Lunas";
     const keterangan = (formData.get("keterangan") as string)?.trim() || null;
 
-    const status = statusInput === "Belum Lunas" ? "Belum_Lunas" : "Lunas";
+    const status = (statusInput === "Belum Lunas" || statusInput === "Belum_Lunas") ? "Belum_Lunas" : "Lunas";
 
     if (isNaN(biaya_admin_id) || biaya_admin_id <= 0) {
       return { success: false, error: "Biaya admin tidak valid." };
@@ -496,11 +496,11 @@ export async function updateStatusTransaksiDigitalAction(
       return { success: false, error: "ID tidak valid." };
     }
 
-    if (!statusInput || !["Lunas", "Belum Lunas"].includes(statusInput)) {
+    if (!statusInput || !["Lunas", "Belum Lunas", "Belum_Lunas"].includes(statusInput)) {
       return { success: false, error: "Status tidak valid." };
     }
 
-    const status = statusInput === "Belum Lunas" ? "Belum_Lunas" : "Lunas";
+    const status = (statusInput === "Belum Lunas" || statusInput === "Belum_Lunas") ? "Belum_Lunas" : "Lunas";
 
     const result = await prisma.$transaction(async (tx) => {
       const existing = await tx.transaksi_digital.findUnique({

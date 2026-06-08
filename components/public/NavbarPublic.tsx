@@ -44,7 +44,7 @@ export default function NavbarPublic({
             </div>
           )}
           <span className="text-sm sm:text-lg font-semibold tracking-tight text-gray-900 truncate max-w-[120px] sm:max-w-none">
-            {pengaturan?.nama_toko || "GlowAura SkinLab"}
+            {pengaturan?.nama_toko || "Toko"}
           </span>
         </Link>
 

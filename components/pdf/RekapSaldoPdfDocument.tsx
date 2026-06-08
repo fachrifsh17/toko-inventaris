@@ -483,7 +483,7 @@ const RekapSaldoPdfDocument = ({
         <View style={styles.header}>
           <View style={styles.shopInfo}>
             <Text style={styles.shopName}>
-              {pengaturan?.nama_toko || "GLOWAURA SKINLAB"}
+              {pengaturan?.nama_toko || "Toko"}
             </Text>
             {pengaturan?.tagline && (
               <Text style={styles.shopTagline}>{pengaturan.tagline}</Text>

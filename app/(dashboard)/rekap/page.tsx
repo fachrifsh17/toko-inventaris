@@ -30,6 +30,11 @@ type TransaksiItem = {
   total_harga_modal: number;
   total_harga_jual: number;
   total_item: number;
+  biaya_lain_lain: number;
+  grand_total: number;
+  nama_pelanggan?: string | null;
+  total_bayar?: number | null;
+  kembalian?: number | null;
   users?: {
     username: string;
     nama_lengkap?: string;
@@ -38,6 +43,15 @@ type TransaksiItem = {
 };
 
 type Msg = { type: "success" | "error"; text: string };
+
+const formatNumberInput = (val: string) => {
+  const num = val.replace(/\D/g, "");
+  return num ? parseInt(num, 10).toLocaleString("id-ID") : "";
+};
+
+const parseNumberInput = (val: string) => {
+  return parseInt(val.replace(/\./g, "").replace(/\D/g, ""), 10) || 0;
+};
 
 export default function RekapPage() {
   const [data, setData] = useState<TransaksiItem[]>([]);
@@ -61,8 +75,23 @@ export default function RekapPage() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [formMsg, setFormMsg] = useState<Msg | null>(null);
 
+  const [editJenisStok, setEditJenisStok] = useState<string>("masuk");
+  const [editBiayaLain, setEditBiayaLain] = useState<string>("0");
+  const [editTotalBayar, setEditTotalBayar] = useState<string>("0");
+  const [editMetode, setEditMetode] = useState<string>("CASH");
+
   const [isPending, startTransition] = useTransition();
   const [isExporting, setIsExporting] = useState(false);
+
+  const isKeluar = editJenisStok.toLowerCase() === "keluar";
+
+  const kembalianHitung = (() => {
+    if (!selected || !isKeluar) return 0;
+    const biaya = parseNumberInput(editBiayaLain);
+    const bayar = parseNumberInput(editTotalBayar);
+    const grand = (selected.total_harga_jual || 0) + biaya;
+    return bayar - grand;
+  })();
 
   const loadRekap = async () => {
     setLoading(true);
@@ -115,6 +144,7 @@ export default function RekapPage() {
     const q = searchQuery.toLowerCase();
     const matchTransaksi =
       item.keterangan?.toLowerCase().includes(q) ||
+      item.nama_pelanggan?.toLowerCase().includes(q) ||
       item.users?.nama_lengkap?.toLowerCase().includes(q) ||
       item.users?.username?.toLowerCase().includes(q) ||
       item.metode_pembayaran?.toLowerCase().includes(q) ||
@@ -154,6 +184,11 @@ export default function RekapPage() {
   const openEdit = (item: TransaksiItem) => {
     setSelected(item);
     setFormMsg(null);
+    const jenis = item.jenis_stok?.toLowerCase() || "masuk";
+    setEditJenisStok(jenis);
+    setEditBiayaLain(String(item.biaya_lain_lain || 0));
+    setEditTotalBayar(String(item.total_bayar || 0));
+    setEditMetode(item.metode_pembayaran || "CASH");
     setShowEdit(true);
   };
 
@@ -162,6 +197,9 @@ export default function RekapPage() {
     if (!selected) return;
 
     const formData = new FormData(e.currentTarget);
+    formData.set("biaya_lain_lain", String(isKeluar ? parseNumberInput(editBiayaLain) : 0));
+    formData.set("total_bayar", String(isKeluar ? parseNumberInput(editTotalBayar) : 0));
+    formData.set("kembalian", String(isKeluar ? kembalianHitung : 0));
 
     startTransition(async () => {
       const res = await updateRekap(selected.id, formData);
@@ -190,19 +228,19 @@ export default function RekapPage() {
         toast.error((res as any).error || "Gagal mengambil data PDF", { position: "top-center" });
       } else {
         const blob = await pdf(
-          <RekapPdfDocument 
-            data={res.data} 
-            pengaturan={res.pengaturan} 
+          <RekapPdfDocument
+            data={res.data}
+            pengaturan={res.pengaturan}
             filters={{
               type: typeParam,
               kategori: katParam,
               startDate: startDate || undefined,
               endDate: endDate || undefined,
               metode: metodeParam,
-            }} 
+            }}
           />
         ).toBlob();
-        
+
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -211,7 +249,7 @@ export default function RekapPage() {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        
+
         toast.success("PDF berhasil diunduh", { position: "top-center" });
       }
     } catch (error) {
@@ -246,6 +284,30 @@ export default function RekapPage() {
       pages.push(totalPagesCount);
     }
     return pages;
+  };
+
+  const renderKembalianOrSisa = (metode: string | undefined, kembalianVal: number) => {
+    const isCreditMethod = (metode || "").toUpperCase() === "CREDIT";
+    const hasSisaKredit = isCreditMethod && kembalianVal < 0;
+    const hasKembalian = kembalianVal > 0;
+
+    if (hasSisaKredit) {
+      return (
+        <div className="flex justify-between w-full sm:w-64">
+          <span className="text-rose-600 font-bold">Sisa Kredit:</span>
+          <span className="text-lg font-black text-rose-600">{formatRupiah(Math.abs(kembalianVal))}</span>
+        </div>
+      );
+    }
+    if (hasKembalian) {
+      return (
+        <div className="flex justify-between w-full sm:w-64">
+          <span className="text-slate-700 font-bold">Kembalian:</span>
+          <span className="text-lg font-black text-indigo-600">{formatRupiah(kembalianVal)}</span>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -386,7 +448,7 @@ export default function RekapPage() {
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari transaksi, keterangan, petugas..."
+          placeholder="Cari transaksi, pelanggan, keterangan, petugas..."
           aria-label="Cari transaksi"
           className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
         />
@@ -407,41 +469,48 @@ export default function RekapPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider">
-                    <th className="py-4 px-6 font-semibold">No</th>
-                    <th className="py-4 px-6 font-semibold">Tanggal</th>
-                    <th className="py-4 px-6 font-semibold text-center">Tipe</th>
-                    <th className="py-4 px-6 font-semibold text-center">Metode</th>
-                    <th className="py-4 px-6 font-semibold text-center">Total Item</th>
-                    <th className="py-4 px-6 font-semibold text-right">Total Modal</th>
-                    <th className="py-4 px-6 font-semibold text-right">Total Jual</th>
-                    <th className="py-4 px-6 font-semibold">Keterangan</th>
-                    <th className="py-4 px-6 font-semibold">Petugas</th>
-                    <th className="py-4 px-6 font-semibold text-center">Aksi</th>
+                    <th className="py-4 px-4 font-semibold">No</th>
+                    <th className="py-4 px-4 font-semibold">Tanggal</th>
+                    <th className="py-4 px-4 font-semibold text-center">Tipe</th>
+                    <th className="py-4 px-4 font-semibold">Pelanggan</th>
+                    <th className="py-4 px-4 font-semibold text-center">Metode</th>
+                    <th className="py-4 px-4 font-semibold text-center">Total Item</th>
+                    <th className="py-4 px-4 font-semibold text-right">Total Modal</th>
+                    <th className="py-4 px-4 font-semibold text-right">Total Jual</th>
+                    <th className="py-4 px-4 font-semibold text-right">Biaya Lain</th>
+                    <th className="py-4 px-4 font-semibold text-right">Grand Total</th>
+                    <th className="py-4 px-4 font-semibold text-right">Total Bayar</th>
+                    <th className="py-4 px-4 font-semibold">Keterangan</th>
+                    <th className="py-4 px-4 font-semibold">Petugas</th>
+                    <th className="py-4 px-4 font-semibold text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {displayData.map((item, i) => (
                     <tr key={item.id} className="hover:bg-slate-50/70 transition-colors group">
-                      <td className="py-4 px-6 text-slate-500 text-sm">
+                      <td className="py-4 px-4 text-slate-500 text-sm">
                         {(page - 1) * limit + i + 1}
                       </td>
-                      <td className="py-4 px-6 text-slate-600 text-sm whitespace-nowrap">
+                      <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">
                         {new Date(item.tanggal).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 text-center">
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
-                          item.jenis_stok?.toLowerCase() === "masuk" 
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                          item.jenis_stok?.toLowerCase() === "masuk"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : "bg-rose-50 text-rose-700 border-rose-200"
                         }`}>
                           {item.jenis_stok}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 text-slate-600 text-sm max-w-[140px] truncate">
+                        {item.nama_pelanggan || "-"}
+                      </td>
+                      <td className="py-4 px-4 text-center">
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
                           item.metode_pembayaran === "CASH"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -452,22 +521,43 @@ export default function RekapPage() {
                           {item.metode_pembayaran}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-slate-800 text-sm font-bold text-center">
+                      <td className="py-4 px-4 text-slate-800 text-sm font-bold text-center">
                         {item.total_item}
                       </td>
-                      <td className="py-4 px-6 text-slate-600 text-sm text-right font-medium">
+                      <td className="py-4 px-4 text-slate-600 text-sm text-right font-medium">
                         {formatRupiah(item.total_harga_modal)}
                       </td>
-                      <td className="py-4 px-6 text-slate-600 text-sm text-right font-medium">
+                      <td className="py-4 px-4 text-slate-600 text-sm text-right font-medium">
                         {formatRupiah(item.total_harga_jual)}
                       </td>
-                      <td className="py-4 px-6 text-slate-500 text-sm max-w-xs truncate">
+                      <td className="py-4 px-4 text-sm text-right font-medium whitespace-nowrap">
+                        {item.biaya_lain_lain > 0 ? (
+                          <span className="text-orange-600 font-semibold">{formatRupiah(item.biaya_lain_lain)}</span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-right font-bold whitespace-nowrap">
+                        {item.grand_total > 0 ? (
+                          <span className="text-black">{formatRupiah(item.grand_total)}</span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-right font-medium whitespace-nowrap">
+                        {item.total_bayar != null && item.total_bayar > 0 ? (
+                          <span className="text-emerald-600 font-semibold">{formatRupiah(item.total_bayar)}</span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-slate-500 text-sm max-w-xs truncate">
                         {item.keterangan || "-"}
                       </td>
-                      <td className="py-4 px-6 text-slate-600 text-sm font-medium">
+                      <td className="py-4 px-4 text-slate-600 text-sm font-medium">
                         {item.users?.nama_lengkap || item.users?.username || "Sistem"}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => openDetailModal(item.id)}
@@ -494,7 +584,7 @@ export default function RekapPage() {
                   ))}
                   {displayData.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="py-16 text-center">
+                      <td colSpan={14} className="py-16 text-center">
                         <div className="flex flex-col items-center gap-2 text-slate-400">
                           <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -642,10 +732,17 @@ export default function RekapPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">PETUGAS</span>
+                    <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Petugas</span>
                     <span className="block text-sm font-medium text-slate-700 mt-1">{detailData.users?.nama_lengkap || detailData.users?.username || "Sistem"}</span>
                   </div>
                 </div>
+
+                {detailData.nama_pelanggan && (
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Pelanggan</span>
+                    <p className="text-sm font-medium text-slate-800">{detailData.nama_pelanggan}</p>
+                  </div>
+                )}
 
                 <div className="border border-slate-100 rounded-xl">
                   <div className="overflow-x-auto">
@@ -663,8 +760,8 @@ export default function RekapPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-sm">
                         {detailData.detail_transaksi?.map((item) => {
-                          const subtotal = detailData.jenis_stok.toLowerCase() === "masuk" 
-                            ? (item.harga_modal_real || 0) * item.jumlah 
+                          const subtotal = detailData.jenis_stok.toLowerCase() === "masuk"
+                            ? (item.harga_modal_real || 0) * item.jumlah
                             : (item.harga_jual_real || 0) * item.jumlah;
 
                           return (
@@ -691,16 +788,39 @@ export default function RekapPage() {
                   )}
                   {detailData.jenis_stok.toLowerCase() === "keluar" && (
                     <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
-                      <span className="text-slate-500 font-medium">Total Akumulasi Jual:</span>
+                      <span className="text-slate-500 font-medium">Subtotal Barang:</span>
                       <span className="font-bold text-slate-800">{formatRupiah(detailData.total_harga_jual)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between w-full sm:w-64 pt-1">
-                    <span className="text-slate-700 font-bold">Total Nilai Aliran:</span>
-                    <span className="text-lg font-black text-indigo-600">
-                      {formatRupiah(detailData.jenis_stok.toLowerCase() === "masuk" ? detailData.total_harga_modal : detailData.total_harga_jual)}
-                    </span>
-                  </div>
+                  {detailData.jenis_stok.toLowerCase() === "keluar" && detailData.biaya_lain_lain > 0 && (
+                    <div className="flex justify-between w-full sm:w-64 border-b border-slate-100 pb-2">
+                      <span className="text-orange-600 font-medium">Biaya Lain-lain:</span>
+                      <span className="font-bold text-orange-600">{formatRupiah(detailData.biaya_lain_lain)}</span>
+                    </div>
+                  )}
+                  {detailData.jenis_stok.toLowerCase() === "keluar" && (
+                    <div className="flex justify-between w-full sm:w-64 pt-1">
+                      <span className="text-slate-700 font-bold">Grand Total:</span>
+                      <span className="text-lg font-black text-black">{formatRupiah(detailData.grand_total)}</span>
+                    </div>
+                  )}
+                  {detailData.total_bayar != null && detailData.total_bayar > 0 && (
+                    <div className="flex justify-between w-full sm:w-64 pt-1 border-t border-slate-100">
+                      <span className="text-emerald-600 font-medium">Total Dibayar:</span>
+                      <span className="font-bold text-emerald-600">{formatRupiah(detailData.total_bayar)}</span>
+                    </div>
+                  )}
+                  {detailData.kembalian != null && detailData.kembalian !== 0 && (
+                    renderKembalianOrSisa(detailData.metode_pembayaran, detailData.kembalian)
+                  )}
+                  {detailData.jenis_stok.toLowerCase() === "masuk" && (!detailData.total_bayar || detailData.total_bayar <= 0) && (detailData.kembalian == null || detailData.kembalian === 0) && (
+                    <div className="flex justify-between w-full sm:w-64 pt-1">
+                      <span className="text-slate-700 font-bold">Total Nilai Aliran:</span>
+                      <span className="text-lg font-black text-emerald-600">
+                        {formatRupiah(detailData.total_harga_modal)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {detailData.keterangan && (
@@ -713,7 +833,7 @@ export default function RekapPage() {
             ) : (
               <div className="text-center py-6 text-red-500 font-medium">Gagal memuat rincian item transaksi.</div>
             )}
-            
+
             <div className="flex justify-end pt-2">
               <button
                 type="button"
@@ -733,7 +853,7 @@ export default function RekapPage() {
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 14h2.5v4H6v-4z M11 10h2.5v8H11v-8z M16 6h2.5v12H16V6z" />
                 </svg>
               </div>
               <div>
@@ -766,40 +886,103 @@ export default function RekapPage() {
                   id="edit-jenis-stok"
                   name="jenis_stok"
                   required
-                  defaultValue={selected.jenis_stok?.toLowerCase()}
+                  value={editJenisStok}
+                  onChange={(e) => setEditJenisStok(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white"
                 >
                   <option value="masuk">Masuk</option>
                   <option value="keluar">Keluar</option>
                 </select>
               </div>
-              <div>
-                <label htmlFor="edit-metode-pembayaran" className="block text-sm font-medium text-slate-700 mb-1.5">Metode Pembayaran</label>
-                <select
-                  id="edit-metode-pembayaran"
-                  name="metode_pembayaran"
-                  required
-                  defaultValue={selected.metode_pembayaran || "CASH"}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white"
-                >
-                  <option value="CASH">CASH</option>
-                  <option value="TRANSFER">TRANSFER</option>
-                  <option value="CREDIT">CREDIT</option>
-                </select>
-              </div>
+              {isKeluar && (
+                <div>
+                  <label htmlFor="edit-metode-pembayaran" className="block text-sm font-medium text-slate-700 mb-1.5">Metode Pembayaran</label>
+                  <select
+                    id="edit-metode-pembayaran"
+                    name="metode_pembayaran"
+                    required
+                    value={editMetode}
+                    onChange={(e) => setEditMetode(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white"
+                  >
+                    <option value="CASH">CASH</option>
+                    <option value="TRANSFER">TRANSFER</option>
+                    <option value="CREDIT">CREDIT</option>
+                  </select>
+                </div>
+              )}
             </div>
 
-            <div>
-              <label htmlFor="edit-tanggal" className="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Perubahan</label>
-              <input
-                id="edit-tanggal"
-                type="date"
-                name="tanggal"
-                required
-                defaultValue={new Date(selected.tanggal).toISOString().split("T")[0]}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              />
+            {isKeluar && (
+              <div>
+                <label htmlFor="edit-nama-pelanggan" className="block text-sm font-medium text-slate-700 mb-1.5">Nama Pelanggan</label>
+                <input
+                  id="edit-nama-pelanggan"
+                  type="text"
+                  name="nama_pelanggan"
+                  defaultValue={selected.nama_pelanggan || ""}
+                  placeholder="Umum / walk-in"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white"
+                />
+              </div>
+            )}
+
+            <div className={isKeluar ? "grid grid-cols-3 gap-4" : ""}>
+              <div>
+                <label htmlFor="edit-tanggal" className="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Perubahan</label>
+                <input
+                  id="edit-tanggal"
+                  type="date"
+                  name="tanggal"
+                  required
+                  defaultValue={new Date(selected.tanggal).toISOString().split("T")[0]}
+                  className={`w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${!isKeluar ? "max-w-xs" : ""}`}
+                />
+              </div>
+              {isKeluar && (
+                <>
+                  <div>
+                    <label htmlFor="edit-biaya-lain-lain" className="block text-sm font-medium text-slate-700 mb-1.5">Biaya Lain-lain</label>
+                    <input
+                      id="edit-biaya-lain-lain"
+                      type="text"
+                      inputMode="numeric"
+                      value={editBiayaLain}
+                      onChange={(e) => setEditBiayaLain(formatNumberInput(e.target.value))}
+                      placeholder="0"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-total-bayar" className="block text-sm font-medium text-slate-700 mb-1.5">Total Bayar</label>
+                    <input
+                      id="edit-total-bayar"
+                      type="text"
+                      inputMode="numeric"
+                      value={editTotalBayar}
+                      onChange={(e) => setEditTotalBayar(formatNumberInput(e.target.value))}
+                      placeholder="0"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                    />
+                  </div>
+                </>
+              )}
             </div>
+
+            {isKeluar && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  {kembalianHitung < 0 ? "Sisa Kredit" : kembalianHitung === 0 ? "Kembalian" : "Kembalian"} (otomatis)
+                </label>
+                <div className={`w-full border rounded-xl px-4 py-2.5 text-sm font-bold text-right ${
+                  kembalianHitung < 0
+                    ? "bg-rose-50 border-rose-200 text-rose-700"
+                    : "bg-slate-50 border-slate-200 text-slate-800"
+                }`}>
+                  {kembalianHitung < 0 ? "- " : ""}{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Math.abs(kembalianHitung))}
+                </div>
+              </div>
+            )}
 
             <div>
               <label htmlFor="edit-keterangan" className="block text-sm font-medium text-slate-700 mb-1.5">Keterangan / Alasan</label>

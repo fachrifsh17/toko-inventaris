@@ -333,3 +333,35 @@ export async function tambahRiwayatStokAction(data: {
     return { success: false, error: "Gagal memproses stok" };
   }
 }
+
+export async function getUnpaidTransactionsCount() {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu.", count: 0 };
+    }
+
+    const [creditTransaksiCount, belumLunasDigitalCount] = await Promise.all([
+      prisma.transaksi.count({
+        where: {
+          metode_pembayaran: "CREDIT",
+        },
+      }),
+      prisma.transaksi_digital.count({
+        where: {
+          status: StatusBayarDigital.Belum_Lunas,
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      count: creditTransaksiCount + belumLunasDigitalCount,
+    };
+  } catch (error) {
+    console.error("Error getUnpaidTransactionsCount:", error);
+    return { success: false, error: "Gagal mengambil jumlah transaksi belum lunas.", count: 0 };
+  }
+}

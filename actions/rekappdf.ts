@@ -74,19 +74,15 @@ export async function getRekapPdfData(
       const isKeluar = t.jenis_stok === "KELUAR";
       const isMasuk = t.jenis_stok === "MASUK";
 
-      const total_harga_modal = isKeluar
-        ? 0
-        : t.detail_transaksi.reduce(
-            (sum, item) =>
-              sum + (item.harga_modal_real || 0) * (item.jumlah || 0),
-            0,
-          );
+      const total_harga_modal = t.detail_transaksi.reduce(
+        (sum, item) => sum + (item.harga_modal_real || 0) * (item.jumlah || 0),
+        0,
+      );
 
       const total_harga_jual = isMasuk
         ? 0
         : t.detail_transaksi.reduce(
-            (sum, item) =>
-              sum + (item.harga_jual_real || 0) * (item.jumlah || 0),
+            (sum, item) => sum + (item.harga_jual_real || 0) * (item.jumlah || 0),
             0,
           );
 
@@ -95,11 +91,30 @@ export async function getRekapPdfData(
         0,
       );
 
+      const biaya_lain_lain = t.biaya_lain_lain ?? 0;
+
+      const grand_total = isKeluar
+        ? total_harga_jual + biaya_lain_lain
+        : total_harga_modal;
+
+      const total_bayar = t.total_bayar ?? 0;
+
+      const isCredit = isKeluar && t.metode_pembayaran === "CREDIT";
+      const sisa_kredit = isCredit ? Math.max(0, grand_total - total_bayar) : 0;
+
+      const isLunas = isCredit && sisa_kredit === 0;
+
       return {
         ...t,
         total_harga_modal,
         total_harga_jual,
         total_item,
+        biaya_lain_lain,
+        grand_total,
+        total_bayar,
+        sisa_kredit,
+        isCredit,
+        isLunas,
       };
     });
 
@@ -109,7 +124,6 @@ export async function getRekapPdfData(
       pengaturan: pengaturanRes.success ? pengaturanRes.data : null,
     };
   } catch (error) {
-    console.error("Error in getRekapPdfData:", error);
     return { success: false, error: (error as Error).message };
   }
 }
