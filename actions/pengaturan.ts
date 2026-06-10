@@ -68,7 +68,7 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
         await fs.unlink(oldPath).catch(() => {});
       }
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "logo");
       await fs.mkdir(uploadDir, { recursive: true });
 
       const fileExt = path.extname(logoFile.name) || ".png";
@@ -79,7 +79,7 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
       const buffer = Buffer.from(bytes);
       await fs.writeFile(filePath, buffer);
 
-      url_logo = `/uploads/${fileName}`;
+      url_logo = `/uploads/logo/${fileName}`;
     } else {
       url_logo = currentPengaturan?.url_logo || null;
     }

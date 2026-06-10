@@ -97,10 +97,10 @@ export async function addProdukAction(prevState: any, formData: FormData) {
           const buffer = Buffer.from(arrayBuffer);
           const ext = path.extname(file.name) || ".jpg";
           const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-          const uploadsDir = path.join(process.cwd(), "public", "uploads");
+          const uploadsDir = path.join(process.cwd(), "public", "uploads", "produk");
           await fs.mkdir(uploadsDir, { recursive: true });
           await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-          url_foto = `/uploads/${fileName}`;
+          url_foto = `/uploads/produk/${fileName}`;
         } catch (err) {
           console.error("Error saving uploaded file in addProdukAction:", err);
           return { success: false, error: "Gagal menyimpan file foto ke server." };
@@ -204,10 +204,10 @@ export async function editProdukAction(prevState: any, formData: FormData) {
         const buffer = Buffer.from(arrayBuffer);
         const ext = path.extname(file.name) || ".jpg";
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        const uploadsDir = path.join(process.cwd(), "public", "uploads", "produk");
         await fs.mkdir(uploadsDir, { recursive: true });
         await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        url_foto = `/uploads/${fileName}`;
+        url_foto = `/uploads/produk/${fileName}`;
       } catch (err) {
         console.error("Error saving uploaded file:", err);
         return { success: false, error: "Gagal menyimpan file foto baru." };
