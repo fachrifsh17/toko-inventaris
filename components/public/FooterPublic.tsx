@@ -259,7 +259,7 @@ export default function FooterPublic({
             © {new Date().getFullYear()} {pengaturan?.nama_toko || "Toko"}. All rights reserved.
           </p>
           <p className="text-[11px] sm:text-xs font-medium text-pink-500">
-            Crafted with care for your skin
+            Bringing you only the finest products
           </p>
         </div>
       </div>

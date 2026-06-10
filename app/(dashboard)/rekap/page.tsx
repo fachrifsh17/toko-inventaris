@@ -5,6 +5,7 @@ import PortalModal from "@/components/PortalModal";
 import { toast } from "react-hot-toast";
 import { getRekapData, updateRekap, getRekapDetail } from "@/actions/rekap";
 import { getRekapPdfData } from "@/actions/rekappdf";
+import { getKategori as getKategoriList } from "@/actions/produk";
 import { pdf } from "@react-pdf/renderer";
 import RekapPdfDocument from "@/components/pdf/RekapPdfDocument";
 
@@ -153,17 +154,9 @@ export default function RekapPage() {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const res = await getRekapData(undefined, undefined, undefined, undefined, 1, 1000, undefined);
-      if (res && res.data) {
-        const extracted: string[] = [];
-        (res.data as unknown as TransaksiItem[]).forEach((t) => {
-          t.detail_transaksi?.forEach((d) => {
-            if (d.produk?.kategori?.nama_kategori) {
-              extracted.push(d.produk.kategori.nama_kategori);
-            }
-          });
-        });
-        setCategories(Array.from(new Set(extracted)));
+      const res = await getKategoriList();
+      if (res.success && res.data) {
+        setCategories(res.data.map((k: any) => k.nama_kategori));
       }
     };
     fetchCategories();

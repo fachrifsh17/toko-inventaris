@@ -20,6 +20,7 @@ type Kategori = {
   id: number;
   nama_kategori: string;
   slug?: string;
+  is_active?: number | boolean;
   _count?: { produk: number };
 };
 type Produk = {
@@ -31,7 +32,7 @@ type Produk = {
   stok_sekarang: number | null;
   kategori_id: number | null;
   url_foto: string;
-  is_active: boolean | null;
+  is_active?: number | boolean | null;
   created_at: Date;
   kategori: { id: number; nama_kategori: string } | null;
 };
@@ -260,9 +261,11 @@ function ProdukFormFields({
             className={inputCls}
           >
             <option value="">-- Pilih Kategori --</option>
-            {kategoriList.map((k) => (
-              <option key={k.id} value={k.id}>{k.nama_kategori}</option>
-            ))}
+            {kategoriList
+              .filter((k) => k.is_active === 1 || k.is_active === true)
+              .map((k) => (
+                <option key={k.id} value={k.id}>{k.nama_kategori}</option>
+              ))}
           </select>
         </Field>
       </div>
@@ -320,11 +323,12 @@ function ProdukFormFields({
         <select
           id="is_active"
           name="is_active"
-          defaultValue={String(defaultValues?.is_active ?? true)}
+          defaultValue={defaultValues 
+          ? (defaultValues.is_active === 1 || defaultValues.is_active === true ? "1" : "0"): "1"}
           className={inputCls}
         >
-          <option value="true">Aktif</option>
-          <option value="false">Nonaktif</option>
+          <option value="1">Aktif</option>
+          <option value="0">Nonaktif</option>
         </select>
       </Field>
     </>
@@ -355,6 +359,20 @@ function KategoriFormFields({
           placeholder="auto-generated dari nama kategori"
           className={inputCls}
         />
+      </Field>
+
+      <Field label="Status">
+        <label htmlFor="is_active_kategori" className="sr-only">Status Aktif</label>
+        <select
+          id="is_active_kategori"
+          name="is_active"
+          defaultValue={defaultValues 
+          ? (defaultValues.is_active === 1 || defaultValues.is_active === true ? "1" : "0") : "1"}
+          className={inputCls}
+        >
+          <option value="1">Aktif</option>
+          <option value="0">Nonaktif</option>
+        </select>
       </Field>
     </>
   );
@@ -725,9 +743,11 @@ export default function ProdukPage() {
                 className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               >
                 <option value="">Semua Kategori</option>
-                {kategoriList.map((k) => (
-                  <option key={k.id} value={k.id}>{k.nama_kategori}</option>
-                ))}
+                {kategoriList
+                  .filter((k) => k.is_active === 1 || k.is_active === true)
+                  .map((k) => (
+                    <option key={k.id} value={k.id}>{k.nama_kategori}</option>
+                  ))}
               </select>
             </div>
           </div>
@@ -796,8 +816,8 @@ export default function ProdukPage() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${p.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
-                            {p.is_active ? "Aktif" : "Nonaktif"}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${p.is_active === 1 || p.is_active === true ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
+                            {p.is_active === 1 || p.is_active === true ? "Aktif" : "Nonaktif"}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -952,6 +972,7 @@ export default function ProdukPage() {
                       <th className="py-4 px-4 font-semibold">Nama Kategori</th>
                       <th className="py-4 px-4 font-semibold">Slug</th>
                       <th className="py-4 px-4 font-semibold">Produk</th>
+                      <th className="py-4 px-4 font-semibold">Status</th>
                       <th className="py-4 px-4 font-semibold text-center">Aksi</th>
                     </tr>
                   </thead>
@@ -967,6 +988,11 @@ export default function ProdukPage() {
                         </td>
                         <td className="py-3 px-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">{k._count?.produk ?? 0} produk</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${k.is_active === 1 || k.is_active === true ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
+                            {k.is_active === 1 || k.is_active === true ? "Aktif" : "Nonaktif"}
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center gap-2">
@@ -995,7 +1021,7 @@ export default function ProdukPage() {
                     ))}
                     {filteredKategori.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-16 text-center">
+                        <td colSpan={6} className="py-16 text-center">
                           <div className="flex flex-col items-center gap-2 text-slate-400">
                             <svg className="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={iconTag} />

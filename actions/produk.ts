@@ -51,6 +51,9 @@ export async function getProduk(opts?: {
 export async function getKategori() {
   try {
     const kategori = await prisma.kategori.findMany({
+      where: {
+        is_active: true,
+      },
       orderBy: { nama_kategori: "asc" },
     });
     return { success: true, data: kategori };
@@ -106,7 +109,7 @@ export async function addProdukAction(prevState: any, formData: FormData) {
         url_foto = raw_url_foto.trim();
       }
     }
-    const is_active = formData.get("is_active") === "true";
+    const is_active = formData.get("is_active") === "1" || formData.get("is_active") === "true";
 
     if (!nama_produk)
       return { success: false, error: "Nama produk wajib diisi!" };
@@ -205,7 +208,7 @@ export async function editProdukAction(prevState: any, formData: FormData) {
       }
     }
 
-    const is_active = formData.get("is_active") === "true";
+    const is_active = formData.get("is_active") === "1" || formData.get("is_active") === "true";
 
     if (!nama_produk)
       return { success: false, error: "Nama produk wajib diisi!" };

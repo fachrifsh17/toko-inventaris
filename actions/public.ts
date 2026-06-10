@@ -28,6 +28,7 @@ export async function getBanners() {
 export async function getKategoriList() {
   try {
     const data = await prisma.kategori.findMany({
+      where: { is_active: true },
       orderBy: { nama_kategori: "asc" }
     });
     return data;
@@ -43,7 +44,7 @@ export async function getProduk() {
       where: { is_active: true },
       take: 4,
       orderBy: { id: "desc" },
-      include: {                              
+      include: {
         kategori: {
           select: {
             nama_kategori: true,

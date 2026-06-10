@@ -225,7 +225,7 @@ export default function HomePage() {
       icon: ShoppingBag,
       number: "01",
       title: "Masuk Halaman Produk",
-      desc: "Jelajahi katalog produk lengkap kami dan temukan item yang sesuai dengan kebutuhan kulit Anda."
+      desc: "Jelajahi katalog produk lengkap kami dan temukan item yang sesuai dengan kebutuhan Anda."
     },
     {
       icon: Package,
@@ -755,9 +755,9 @@ export default function HomePage() {
 
           <div className="fade-up d500 mt-10 sm:mt-16 pt-6 sm:pt-8 grid grid-cols-3 gap-4 sm:gap-6 max-w-md mx-auto hero-stats-border">
             {[
-              { value: "100%", label: "Original Brand" },
+              { value: "Authentic", label: "100% Original Brand" },
               { value: "BPOM", label: "Certified Safe" },
-              { value: "Cruelty", label: "Free Formula" }
+              { value: "Curated", label: "Selected for You" }
             ].map((item) => (
               <div key={item.label} className="text-center">
                 <div className="text-xs sm:text-sm font-semibold price-gradient tracking-wider uppercase serif">
@@ -937,7 +937,7 @@ export default function HomePage() {
                 {
                   icon: Leaf,
                   title: "Bahan Pokok",
-                  desc: "Kebutuhan sehari-hari seperti minyak, beras, dan kebutuhan dapur lainnya."
+                  desc: "Kebutuhan sehari-hari seperti minyak, beras, dan kebutuhan lainnya."
                 }
               ].map((f, i) => (
                 <div key={i} className="glass-feature-row flex items-start gap-3 sm:gap-4 p-3 sm:p-5 group">
@@ -1072,7 +1072,7 @@ export default function HomePage() {
             Butuh Bantuan Lebih Lanjut?
           </h2>
           <p className="text-[11px] sm:text-sm text-gray-500 font-light mt-2 sm:mt-3 max-w-md mx-auto leading-relaxed">
-            Konsultan kulit kami siap membantu merancang rutinitas yang tepat untuk Anda.
+            Konsultan produk kami siap memberikan penjelasan detail mengenai produk kami untuk Anda.
           </p>
         </div>
 
@@ -1110,7 +1110,7 @@ export default function HomePage() {
               <div className="glass-icon h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-5 sm:mb-8 contact-icon-blue">
                 <MapPin size={22} className="sm:!w-[28px] sm:!h-[28px]" />
               </div>
-              <h3 className="text-lg sm:text-xl font-medium text-gray-900 serif">Studio & Lab</h3>
+              <h3 className="text-lg sm:text-xl font-medium text-gray-900 serif">Lokasi</h3>
               <p className="text-xs sm:text-sm text-gray-500 font-light mt-2 sm:mt-3 leading-relaxed">
                 {pengaturan?.alamat || "Belum ada alamat terdaftar"}
               </p>

@@ -46,6 +46,7 @@ export async function getRekapData(
         some: {
           produk: {
             kategori: {
+              is_active: true,
               nama_kategori: { equals: namaKategori.trim() },
             },
           },
@@ -313,6 +314,7 @@ export async function exportRekapFiltered(
         some: {
           produk: {
             kategori: {
+              is_active: 1,
               nama_kategori: { equals: namaKategori.trim() },
             },
           },

@@ -37,6 +37,9 @@ export async function addKategoriAction(prevState: any, formData: FormData) {
 
     const nama_kategori = (formData.get("nama_kategori") as string)?.trim();
     const slugInput = (formData.get("slug") as string)?.trim();
+    
+    // PERBAIKAN: Diubah menjadi Boolean (true / false)
+    const is_active = (formData.get("is_active") === "on" || formData.get("is_active") === "true" || formData.get("is_active") === "1");
 
     if (!nama_kategori) return { success: false, error: "Nama kategori wajib diisi!" };
 
@@ -49,7 +52,7 @@ export async function addKategoriAction(prevState: any, formData: FormData) {
     const existingSlug = await prisma.kategori.findUnique({ where: { slug } });
     if (existingSlug) return { success: false, error: `Slug "${slug}" sudah digunakan!` };
 
-    await prisma.kategori.create({ data: { nama_kategori, slug } });
+    await prisma.kategori.create({ data: { nama_kategori, slug, is_active } });
 
     revalidatePath("/produk");
     return { success: true, message: "Kategori berhasil ditambahkan!" };
@@ -73,6 +76,9 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
 
     const nama_kategori = (formData.get("nama_kategori") as string)?.trim();
     const slugInput = (formData.get("slug") as string)?.trim();
+    
+    // PERBAIKAN: Diubah menjadi Boolean (true / false)
+    const is_active = (formData.get("is_active") === "on" || formData.get("is_active") === "true" || formData.get("is_active") === "1");
 
     if (!nama_kategori) return { success: false, error: "Nama kategori wajib diisi!" };
 
@@ -94,7 +100,8 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
 
     await prisma.kategori.update({
       where: { id },
-      data: { nama_kategori, slug, updated_at: new Date() },
+      // PERBAIKAN: Pastikan nama field 'updated_at' di model Prisma kamu sudah benar
+      data: { nama_kategori, slug, is_active, updated_at: new Date() },
     });
 
     revalidatePath("/produk");

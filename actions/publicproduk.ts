@@ -20,7 +20,7 @@ export async function getPengaturan() {
 export async function getKategoriList() {
   try {
     const data = await prisma.kategori.findMany({
-     
+      where: { is_active: true },
       orderBy: { nama_kategori: "asc" },
       select: {
         id: true,
