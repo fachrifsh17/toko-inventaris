@@ -2,6 +2,8 @@ import { getPengaturan, getKategoriList } from "@/actions/public"
 import NavbarPublic from "@/components/public/NavbarPublic"
 import FooterPublic from "@/components/public/FooterPublic"
 
+export const dynamic = 'force-dynamic'
+
 export default async function PublicLayout({
   children
 }: {
