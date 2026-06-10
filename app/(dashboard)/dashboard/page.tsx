@@ -30,7 +30,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Dashboard Utama
@@ -42,7 +41,6 @@ export default async function DashboardPage() {
 
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -118,13 +116,11 @@ export default async function DashboardPage() {
               </svg>
             </div>
           </div>
-
         </div>
       )}
 
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -200,13 +196,11 @@ export default async function DashboardPage() {
               </svg>
             </div>
           </div>
-
         </div>
       )}
 
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -266,12 +260,10 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-
         {summary && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
             <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
@@ -295,13 +287,7 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                      <span
-                        className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                          riwayat.jenis === "masuk"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-rose-50 text-rose-700"
-                        }`}
-                      >
+                      <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${riwayat.jenis === "masuk" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
                         {riwayat.jenis}
                       </span>
                       <span className={`text-xs font-extrabold block ${riwayat.jenis === "masuk" ? "text-emerald-600" : "text-rose-600"}`}>
@@ -362,7 +348,6 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
-
       </div>
 
       {stokKategori.length > 0 && (
@@ -377,14 +362,9 @@ export default async function DashboardPage() {
             </h3>
           </div>
           <div className="p-5">
-            <style>{`
-              ${stokKategori.map((kat, idx) => {
-                const rasio = Math.round((kat.totalStok / maxStok) * 100);
-                return `.stok-bar-${idx} { width: ${Math.max(rasio, 2)}%; }`;
-              }).join("\n")}
-            `}</style>
             <div className="space-y-4">
               {stokKategori.map((kat, idx) => {
+                const rasio = Math.round((kat.totalStok / maxStok) * 100);
                 return (
                   <div key={kat.kategori} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-semibold">
@@ -398,7 +378,8 @@ export default async function DashboardPage() {
                     </div>
                     <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-gradient-to-r from-pink-500 to-violet-500 rounded-full transition-all duration-500 stok-bar-${idx}`}
+                        className="h-full bg-gradient-to-r from-pink-500 to-violet-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(rasio, 2)}%` }}
                       ></div>
                     </div>
                   </div>
@@ -408,7 +389,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
