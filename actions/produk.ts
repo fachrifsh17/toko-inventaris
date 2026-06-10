@@ -167,44 +167,50 @@ export async function editProdukAction(prevState: any, formData: FormData) {
 
     const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
     const raw_url_foto = formData.get("url_foto");
-    
-    let url_foto = existing.url_foto;
-    let apakah_foto_berubah = false;
 
-    if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
+    let url_foto = existing.url_foto;
+    let fileLamaHarusDihapus = false;
+    let adaFileBaruDiupload = false;
+
+    if (raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+      adaFileBaruDiupload = true;
+      fileLamaHarusDihapus = true;
+    } else if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
       url_foto = url_foto_uploaded;
-      apakah_foto_berubah = true;
-    } else if (raw_url_foto) {
-      if (typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+      fileLamaHarusDihapus = true;
+    } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "" && raw_url_foto.trim() !== existing.url_foto) {
+      url_foto = raw_url_foto.trim();
+      fileLamaHarusDihapus = true;
+    }
+
+    if (fileLamaHarusDihapus && existing.url_foto) {
+      const isFileLokal = !existing.url_foto.startsWith("http") && existing.url_foto.includes("uploads");
+      if (isFileLokal) {
+        const pathFileLama = existing.url_foto.replace(/^\//, "");
+        const fullFilePath = path.join(process.cwd(), "public", pathFileLama);
         try {
-          const file: any = raw_url_foto;
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const ext = path.extname(file.name) || ".jpg";
-          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-          const uploadsDir = path.join(process.cwd(), "public", "uploads");
-          
-          await fs.mkdir(uploadsDir, { recursive: true });
-          await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-          
-          url_foto = `/uploads/${fileName}`;
-          apakah_foto_berubah = true;
+          await fs.access(fullFilePath);
+          await fs.unlink(fullFilePath);
         } catch (err) {
-          console.error("Error saving uploaded file:", err);
-          return { success: false, error: "Gagal menyimpan file foto baru." };
+          console.error("Gagal hapus file lama:", fullFilePath, err);
         }
-      } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "" && raw_url_foto !== existing.url_foto) {
-        url_foto = raw_url_foto.trim();
-        apakah_foto_berubah = true;
       }
     }
 
-    if (apakah_foto_berubah && existing.url_foto && existing.url_foto.startsWith("/uploads/")) {
+    if (adaFileBaruDiupload) {
       try {
-        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto);
-        await fs.unlink(oldFilePath);
-      } catch (unlinkErr) {
-        console.error("Gagal menghapus file foto lama dari server:", unlinkErr);
+        const file: any = raw_url_foto;
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const ext = path.extname(file.name) || ".jpg";
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        await fs.mkdir(uploadsDir, { recursive: true });
+        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
+        url_foto = `/uploads/${fileName}`;
+      } catch (err) {
+        console.error("Error saving uploaded file:", err);
+        return { success: false, error: "Gagal menyimpan file foto baru." };
       }
     }
 
@@ -258,12 +264,17 @@ export async function deleteProdukAction(prevState: any, formData: FormData) {
 
     await prisma.produk.delete({ where: { id } });
 
-    if (existing.url_foto && existing.url_foto.startsWith("/uploads/")) {
-      try {
-        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto);
-        await fs.unlink(oldFilePath);
-      } catch (unlinkErr) {
-        console.error("Gagal menghapus file foto saat hapus produk:", unlinkErr);
+    if (existing.url_foto) {
+      const isFileLokal = !existing.url_foto.startsWith("http") && existing.url_foto.includes("uploads");
+      if (isFileLokal) {
+        const pathFileLama = existing.url_foto.replace(/^\//, "");
+        const fullFilePath = path.join(process.cwd(), "public", pathFileLama);
+        try {
+          await fs.access(fullFilePath);
+          await fs.unlink(fullFilePath);
+        } catch (err) {
+          console.error("Gagal hapus file saat delete produk:", fullFilePath, err);
+        }
       }
     }
 

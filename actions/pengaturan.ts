@@ -13,10 +13,10 @@ export async function getPengaturan() {
     if (!pengaturan) {
       pengaturan = await prisma.pengaturan.create({
         data: {
-          nama_toko: "GlowAura SkinLab",
-          tagline: "Pancarkan Pesona Alami Kulitmu",
+          nama_toko: "Toko",
+          tagline: "Tagline Toko",
           no_wa_toko: "628123456789",
-          email: "glowauraskinlab@gmail.com", // Opsional: Berikan default email jika baru pertama kali dibuat
+          email: "admin@gmail.com",
         },
       });
     }
@@ -48,7 +48,7 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
     const tagline = formData.get("tagline") as string;
     const deskripsi = formData.get("deskripsi") as string;
     const no_wa_toko = formData.get("no_wa_toko") as string;
-    const email = formData.get("email") as string; // Ambil data email dari formData
+    const email = formData.get("email") as string;
     const link_instagram = formData.get("link_instagram") as string;
     const link_facebook = formData.get("link_facebook") as string;
     const link_tiktok = formData.get("link_tiktok") as string;
@@ -58,7 +58,16 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
     const logoFile = formData.get("url_logo") as File | null;
     let url_logo: string | null = null;
 
+    const currentPengaturan = await prisma.pengaturan.findUnique({
+      where: { id },
+    });
+
     if (logoFile && logoFile.size > 0 && logoFile.name !== "undefined") {
+      if (currentPengaturan?.url_logo) {
+        const oldPath = path.join(process.cwd(), "public", currentPengaturan.url_logo);
+        await fs.unlink(oldPath).catch(() => {});
+      }
+
       const uploadDir = path.join(process.cwd(), "public", "uploads");
       await fs.mkdir(uploadDir, { recursive: true });
 
@@ -72,9 +81,6 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
 
       url_logo = `/uploads/${fileName}`;
     } else {
-      const currentPengaturan = await prisma.pengaturan.findUnique({
-        where: { id },
-      });
       url_logo = currentPengaturan?.url_logo || null;
     }
 
@@ -92,7 +98,7 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
         tagline: tagline || null,
         deskripsi: deskripsi || null,
         no_wa_toko,
-        email: email || null, // Tambahkan penyimpanan email ke database di sini
+        email: email || null,
         url_logo,
         link_instagram: link_instagram || null,
         link_facebook: link_facebook || null,

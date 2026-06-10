@@ -124,7 +124,6 @@ function ProdukFormFields({
   const [previewUrl, setPreviewUrl] = useState<string>(
     defaultValues?.url_foto || "",
   );
-  const [isUploading, setIsUploading] = useState(false);
   const [hargaModalStr, setHargaModalStr] = useState<string>(
     defaultValues?.harga_modal ? String(defaultValues.harga_modal) : "0",
   );
@@ -143,45 +142,18 @@ function ProdukFormFields({
   };
   const parse = (s: string) => Number(String(s).replace(/[^0-9-]/g, "")) || 0;
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        alert("Error: " + (data.error || "Gagal upload gambar"));
-        setPreviewUrl("");
-        return;
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        const hiddenInput = document.querySelector(
-          'input[name="url_foto_uploaded"]',
-        ) as HTMLInputElement;
-        if (hiddenInput) {
-          hiddenInput.value = data.url;
-        }
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("Gagal upload gambar");
-      setPreviewUrl("");
-    } finally {
-      setIsUploading(false);
+    const hiddenInput = document.querySelector(
+      'input[name="url_foto_uploaded"]',
+    ) as HTMLInputElement;
+    if (hiddenInput) {
+      hiddenInput.value = "";
     }
   };
 
@@ -289,7 +261,6 @@ function ProdukFormFields({
               name="url_foto"
               accept="image/*"
               onChange={handleFileChange}
-              disabled={isUploading}
               className="hidden"
             />
           </label>
@@ -301,16 +272,6 @@ function ProdukFormFields({
                 alt="Preview produk"
                 className="w-24 h-24 object-cover rounded-lg border border-slate-200"
               />
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <svg className="w-4 h-4 animate-spin mx-auto" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 

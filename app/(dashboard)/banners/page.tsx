@@ -118,9 +118,8 @@ function BannerFormFields({
   const [previewUrl, setPreviewUrl] = useState<string>(
     defaultValues?.url_foto_banner || "",
   );
-  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -132,38 +131,11 @@ function BannerFormFields({
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        alert("Error: " + (data.error || "Gagal upload gambar"));
-        setPreviewUrl(defaultValues?.url_foto_banner || "");
-        return;
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        const hiddenInput = document.querySelector(
-          'input[name="url_foto_uploaded"]',
-        ) as HTMLInputElement;
-        if (hiddenInput) {
-          hiddenInput.value = data.url;
-        }
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("Gagal upload gambar");
-      setPreviewUrl(defaultValues?.url_foto_banner || "");
-    } finally {
-      setIsUploading(false);
+    const hiddenInput = document.querySelector(
+      'input[name="url_foto_uploaded"]',
+    ) as HTMLInputElement;
+    if (hiddenInput) {
+      hiddenInput.value = "";
     }
   };
 
@@ -254,7 +226,6 @@ function BannerFormFields({
               name="url_foto"
               accept="image/*"
               onChange={handleFileChange}
-              disabled={isUploading}
               className="hidden"
             />
           </label>
@@ -268,56 +239,27 @@ function BannerFormFields({
                   className="w-full h-full object-cover"
                 />
               </div>
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <svg
-                      className="w-5 h-5 animate-spin mx-auto"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      />
-                    </svg>
-                    <p className="text-xs mt-1">Uploading...</p>
-                  </div>
-                </div>
-              )}
-              {!isUploading && (
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  aria-label="Hapus gambar pratinjau"
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                aria-label="Hapus gambar pratinjau"
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
           )}
 
