@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 2,
-    borderBottomColor: "#2563eb",
+    borderBottomColor: "#9d174d",
   },
   shopInfo: {
     flex: 1,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   shopName: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1e3a8a",
+    color: "#9d174d",
     marginBottom: 4,
     textTransform: "uppercase",
   },
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1e3a8a",
+    color: "#9d174d",
     marginBottom: 6,
     textTransform: "uppercase",
   },
@@ -330,6 +330,7 @@ interface RekapSaldoPdfDocumentProps {
     jenis?: string;
     provider?: string;
     saldoId?: number;
+    saldoNama?: string;
     startDate?: string;
     endDate?: string;
     status?: string;
@@ -470,7 +471,7 @@ const RekapSaldoPdfDocument = ({
 
         {transaksi.keterangan && (
           <View style={styles.keteranganContainer}>
-            <Text style={styles.keteranganText}>"{transaksi.keterangan}"</Text>
+            <Text style={styles.keteranganText}>&ldquo;{transaksi.keterangan}&rdquo;</Text>
           </View>
         )}
       </View>
@@ -494,6 +495,9 @@ const RekapSaldoPdfDocument = ({
             <Text style={styles.shopContact}>
               WhatsApp: {pengaturan?.no_wa_toko || "-"}
             </Text>
+            <Text style={styles.shopContact}>
+              Email: {pengaturan?.email || "-"}
+            </Text>
           </View>
           <View style={styles.reportMeta}>
             <Text style={styles.reportTitle}>Laporan Transaksi Digital</Text>
@@ -508,6 +512,11 @@ const RekapSaldoPdfDocument = ({
             {filters.provider && (
               <Text style={styles.filterInfo}>
                 Provider: {filters.provider}
+              </Text>
+            )}
+            {filters.saldoNama && (
+              <Text style={styles.filterInfo}>
+                Akun Saldo: {filters.saldoNama}
               </Text>
             )}
             {filters.status && (

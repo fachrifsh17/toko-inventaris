@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 2,
-    borderBottomColor: "#2563eb",
+    borderBottomColor: "#9d174d",
   },
   shopInfo: {
     flex: 1,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   shopName: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1e3a8a",
+    color: "#9d174d",
     marginBottom: 4,
     textTransform: "uppercase",
   },
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1e3a8a",
+    color: "#9d174d",
     marginBottom: 6,
     textTransform: "uppercase",
   },
@@ -308,6 +308,20 @@ interface RekapPdfDocumentProps {
   };
 }
 
+const hitungModalDariDetail = (transaksi: any) => {
+  return (transaksi.detail_transaksi || []).reduce(
+    (sum: number, item: any) => sum + (item.harga_modal_real || 0) * (item.jumlah || 0),
+    0,
+  );
+};
+
+const getMetodeColor = (metode: string) => {
+  const upper = (metode || "CASH").toUpperCase();
+  if (upper === "CREDIT") return "#c2410c";
+  if (upper === "TRANSFER") return "#2563eb";
+  return "#059669";
+};
+
 const RekapPdfDocument = ({
   data,
   pengaturan,
@@ -343,13 +357,17 @@ const RekapPdfDocument = ({
   const hasKeluar = keluarData.length > 0;
 
   const totalModal = data.reduce(
-    (sum, t) => sum + (t.total_harga_modal || 0),
+    (sum, t) => sum + hitungModalDariDetail(t),
+    0,
+  );
+  const totalModalKeluar = keluarData.reduce(
+    (sum, t) => sum + hitungModalDariDetail(t),
     0,
   );
   const totalJual = data.reduce((sum, t) => sum + (t.total_harga_jual || 0), 0);
   const totalBiayaLain = data.reduce((sum, t) => sum + (t.biaya_lain_lain || 0), 0);
   const totalGrandKeluar = keluarData.reduce((sum, t) => sum + (t.grand_total || 0), 0);
-  const totalLaba = totalJual - keluarData.reduce((sum, t) => sum + (t.total_harga_modal || 0), 0);
+  const totalLaba = totalJual - totalModalKeluar;
 
   const kreditList = data.filter((t) => t.isCredit && (t.sisa_kredit || 0) > 0);
   const kreditLunasList = data.filter((t) => t.isCredit && t.isLunas);
@@ -374,6 +392,9 @@ const RekapPdfDocument = ({
             <Text style={styles.shopContact}>
               WhatsApp: {pengaturan?.no_wa_toko || "-"}
             </Text>
+            <Text style={styles.shopContact}>
+              Email: {pengaturan?.email || "-"}
+            </Text>
           </View>
           <View style={styles.reportMeta}>
             <Text style={styles.reportTitle}>Laporan Mutasi Stok</Text>
@@ -383,6 +404,11 @@ const RekapPdfDocument = ({
             {filters.type && (
               <Text style={styles.filterInfo}>
                 Jenis Transaksi: {filters.type.toUpperCase()}
+              </Text>
+            )}
+            {filters.kategori && (
+              <Text style={styles.filterInfo}>
+                Kategori: {filters.kategori}
               </Text>
             )}
             {filters.metode && (
@@ -401,6 +427,9 @@ const RekapPdfDocument = ({
           const isCredit = transaksi.isCredit;
           const sisaKredit = transaksi.sisa_kredit || 0;
           const isLunas = transaksi.isLunas;
+          const modalDariDetail = hitungModalDariDetail(transaksi);
+          const metodePembayaran = transaksi.metode_pembayaran || "CASH";
+          const metodeColor = getMetodeColor(metodePembayaran);
 
           return (
             <View key={transaksi.id || tIndex} style={styles.transactionBlock} wrap={false}>
@@ -417,8 +446,8 @@ const RekapPdfDocument = ({
                 </View>
                 <View style={styles.thCol3}>
                   <Text style={styles.thText}>Metode</Text>
-                  <Text style={[styles.thValue, { color: isCredit ? "#c2410c" : "#111827" }]}>
-                    {transaksi.metode_pembayaran || "CASH"}
+                  <Text style={[styles.thValue, { color: metodeColor }]}>
+                    {metodePembayaran}
                   </Text>
                 </View>
                 <View style={styles.thCol4}>
@@ -495,7 +524,7 @@ const RekapPdfDocument = ({
                 ) : (
                   <View style={styles.footerRowLast}>
                     <Text style={styles.footerLabel}>Total Modal:</Text>
-                    <Text style={styles.footerValueTotal}>{formatCurrency(transaksi.total_harga_modal)}</Text>
+                    <Text style={styles.footerValueTotal}>{formatCurrency(modalDariDetail)}</Text>
                   </View>
                 )}
                 {isCredit && (

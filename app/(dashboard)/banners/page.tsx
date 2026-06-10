@@ -22,7 +22,7 @@ type Banner = {
 };
 
 const inputCls =
-  "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
+  "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white";
 
 function Field({
   label,
@@ -226,7 +226,7 @@ function BannerFormFields({
 
       <Field label="Foto Banner" required>
         <div className="space-y-3">
-          <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
+          <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50/30 transition-colors">
             <svg
               className="w-8 h-8 text-slate-400 mb-2"
               fill="none"
@@ -482,7 +482,7 @@ export default function BannerPage() {
       <button
         type="submit"
         disabled={isPending}
-        className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+        className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
       >
         {isPending && (
           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -509,7 +509,7 @@ export default function BannerPage() {
           </div>
           <button
             onClick={openAdd}
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0 w-full sm:w-auto justify-center"
+            className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0 w-full sm:w-auto justify-center"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -534,7 +534,7 @@ export default function BannerPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           aria-label="Cari banner"
           placeholder="Cari banner..."
-          className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+          className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
         />
       </div>
 
@@ -595,7 +595,7 @@ export default function BannerPage() {
                           href={b.link_tujuan}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 text-xs font-medium truncate block max-w-[200px] hover:underline"
+                          className="text-pink-600 hover:text-pink-800 text-xs font-medium truncate block max-w-[200px] hover:underline"
                         >
                           {b.link_tujuan}
                           <svg className="w-3 h-3 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -627,7 +627,7 @@ export default function BannerPage() {
                         <button
                           onClick={() => openEdit(b)}
                           aria-label={`Edit banner ${b.judul_banner || "tanpa judul"}`}
-                          className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 hover:bg-pink-100 flex items-center justify-center transition-colors"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -701,7 +701,7 @@ export default function BannerPage() {
                     aria-current={page === currentPage ? "page" : undefined}
                     className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                       page === currentPage
-                        ? "bg-indigo-600 text-white shadow-sm"
+                        ? "bg-pink-600 text-white shadow-sm"
                         : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
@@ -736,7 +736,7 @@ export default function BannerPage() {
         <Modal onClose={() => setShowAdd(false)}>
           <ModalHeader
             title="Tambah Banner"
-            color="bg-indigo-100 text-indigo-600"
+            color="bg-pink-100 text-pink-600"
             onClose={() => setShowAdd(false)}
           />
           <form onSubmit={handleAdd} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">

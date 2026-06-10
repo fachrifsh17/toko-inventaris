@@ -46,7 +46,7 @@ const idr = (n: number) =>
   }).format(n);
 
 const inputCls =
-  "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
+  "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white";
 
 const iconCube = "M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10";
 const iconTag = "M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01";
@@ -271,7 +271,7 @@ function ProdukFormFields({
         <div className="space-y-3">
           <label
             htmlFor="url_foto_file"
-            className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors"
+            className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50/30 transition-colors"
           >
             <svg className="w-8 h-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -636,7 +636,7 @@ export default function ProdukPage() {
       <button
         type="submit"
         disabled={isPending}
-        className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+        className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
       >
         {isPending && (
           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -660,7 +660,7 @@ export default function ProdukPage() {
         <button
           onClick={() => setActiveTab("produk")}
           aria-label="Tab Produk"
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "produk" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "produk" ? "bg-pink-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconCube} />
@@ -670,7 +670,7 @@ export default function ProdukPage() {
         <button
           onClick={() => setActiveTab("kategori")}
           aria-label="Tab Kategori"
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "kategori" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === "kategori" ? "bg-pink-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
         >
           <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconTag} />
@@ -688,7 +688,7 @@ export default function ProdukPage() {
             </div>
             <button
               onClick={openAddProduk}
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
+              className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -708,7 +708,7 @@ export default function ProdukPage() {
                 value={searchProduk}
                 onChange={(e) => setSearchProduk(e.target.value)}
                 placeholder="Cari produk atau kategori..."
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
 
@@ -722,7 +722,7 @@ export default function ProdukPage() {
                   setKategoriFilter(v);
                   setProdukPage(1);
                 }}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               >
                 <option value="">Semua Kategori</option>
                 {kategoriList.map((k) => (
@@ -805,7 +805,7 @@ export default function ProdukPage() {
                             <button
                               onClick={() => openEditProduk(p)}
                               aria-label={`Edit produk ${p.nama_produk}`}
-                              className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
+                              className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 hover:bg-pink-100 flex items-center justify-center transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconEdit} />
@@ -870,7 +870,7 @@ export default function ProdukPage() {
                         aria-current={page === produkPage ? "page" : undefined}
                         className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                           page === produkPage
-                            ? "bg-indigo-600 text-white shadow-sm"
+                            ? "bg-pink-600 text-white shadow-sm"
                             : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
@@ -911,7 +911,7 @@ export default function ProdukPage() {
             </div>
             <button
               onClick={openAddKategori}
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
+              className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -930,7 +930,7 @@ export default function ProdukPage() {
               value={searchKategori}
               onChange={(e) => setSearchKategori(e.target.value)}
               placeholder="Cari kategori..."
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
             />
           </div>
 
@@ -966,14 +966,14 @@ export default function ProdukPage() {
                           <code className="text-xs bg-slate-100 px-2.5 py-1 rounded text-slate-600">{k.slug}</code>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">{k._count?.produk ?? 0} produk</span>
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">{k._count?.produk ?? 0} produk</span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => openEditKategori(k)}
                               aria-label={`Edit kategori ${k.nama_kategori}`}
-                              className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
+                              className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 hover:bg-pink-100 flex items-center justify-center transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconEdit} />
@@ -1038,7 +1038,7 @@ export default function ProdukPage() {
                         aria-current={page === catPage ? "page" : undefined}
                         className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                           page === catPage
-                            ? "bg-indigo-600 text-white shadow-sm"
+                            ? "bg-pink-600 text-white shadow-sm"
                             : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
@@ -1072,7 +1072,7 @@ export default function ProdukPage() {
 
       {showAddProduk && (
         <Modal onClose={() => setShowAddProduk(false)}>
-          <ModalHeader title="Tambah Produk" color="bg-indigo-100 text-indigo-600" iconPath={iconCube} onClose={() => setShowAddProduk(false)} />
+          <ModalHeader title="Tambah Produk" color="bg-pink-100 text-pink-600" iconPath={iconCube} onClose={() => setShowAddProduk(false)} />
           <form onSubmit={handleAddProduk} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <ProdukFormFields kategoriList={kategoriList} />
@@ -1136,7 +1136,7 @@ export default function ProdukPage() {
 
       {showAddKategori && (
         <Modal onClose={() => setShowAddKategori(false)}>
-          <ModalHeader title="Tambah Kategori" color="bg-indigo-100 text-indigo-600" iconPath={iconTag} onClose={() => setShowAddKategori(false)} />
+          <ModalHeader title="Tambah Kategori" color="bg-pink-100 text-pink-600" iconPath={iconTag} onClose={() => setShowAddKategori(false)} />
           <form onSubmit={handleAddKategori} className="p-6 space-y-4">
             {formMsg && <Alert msg={formMsg} />}
             <KategoriFormFields />

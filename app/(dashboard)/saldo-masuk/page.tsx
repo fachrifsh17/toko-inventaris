@@ -188,7 +188,7 @@ export default function SaldoMasukPage() {
                     id="filterSaldo"
                     value={tempFilterSaldoId}
                     onChange={(e) => setTempFilterSaldoId(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   >
                     <option value="">Semua Saldo</option>
                     {saldoList.map((s) => (
@@ -204,7 +204,7 @@ export default function SaldoMasukPage() {
                     type="date"
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export default function SaldoMasukPage() {
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -228,7 +228,7 @@ export default function SaldoMasukPage() {
                       setEndDate(tempEnd);
                       setPage(1);
                     }}
-                    className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                    className="px-3 py-1.5 bg-pink-600 text-white rounded-md text-sm font-medium hover:bg-pink-700 transition-colors"
                   >
                     Terapkan
                   </button>
@@ -284,7 +284,7 @@ export default function SaldoMasukPage() {
                               {item.tanggal ? new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
                             </td>
                             <td className="py-3">
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-100">
                                 {item.saldo?.nama_akun ?? "-"}
                               </span>
                             </td>
@@ -297,7 +297,7 @@ export default function SaldoMasukPage() {
                                 <button
                                   type="button"
                                   onClick={() => setActiveDetail(item)}
-                                  className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                  className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
                                 >
                                   Detail
                                 </button>
@@ -347,7 +347,7 @@ export default function SaldoMasukPage() {
                             aria-current={pg === page ? "page" : undefined}
                             className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                               pg === page
-                                ? "bg-indigo-600 text-white shadow-sm"
+                                ? "bg-pink-600 text-white shadow-sm"
                                 : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                             }`}
                           >
@@ -395,7 +395,7 @@ export default function SaldoMasukPage() {
                     id="saldo_id"
                     value={selectedSaldoId}
                     onChange={(e) => setSelectedSaldoId(Number(e.target.value))}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   >
                     <option value={0}>-- Pilih Akun Saldo --</option>
                     {saldoList.map((s) => (
@@ -412,7 +412,7 @@ export default function SaldoMasukPage() {
                     value={formatNominal(nominalStr)}
                     onChange={(e) => setNominalStr(String(parseNominal(e.target.value)))}
                     placeholder="0"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
 
@@ -423,7 +423,7 @@ export default function SaldoMasukPage() {
                     type="date"
                     value={tanggal}
                     onChange={(e) => setTanggal(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
 
@@ -435,7 +435,7 @@ export default function SaldoMasukPage() {
                     onChange={(e) => setKeterangan(e.target.value)}
                     rows={2}
                     placeholder="Contoh: Transfer dari BCA"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white resize-none"
                   />
                 </div>
               </div>
@@ -492,7 +492,7 @@ export default function SaldoMasukPage() {
             <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div>
                 <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Akun Saldo</span>
-                <span className="inline-flex mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                <span className="inline-flex mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold border bg-pink-50 text-pink-700 border-pink-200">
                   {activeDetail.saldo?.nama_akun ?? "-"}
                 </span>
               </div>
@@ -576,7 +576,7 @@ export default function SaldoMasukPage() {
                   id="edit_saldo_id"
                   value={selectedSaldoId}
                   onChange={(e) => setSelectedSaldoId(Number(e.target.value))}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 >
                   <option value={0}>-- Pilih Akun Saldo --</option>
                   {saldoList.map((s) => (
@@ -593,7 +593,7 @@ export default function SaldoMasukPage() {
                   value={formatNominal(nominalStr)}
                   onChange={(e) => setNominalStr(String(parseNominal(e.target.value)))}
                   placeholder="0"
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -604,7 +604,7 @@ export default function SaldoMasukPage() {
                   type="date"
                   value={tanggal}
                   onChange={(e) => setTanggal(e.target.value)}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -616,7 +616,7 @@ export default function SaldoMasukPage() {
                   onChange={(e) => setKeterangan(e.target.value)}
                   rows={2}
                   placeholder="Contoh: Transfer dari BCA"
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white resize-none"
                 />
               </div>
             </div>
@@ -632,7 +632,7 @@ export default function SaldoMasukPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">

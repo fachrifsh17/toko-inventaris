@@ -41,12 +41,12 @@ export async function getRekapData(
       }
     }
 
-    if (namaKategori && namaKategori.trim() !== "") {
+    if (namaKategori && namaKategori.trim() !== "" && namaKategori.trim().toLowerCase() !== "semua") {
       where.detail_transaksi = {
         some: {
           produk: {
             kategori: {
-              nama_kategori: { contains: namaKategori.trim() },
+              nama_kategori: { equals: namaKategori.trim() },
             },
           },
         },
@@ -308,12 +308,12 @@ export async function exportRekapFiltered(
       }
     }
 
-    if (namaKategori && namaKategori.trim() !== "") {
+    if (namaKategori && namaKategori.trim() !== "" && namaKategori.trim().toLowerCase() !== "semua") {
       where.detail_transaksi = {
         some: {
           produk: {
             kategori: {
-              nama_kategori: { contains: namaKategori.trim() },
+              nama_kategori: { equals: namaKategori.trim() },
             },
           },
         },

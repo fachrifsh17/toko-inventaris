@@ -3,7 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Rofa ID Store",
+  title: "ROFA.ID",
   description: "Kelola operasional dan persediaan produk dengan mudah dan modern.",
 };
 

@@ -356,7 +356,7 @@ export default function RiwayatKeluarPage() {
       return (
         <div className="flex justify-between w-full sm:w-64">
           <span className="text-slate-700 font-bold">Kembalian:</span>
-          <span className="text-lg font-black text-indigo-600">{idr(kembalianVal)}</span>
+          <span className="text-lg font-black text-pink-600">{idr(kembalianVal)}</span>
         </div>
       );
     }
@@ -405,7 +405,7 @@ export default function RiwayatKeluarPage() {
                     type="date"
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -416,7 +416,7 @@ export default function RiwayatKeluarPage() {
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -426,7 +426,7 @@ export default function RiwayatKeluarPage() {
                     id="filterMetode"
                     value={tempMetode}
                     onChange={(e) => setTempMetode(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   >
                     <option value="ALL">Semua Metode</option>
                     <option value="CASH">CASH</option>
@@ -444,7 +444,7 @@ export default function RiwayatKeluarPage() {
                       setMetodePembayaran(tempMetode);
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                    className="ml-2 px-3 py-1.5 bg-pink-600 text-white rounded-md text-sm font-medium hover:bg-pink-700 transition-colors"
                   >
                     Terapkan
                   </button>
@@ -532,14 +532,14 @@ export default function RiwayatKeluarPage() {
                                   <button
                                     type="button"
                                     onClick={() => setActiveDetail(transaksi)}
-                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
+                                    className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
                                   >
                                     Detail
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => openEdit(transaksi)}
-                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
+                                    className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2.5 py-1.5 rounded-md transition font-medium border"
                                   >
                                     Edit
                                   </button>
@@ -583,7 +583,7 @@ export default function RiwayatKeluarPage() {
                             aria-current={pg === page ? "page" : undefined}
                             className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                               pg === page
-                                ? "bg-indigo-600 text-white shadow-sm"
+                                ? "bg-pink-600 text-white shadow-sm"
                                 : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                             }`}
                           >
@@ -650,7 +650,7 @@ export default function RiwayatKeluarPage() {
                     min={1}
                     value={inputJumlah}
                     onChange={(e) => setInputJumlah(Math.max(1, Number(e.target.value)))}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
                 <div>
@@ -664,7 +664,7 @@ export default function RiwayatKeluarPage() {
                       setHargaJualStr(cleaned);
                       setHargaJual(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
               </div>
@@ -672,7 +672,7 @@ export default function RiwayatKeluarPage() {
               <button
                 type="button"
                 onClick={handleAddToBag}
-                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+                className="w-full py-2 bg-pink-50 text-pink-700 hover:bg-pink-100 rounded-xl text-xs font-semibold transition"
               >
                 + Masukkan Daftar Belanja
               </button>
@@ -722,7 +722,7 @@ export default function RiwayatKeluarPage() {
                   value={namaPelanggan}
                   onChange={(e) => setNamaPelanggan(e.target.value)}
                   placeholder="Nama Pengguna"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -736,7 +736,7 @@ export default function RiwayatKeluarPage() {
                     setFormMetode(e.target.value);
                     setTotalBayar("0");
                   }}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 >
                   <option value="CASH">CASH</option>
                   <option value="TRANSFER">TRANSFER</option>
@@ -755,12 +755,12 @@ export default function RiwayatKeluarPage() {
                     setBiayaLain(cleaned);
                   }}
                   placeholder="0"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
               {cart.length > 0 && (isCash || isCredit || isTransfer) && (
-                <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
+                <div className="bg-pink-50/50 border border-pink-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span>Subtotal Barang:</span>
                     <span className="font-bold">{idr(totalHargaDiForm)}</span>
@@ -771,7 +771,7 @@ export default function RiwayatKeluarPage() {
                       <span className="font-bold">{idr(biayaLainNum)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-pink-100">
                     <span>Grand Total:</span>
                     <span>{idr(grandTotalAdd)}</span>
                   </div>
@@ -787,15 +787,15 @@ export default function RiwayatKeluarPage() {
                       }}
                       placeholder="0"
                       readOnly={isTransfer}
-                      className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
+                      className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 ${isTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
                     />
                   </div>
                   {!isTransfer && displayTotalBayar > 0 && (
-                    <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
-                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                    <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-pink-100">
+                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-pink-700"}>
                         {isCredit && kembalian < 0 ? "Sisa Kredit:" : "Kembalian:"}
                       </span>
-                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                      <span className={isCredit && kembalian < 0 ? "text-rose-600" : kembalian < 0 ? "text-rose-600" : "text-pink-700"}>
                         {isCredit && kembalian < 0 ? idr(Math.abs(kembalian)) : kembalian < 0 ? `- ${idr(Math.abs(kembalian))}` : idr(kembalian)}
                       </span>
                     </div>
@@ -810,7 +810,7 @@ export default function RiwayatKeluarPage() {
                   name="keterangan"
                   rows={2}
                   placeholder="Contoh: Pembelian Toko"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -936,7 +936,7 @@ export default function RiwayatKeluarPage() {
               {(!activeDetail.total_bayar || activeDetail.total_bayar <= 0) && (activeDetail.kembalian == null || activeDetail.kembalian === 0) && (
                 <div className="flex justify-between w-full sm:w-64 pt-1">
                   <span className="text-slate-700 font-bold">Total Nilai Transaksi:</span>
-                  <span className="text-lg font-black text-indigo-600">
+                  <span className="text-lg font-black text-pink-600">
                     {idr((activeDetail.detail_transaksi?.reduce((sum: number, d: any) => sum + (d.jumlah * d.harga_jual_real), 0) ?? 0) + (activeDetail.biaya_lain_lain || 0))}
                   </span>
                 </div>
@@ -1026,7 +1026,7 @@ export default function RiwayatKeluarPage() {
                     min={1}
                     value={editInputJumlah}
                     onChange={(e) => setEditInputJumlah(Math.max(1, Number(e.target.value)))}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
                 <div>
@@ -1040,7 +1040,7 @@ export default function RiwayatKeluarPage() {
                       setEditHargaJualStr(cleaned);
                       setEditHargaJual(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
               </div>
@@ -1048,7 +1048,7 @@ export default function RiwayatKeluarPage() {
               <button
                 type="button"
                 onClick={handleEditAddToBag}
-                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+                className="w-full py-2 bg-pink-50 text-pink-700 hover:bg-pink-100 rounded-xl text-xs font-semibold transition"
               >
                 + Masukkan Daftar Belanja
               </button>
@@ -1097,7 +1097,7 @@ export default function RiwayatKeluarPage() {
                 value={editNamaPelanggan}
                 onChange={(e) => setEditNamaPelanggan(e.target.value)}
                 placeholder="Umum / walk-in"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
               />
             </div>
 
@@ -1111,7 +1111,7 @@ export default function RiwayatKeluarPage() {
                   setEditFormMetode(e.target.value);
                   setEditTotalBayar("0");
                 }}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
               >
                 <option value="CASH">CASH</option>
                 <option value="TRANSFER">TRANSFER</option>
@@ -1130,12 +1130,12 @@ export default function RiwayatKeluarPage() {
                   setEditBiayaLain(cleaned);
                 }}
                 placeholder="0"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
               />
             </div>
 
             {editCart.length > 0 && (editIsCash || editIsCredit || editIsTransfer) && (
-              <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
+              <div className="bg-pink-50/50 border border-pink-100 rounded-xl p-3 text-slate-700 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span>Subtotal Barang:</span>
                   <span className="font-bold">{idr(editTotalHargaDiForm)}</span>
@@ -1146,7 +1146,7 @@ export default function RiwayatKeluarPage() {
                     <span className="font-bold">{idr(editBiayaLainNum)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
+                <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-pink-100">
                   <span>Grand Total:</span>
                   <span>{idr(editGrandTotal)}</span>
                 </div>
@@ -1162,15 +1162,15 @@ export default function RiwayatKeluarPage() {
                     }}
                     placeholder="0"
                     readOnly={editIsTransfer}
-                    className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${editIsTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
+                    className={`w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 ${editIsTransfer ? "bg-slate-100 cursor-not-allowed opacity-60" : "bg-white"}`}
                   />
                 </div>
                 {!editIsTransfer && editDisplayTotalBayar > 0 && (
-                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-indigo-100">
-                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                  <div className="flex justify-between text-sm font-bold border-t pt-1.5 border-pink-100">
+                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-pink-700"}>
                       {editIsCredit && editKembalian < 0 ? "Sisa Kredit:" : "Kembalian:"}
                     </span>
-                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-indigo-700"}>
+                    <span className={editIsCredit && editKembalian < 0 ? "text-rose-600" : editKembalian < 0 ? "text-rose-600" : "text-pink-700"}>
                       {editIsCredit && editKembalian < 0 ? idr(Math.abs(editKembalian)) : editKembalian < 0 ? `- ${idr(Math.abs(editKembalian))}` : idr(editKembalian)}
                     </span>
                   </div>
@@ -1186,7 +1186,7 @@ export default function RiwayatKeluarPage() {
                 rows={2}
                 defaultValue={activeEdit.keterangan || ""}
                 placeholder="Contoh: Pembelian Grosir Toko A"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white resize-none"
               />
             </div>
 
@@ -1201,7 +1201,7 @@ export default function RiwayatKeluarPage() {
               <button
                 type="submit"
                 disabled={isEditPending || editCart.length === 0}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isEditPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">

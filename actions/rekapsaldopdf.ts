@@ -23,11 +23,11 @@ export async function getRekapPdfData(
     const where: any = {};
 
     if (jenis) where.jenis = jenis;
-    
+
     if (status) {
       where.status = status === "Belum Lunas" ? "Belum_Lunas" : status;
     }
-    
+
     if (saldoId) where.saldo_id = saldoId;
 
     if (providerBank && providerBank.trim() !== "") {
@@ -50,7 +50,7 @@ export async function getRekapPdfData(
       where.tanggal = { lte: end };
     }
 
-    const [transaksiList, pengaturanRes] = await Promise.all([
+    const [transaksiList, pengaturanRes, saldoData] = await Promise.all([
       prisma.transaksi_digital.findMany({
         where,
         include: {
@@ -61,6 +61,12 @@ export async function getRekapPdfData(
         orderBy: { tanggal: "desc" },
       }),
       getPengaturan(),
+      saldoId
+        ? prisma.saldo.findUnique({
+            where: { id: saldoId },
+            select: { nama_akun: true },
+          })
+        : null,
     ]);
 
     const formattedData = transaksiList.map((t) => {
@@ -109,6 +115,7 @@ export async function getRekapPdfData(
       success: true,
       data: formattedData,
       ringkasan,
+      saldoNama: saldoData?.nama_akun || null,
       pengaturan: pengaturanRes.success ? pengaturanRes.data : null,
     };
   } catch (error) {

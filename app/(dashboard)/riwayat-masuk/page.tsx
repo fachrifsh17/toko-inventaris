@@ -301,7 +301,7 @@ export default function RiwayatMasukPage() {
                     type="date"
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -312,7 +312,7 @@ export default function RiwayatMasukPage() {
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white"
                   />
                 </div>
 
@@ -324,7 +324,7 @@ export default function RiwayatMasukPage() {
                       setEndDate(tempEnd);
                       setPage(1);
                     }}
-                    className="ml-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                    className="ml-2 px-3 py-1.5 bg-pink-600 text-white rounded-md text-sm font-medium hover:bg-pink-700 transition-colors"
                   >
                     Terapkan
                   </button>
@@ -400,14 +400,14 @@ export default function RiwayatMasukPage() {
                                   <button
                                     type="button"
                                     onClick={() => setActiveDetail(transaksi)}
-                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                    className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
                                   >
                                     Detail
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => openEditModal(transaksi)}
-                                    className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
+                                    className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2.5 py-1 rounded-md transition font-medium border"
                                   >
                                     Edit
                                   </button>
@@ -451,7 +451,7 @@ export default function RiwayatMasukPage() {
                             aria-current={pg === page ? "page" : undefined}
                             className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                               pg === page
-                                ? "bg-indigo-600 text-white shadow-sm"
+                                ? "bg-pink-600 text-white shadow-sm"
                                 : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                             }`}
                           >
@@ -519,7 +519,7 @@ export default function RiwayatMasukPage() {
                   min={1}
                   value={inputJumlah}
                   onChange={(e) => setInputJumlah(Math.max(1, Number(e.target.value)))}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -535,7 +535,7 @@ export default function RiwayatMasukPage() {
                       setHargaModalStr(cleaned);
                       setHargaModal(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
                 <div>
@@ -549,7 +549,7 @@ export default function RiwayatMasukPage() {
                       setHargaJualStr(cleaned);
                       setHargaJual(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
               </div>
@@ -557,7 +557,7 @@ export default function RiwayatMasukPage() {
               <button
                 type="button"
                 onClick={handleAddToBag}
-                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+                className="w-full py-2 bg-pink-50 text-pink-700 hover:bg-pink-100 rounded-xl text-xs font-semibold transition"
               >
                 + Masukkan Daftar
               </button>
@@ -604,7 +604,7 @@ export default function RiwayatMasukPage() {
                 <select
                   id="selectMetode"
                   name="metode_pembayaran"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 >
                   <option value="CASH">CASH</option>
                   <option value="TRANSFER">TRANSFER</option>
@@ -619,7 +619,7 @@ export default function RiwayatMasukPage() {
                   name="keterangan"
                   rows={2}
                   placeholder="Contoh: Restok dari Distributor A"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -802,7 +802,7 @@ export default function RiwayatMasukPage() {
                   min={1}
                   value={editInputJumlah}
                   onChange={(e) => setEditInputJumlah(Math.max(1, Number(e.target.value)))}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                 />
               </div>
 
@@ -818,7 +818,7 @@ export default function RiwayatMasukPage() {
                       setEditHargaModalStr(cleaned);
                       setEditHargaModal(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
                 <div>
@@ -832,7 +832,7 @@ export default function RiwayatMasukPage() {
                       setEditHargaJualStr(cleaned);
                       setEditHargaJual(Number(cleaned) || 0);
                     }}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
                   />
                 </div>
               </div>
@@ -840,7 +840,7 @@ export default function RiwayatMasukPage() {
               <button
                 type="button"
                 onClick={handleEditAddToBag}
-                className="w-full py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition"
+                className="w-full py-2 bg-pink-50 text-pink-700 hover:bg-pink-100 rounded-xl text-xs font-semibold transition"
               >
                 + Masukkan Daftar
               </button>
@@ -887,7 +887,7 @@ export default function RiwayatMasukPage() {
                 id="editSelectMetode"
                 value={editMetode}
                 onChange={(e) => setEditMetode(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
               >
                 <option value="CASH">CASH</option>
                 <option value="TRANSFER">TRANSFER</option>
@@ -903,7 +903,7 @@ export default function RiwayatMasukPage() {
                 onChange={(e) => setEditKeterangan(e.target.value)}
                 rows={2}
                 placeholder="Contoh: Restok dari Distributor A"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
               />
             </div>
 
@@ -918,7 +918,7 @@ export default function RiwayatMasukPage() {
               <button
                 type="submit"
                 disabled={isEditPending || editCart.length === 0}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isEditPending ? "Menyimpan..." : "Simpan Perubahan"}
               </button>

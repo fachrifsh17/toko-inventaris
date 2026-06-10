@@ -157,7 +157,7 @@ export default function UserPage() {
         </div>
         <button
           onClick={openAdd}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm"
+          className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -196,7 +196,7 @@ export default function UserPage() {
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm" aria-hidden="true">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-violet-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm" aria-hidden="true">
                             {user.username.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-semibold text-slate-800 text-sm">{user.username}</span>
@@ -214,7 +214,7 @@ export default function UserPage() {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => openEdit(user)}
-                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 hover:bg-pink-100 flex items-center justify-center transition-colors"
                             aria-label={`Edit ${user.username}`}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -282,7 +282,7 @@ export default function UserPage() {
                         aria-current={page === userPage ? "page" : undefined}
                         className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                           page === userPage
-                            ? "bg-indigo-600 text-white shadow-sm"
+                            ? "bg-pink-600 text-white shadow-sm"
                             : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
@@ -319,7 +319,7 @@ export default function UserPage() {
         <PortalModal onClose={() => setShowAdd(false)}>
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center" aria-hidden="true">
+              <div className="w-9 h-9 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
@@ -349,7 +349,7 @@ export default function UserPage() {
                 name="username"
                 required
                 placeholder="contoh: john_doe"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div>
@@ -359,7 +359,7 @@ export default function UserPage() {
                 name="nama_lengkap"
                 required
                 placeholder="contoh: John Doe"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div>
@@ -371,7 +371,7 @@ export default function UserPage() {
                 required
                 minLength={6}
                 placeholder="Minimal 6 karakter"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -385,7 +385,7 @@ export default function UserPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -435,7 +435,7 @@ export default function UserPage() {
                 name="username"
                 required
                 defaultValue={selected.username}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div>
@@ -445,7 +445,7 @@ export default function UserPage() {
                 name="nama_lengkap"
                 required
                 defaultValue={selected.nama_lengkap}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div>
@@ -458,7 +458,7 @@ export default function UserPage() {
                 name="password"
                 minLength={6}
                 placeholder="Isi jika ingin ganti password"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -472,7 +472,7 @@ export default function UserPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">

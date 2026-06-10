@@ -131,11 +131,11 @@ export default async function DashboardPage() {
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
                 {summary.kartuRingkasan.totalProduk}
               </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 mt-1">
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 mt-1">
                 {summary.kartuRingkasan.produkAktif} Aktif
               </span>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
               </svg>
@@ -228,7 +228,7 @@ export default async function DashboardPage() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
                   Jumlah Transaksi
                 </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-indigo-600 mt-1 block">
+                <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">
                   {summary.aktivitasHariIni.jumlahTransaksiMasuk}
                 </span>
               </div>
@@ -258,7 +258,7 @@ export default async function DashboardPage() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
                   Jumlah Transaksi
                 </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-indigo-600 mt-1 block">
+                <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">
                   {summary.aktivitasHariIni.jumlahTransaksiKeluar}
                 </span>
               </div>
@@ -331,7 +331,7 @@ export default async function DashboardPage() {
               produkLaris.map((produk, idx) => (
                 <div key={produk.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors rounded-xl">
                   <div className="flex items-center gap-3 pr-2">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-700 flex items-center justify-center font-bold text-xs shrink-0">
                       #{idx + 1}
                     </div>
                     <div className="space-y-0.5">
@@ -344,7 +344,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-xs font-bold text-indigo-600 block">
+                    <span className="text-xs font-bold text-pink-600 block">
                       {formatRupiah(produk.harga_jual)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
@@ -389,14 +389,14 @@ export default async function DashboardPage() {
                       <span className="text-slate-700">{kat.kategori}</span>
                       <span className="text-slate-400">
                         {kat.jumlahProduk} produk &bull;{" "}
-                        <span className="text-indigo-600 font-bold">
+                        <span className="text-pink-600 font-bold">
                           {kat.totalStok} unit
                         </span>
                       </span>
                     </div>
                     <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500 stok-bar-${idx}`}
+                        className={`h-full bg-gradient-to-r from-pink-500 to-violet-500 rounded-full transition-all duration-500 stok-bar-${idx}`}
                       ></div>
                     </div>
                   </div>

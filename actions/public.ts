@@ -1,6 +1,5 @@
 "use server";
 
-// 1. Perbaikan IMPORT: Menambahkan kurung kurawal agar sama dengan file rekap sebelumnya
 import { prisma } from "@/lib/prisma";
 
 export async function getPengaturan() {
@@ -34,6 +33,28 @@ export async function getKategoriList() {
     return data;
   } catch (error) {
     console.error("Error getKategoriList:", error);
+    return [];
+  }
+}
+
+export async function getProduk() {
+  try {
+    const data = await prisma.produk.findMany({
+      where: { is_active: true },
+      take: 4,
+      orderBy: { id: "desc" },
+      include: {                              
+        kategori: {
+          select: {
+            nama_kategori: true,
+            slug: true
+          }
+        }
+      }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error getProduk:", error);
     return [];
   }
 }

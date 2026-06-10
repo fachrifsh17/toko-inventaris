@@ -38,13 +38,11 @@ export default function Navbar({
   return (
     <nav className="sticky top-0 z-30 backdrop-blur-md bg-white/70 border-b border-slate-200/50 px-4 sm:px-6 py-3">
       <div className="flex items-center justify-between">
-        {/* Left - Breadcrumb & Mobile Menu Trigger */}
         <div className="flex items-center gap-3">
-          {/* Hamburger Menu on Mobile */}
           {onMenuClick && (
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+              className="lg:hidden p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-pink-600 transition-colors cursor-pointer"
               aria-label="Open sidebar"
             >
               <svg
@@ -63,7 +61,6 @@ export default function Navbar({
             </button>
           )}
 
-          {/* Title */}
           <div>
             <h2 className="text-base sm:text-lg font-bold text-slate-850 tracking-tight leading-tight">
               Selamat Datang
@@ -74,13 +71,11 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Right - Profile & Settings */}
         <div className="flex items-center gap-3">
-          {/* Notifications */}
           <button 
             aria-label="Notifikasi"
             title="Notifikasi"
-            className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-indigo-600 transition-colors relative cursor-pointer group"
+            className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-pink-600 transition-colors relative cursor-pointer group"
           >
             <svg
               className="w-5.5 h-5.5 transition-transform duration-200 group-hover:rotate-6"
@@ -104,13 +99,12 @@ export default function Navbar({
 
           <div className="w-px h-6 bg-slate-200"></div>
 
-          {/* Profile Menu */}
           <div className="relative">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center gap-2.5 p-1.5 hover:bg-slate-100 rounded-xl transition-all duration-200 cursor-pointer"
             >
-              <div className="w-8.5 h-8.5 bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md shadow-indigo-500/10">
+              <div className="w-8.5 h-8.5 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md shadow-pink-500/10">
                 {user?.nama_lengkap ? user.nama_lengkap.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="text-left hidden sm:block pr-1">
@@ -136,10 +130,9 @@ export default function Navbar({
               </svg>
             </button>
 
-            {/* Dropdown Menu */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2.5 w-52 bg-white rounded-2xl shadow-xl border border-indigo-500/40 py-2 z-50 animate-fade-in">
-                <div className="px-4 py-2 border-b border-indigo-50">
+              <div className="absolute right-0 mt-2.5 w-52 bg-white rounded-2xl shadow-xl border border-pink-500/40 py-2 z-50 animate-fade-in">
+                <div className="px-4 py-2 border-b border-pink-50">
                   <p className="text-xs font-semibold text-slate-800">
                     {user?.nama_lengkap || "Loading..."}
                   </p>
@@ -151,7 +144,7 @@ export default function Navbar({
                 <Link
                   href="/edit-profile"
                   onClick={() => setIsProfileOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-600 hover:bg-indigo-50/50 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-600 hover:bg-pink-50/50 hover:text-pink-600 transition-colors"
                 >
                   <svg
                     className="w-4.5 h-4.5 text-slate-400"
@@ -172,7 +165,7 @@ export default function Navbar({
                 <Link
                   href="/pengaturan"
                   onClick={() => setIsProfileOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-600 hover:bg-indigo-50/50 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-600 hover:bg-pink-50/50 hover:text-pink-600 transition-colors"
                 >
                   <svg
                     className="w-4.5 h-4.5 text-slate-400"
@@ -196,7 +189,7 @@ export default function Navbar({
                   <span>Pengaturan</span>
                 </Link>
 
-                <div className="border-t border-indigo-50 my-1.5"></div>
+                <div className="border-t border-pink-50 my-1.5"></div>
 
                 <button
                   onClick={async () => {

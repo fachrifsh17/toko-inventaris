@@ -166,13 +166,13 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
               />
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/10 group-hover:scale-105 transition-transform shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-pink-500/10 group-hover:scale-105 transition-transform shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
               </svg>
             </div>
           )}
-          <span className="font-bold text-base tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors truncate block">
+          <span className="font-bold text-base tracking-tight text-gray-900 group-hover:text-pink-600 transition-colors truncate block">
             {namaToko}
           </span>
         </Link>
@@ -205,14 +205,14 @@ export default function Sidebar({ isOpen = false, onClose, namaToko = "Toko", ur
                     href={item.href}
                     onClick={onClose}
                     className={`relative flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 group overflow-hidden ${isActive
-                        ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                        ? 'bg-pink-50 text-pink-600 font-semibold'
                         : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                   >
                     {isActive && (
-                      <span className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-r-md"></span>
+                      <span className="absolute left-0 top-0 bottom-0 w-1 bg-pink-600 rounded-r-md"></span>
                     )}
-                    <span className={`transition-colors duration-200 ${isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                    <span className={`transition-colors duration-200 ${isActive ? 'text-pink-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
                       {item.icon}
                     </span>
                     <span>{item.name}</span>

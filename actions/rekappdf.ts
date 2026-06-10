@@ -40,12 +40,12 @@ export async function getRekapPdfData(
       where.tanggal = { lte: end };
     }
 
-    if (namaKategori && namaKategori.trim() !== "") {
+    if (namaKategori && namaKategori.trim() !== "" && namaKategori.trim().toLowerCase() !== "semua") {
       where.detail_transaksi = {
         some: {
           produk: {
             kategori: {
-              nama_kategori: { contains: namaKategori.trim() },
+              nama_kategori: { equals: namaKategori.trim() },
             },
           },
         },
@@ -74,19 +74,25 @@ export async function getRekapPdfData(
       const isKeluar = t.jenis_stok === "KELUAR";
       const isMasuk = t.jenis_stok === "MASUK";
 
-      const total_harga_modal = t.detail_transaksi.reduce(
-        (sum, item) => sum + (item.harga_modal_real || 0) * (item.jumlah || 0),
-        0,
-      );
+      const filteredDetails = namaKategori && namaKategori.trim() !== "" && namaKategori.trim().toLowerCase() !== "semua"
+        ? t.detail_transaksi.filter((d) => d.produk?.kategori?.nama_kategori === namaKategori.trim())
+        : t.detail_transaksi;
+
+      const total_harga_modal = isKeluar
+        ? 0
+        : filteredDetails.reduce(
+            (sum, item) => sum + (item.harga_modal_real || 0) * (item.jumlah || 0),
+            0,
+          );
 
       const total_harga_jual = isMasuk
         ? 0
-        : t.detail_transaksi.reduce(
+        : filteredDetails.reduce(
             (sum, item) => sum + (item.harga_jual_real || 0) * (item.jumlah || 0),
             0,
           );
 
-      const total_item = t.detail_transaksi.reduce(
+      const total_item = filteredDetails.reduce(
         (sum, item) => sum + (item.jumlah || 0),
         0,
       );
@@ -106,6 +112,7 @@ export async function getRekapPdfData(
 
       return {
         ...t,
+        detail_transaksi: filteredDetails,
         total_harga_modal,
         total_harga_jual,
         total_item,

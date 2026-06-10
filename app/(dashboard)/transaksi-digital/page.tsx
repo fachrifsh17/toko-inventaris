@@ -363,7 +363,7 @@ export default function TransaksiDigitalPage() {
     return pages;
   };
 
-  const inputCls = "w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white";
+  const inputCls = "w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition bg-white";
   const labelCls = "block text-xs text-slate-500 mb-1";
 
   const renderFormFields = () => (
@@ -477,7 +477,7 @@ export default function TransaksiDigitalPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 items-end">
                 <div>
                   <label htmlFor="filter_jenis" className="text-xs text-slate-600 block">Jenis</label>
-                  <select id="filter_jenis" value={tempFilterJenis} onChange={(e) => setTempFilterJenis(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" aria-label="Filter jenis transaksi">
+                  <select id="filter_jenis" value={tempFilterJenis} onChange={(e) => setTempFilterJenis(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white" aria-label="Filter jenis transaksi">
                     <option value="">Semua</option>
                     <option value="top_up">Top Up</option>
                     <option value="transfer">Transfer</option>
@@ -487,7 +487,7 @@ export default function TransaksiDigitalPage() {
                 </div>
                 <div>
                   <label htmlFor="filter_saldo" className="text-xs text-slate-600 block">Saldo</label>
-                  <select id="filter_saldo" value={tempFilterSaldoId} onChange={(e) => setTempFilterSaldoId(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" aria-label="Filter akun saldo">
+                  <select id="filter_saldo" value={tempFilterSaldoId} onChange={(e) => setTempFilterSaldoId(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white" aria-label="Filter akun saldo">
                     <option value="">Semua</option>
                     {saldoList.map((s) => (
                       <option key={s.id} value={s.id}>{s.nama_akun}</option>
@@ -496,7 +496,7 @@ export default function TransaksiDigitalPage() {
                 </div>
                 <div>
                   <label htmlFor="filter_status" className="text-xs text-slate-600 block">Status</label>
-                  <select id="filter_status" value={tempFilterStatus} onChange={(e) => setTempFilterStatus(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" aria-label="Filter status">
+                  <select id="filter_status" value={tempFilterStatus} onChange={(e) => setTempFilterStatus(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white" aria-label="Filter status">
                     <option value="">Semua</option>
                     <option value="Lunas">Lunas</option>
                     <option value="Belum Lunas">Belum Lunas</option>
@@ -504,14 +504,14 @@ export default function TransaksiDigitalPage() {
                 </div>
                 <div>
                   <label htmlFor="filter_dari" className="text-xs text-slate-600 block">Dari</label>
-                  <input id="filter_dari" type="date" value={tempStart} onChange={(e) => setTempStart(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" aria-label="Filter tanggal dari" />
+                  <input id="filter_dari" type="date" value={tempStart} onChange={(e) => setTempStart(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white" aria-label="Filter tanggal dari" />
                 </div>
                 <div>
                   <label htmlFor="filter_sampai" className="text-xs text-slate-600 block">Sampai</label>
-                  <input id="filter_sampai" type="date" value={tempEnd} onChange={(e) => setTempEnd(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" aria-label="Filter tanggal sampai" />
+                  <input id="filter_sampai" type="date" value={tempEnd} onChange={(e) => setTempEnd(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white" aria-label="Filter tanggal sampai" />
                 </div>
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => { setFilterJenis(tempFilterJenis); setFilterSaldoId(tempFilterSaldoId); setFilterStatus(tempFilterStatus); setStartDate(tempStart); setEndDate(tempEnd); setPage(1); }} className="px-2 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition-colors" aria-label="Terapkan filter">
+                  <button type="button" onClick={() => { setFilterJenis(tempFilterJenis); setFilterSaldoId(tempFilterSaldoId); setFilterStatus(tempFilterStatus); setStartDate(tempStart); setEndDate(tempEnd); setPage(1); }} className="px-2 py-1.5 bg-pink-600 text-white rounded-md text-xs font-medium hover:bg-pink-700 transition-colors" aria-label="Terapkan filter">
                     Terapkan
                   </button>
                   <button type="button" onClick={() => { setTempFilterJenis(""); setFilterJenis(""); setTempFilterSaldoId(""); setFilterSaldoId(""); setTempFilterStatus(""); setFilterStatus(""); setTempStart(""); setTempEnd(""); setStartDate(""); setEndDate(""); setPage(1); }} className="px-2 py-1.5 border rounded-md text-xs bg-white text-slate-700 hover:bg-slate-50 transition-colors" aria-label="Reset filter">
@@ -564,7 +564,7 @@ export default function TransaksiDigitalPage() {
                             <td className="py-3">{renderStatusBadge(item.status)}</td>
                             <td className="py-3 text-center">
                               <div className="flex items-center justify-center gap-1">
-                                <button type="button" onClick={() => setActiveDetail(item)} className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2 py-1 rounded-md transition font-medium border" aria-label={`Detail transaksi ${item.id}`}>
+                                <button type="button" onClick={() => setActiveDetail(item)} className="text-xs bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-slate-600 px-2 py-1 rounded-md transition font-medium border" aria-label={`Detail transaksi ${item.id}`}>
                                   Detail
                                 </button>
                                 <button type="button" onClick={() => openEdit(item)} className="text-xs bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 px-2 py-1 rounded-md transition font-medium border" aria-label={`Edit transaksi ${item.id}`}>
@@ -594,7 +594,7 @@ export default function TransaksiDigitalPage() {
                         typeof pg === "string" ? (
                           <span key={`dot-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm" aria-hidden="true">...</span>
                         ) : (
-                          <button key={pg} type="button" onClick={() => setPage(pg)} aria-label={`Halaman ${pg}`} aria-current={pg === page ? "page" : undefined} className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${pg === page ? "bg-indigo-600 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
+                          <button key={pg} type="button" onClick={() => setPage(pg)} aria-label={`Halaman ${pg}`} aria-current={pg === page ? "page" : undefined} className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${pg === page ? "bg-pink-600 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
                             {pg}
                           </button>
                         )
@@ -637,7 +637,7 @@ export default function TransaksiDigitalPage() {
             )}
 
             <form onSubmit={handleAdd}>
-              <button type="submit" disabled={isPending || saldoId <= 0 || biayaAdminId <= 0 || parseNum(nominalStr) <= 0} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm w-full font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Simpan transaksi digital">
+              <button type="submit" disabled={isPending || saldoId <= 0 || biayaAdminId <= 0 || parseNum(nominalStr) <= 0} className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-xl text-sm w-full font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Simpan transaksi digital">
                 {isPending ? "Memproses..." : "Simpan Transaksi"}
               </button>
             </form>
@@ -787,7 +787,7 @@ export default function TransaksiDigitalPage() {
               <button type="button" onClick={() => { setShowEdit(false); setEditData(null); resetForm(); }} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" aria-label="Batal edit">
                 Batal
               </button>
-              <button type="submit" disabled={isPending} className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2" aria-label="Simpan perubahan">
+              <button type="submit" disabled={isPending} className="px-5 py-2.5 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-colors disabled:opacity-60 flex items-center gap-2" aria-label="Simpan perubahan">
                 {isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

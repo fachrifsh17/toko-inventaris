@@ -86,24 +86,24 @@ export async function addProdukAction(prevState: any, formData: FormData) {
     const raw_url_foto = formData.get("url_foto");
     let url_foto = url_foto_uploaded || "";
 
-    if (
-      !url_foto &&
-      raw_url_foto &&
-      typeof (raw_url_foto as any).name === "string" &&
-      (raw_url_foto as any).size > 0
-    ) {
-      try {
-        const file: any = raw_url_foto;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const ext = path.extname(file.name) || ".jpg";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads");
-        await fs.mkdir(uploadsDir, { recursive: true });
-        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        url_foto = `/uploads/${fileName}`;
-      } catch (err) {
-        console.error("Error saving uploaded file in addProdukAction:", err);
+    if (!url_foto && raw_url_foto) {
+      if (typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+        try {
+          const file: any = raw_url_foto;
+          const arrayBuffer = await file.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const ext = path.extname(file.name) || ".jpg";
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+          const uploadsDir = path.join(process.cwd(), "public", "uploads");
+          await fs.mkdir(uploadsDir, { recursive: true });
+          await fs.writeFile(path.join(uploadsDir, fileName), buffer);
+          url_foto = `/uploads/${fileName}`;
+        } catch (err) {
+          console.error("Error saving uploaded file in addProdukAction:", err);
+          return { success: false, error: "Gagal menyimpan file foto ke server." };
+        }
+      } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "") {
+        url_foto = raw_url_foto.trim();
       }
     }
     const is_active = formData.get("is_active") === "true";
@@ -171,27 +171,28 @@ export async function editProdukAction(prevState: any, formData: FormData) {
     if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
       url_foto = url_foto_uploaded;
       apakah_foto_berubah = true;
-    } else if (
-      raw_url_foto &&
-      typeof (raw_url_foto as any).name === "string" &&
-      (raw_url_foto as any).size > 0
-    ) {
-      try {
-        const file: any = raw_url_foto;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const ext = path.extname(file.name) || ".jpg";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads");
-        
-        await fs.mkdir(uploadsDir, { recursive: true });
-        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        
-        url_foto = `/uploads/${fileName}`;
+    } else if (raw_url_foto) {
+      if (typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+        try {
+          const file: any = raw_url_foto;
+          const arrayBuffer = await file.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const ext = path.extname(file.name) || ".jpg";
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+          const uploadsDir = path.join(process.cwd(), "public", "uploads");
+          
+          await fs.mkdir(uploadsDir, { recursive: true });
+          await fs.writeFile(path.join(uploadsDir, fileName), buffer);
+          
+          url_foto = `/uploads/${fileName}`;
+          apakah_foto_berubah = true;
+        } catch (err) {
+          console.error("Error saving uploaded file:", err);
+          return { success: false, error: "Gagal menyimpan file foto baru." };
+        }
+      } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "" && raw_url_foto !== existing.url_foto) {
+        url_foto = raw_url_foto.trim();
         apakah_foto_berubah = true;
-      } catch (err) {
-        console.error("Error saving uploaded file:", err);
-        return { success: false, error: "Gagal menyimpan file foto baru." };
       }
     }
 

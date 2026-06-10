@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { MapPin, Phone, Mail } from "lucide-react"
 
@@ -29,19 +31,72 @@ export default function FooterPublic({
   const waLink = `https://wa.me/${pengaturan?.no_wa_toko?.replace(/^0/, "62") || ""}`
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10">
+    <footer className="relative overflow-hidden footer-root">
+      <style jsx global>{`
+        .footer-root { font-family: 'DM Sans', sans-serif; }
+        .footer-top-line {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(236,72,153,0.25), rgba(147,197,253,0.20), transparent);
+        }
+        .footer-gradient-overlay {
+          background: linear-gradient(180deg, rgba(245,224,235,0.0) 0%, rgba(242,220,232,0.55) 100%);
+        }
+        .footer-orb-pink {
+          background: radial-gradient(circle, rgba(244,114,182,0.18) 0%, transparent 70%);
+          filter: blur(100px);
+        }
+        .footer-orb-blue {
+          background: radial-gradient(circle, rgba(147,197,253,0.14) 0%, transparent 70%);
+          filter: blur(90px);
+        }
+        .footer-orb-light {
+          background: radial-gradient(circle, rgba(249,168,212,0.12) 0%, transparent 70%);
+          filter: blur(80px);
+        }
+        .footer-logo-img {
+          border: 1px solid rgba(255,255,255,0.65);
+          box-shadow: 0 2px 12px rgba(219,39,119,0.10);
+        }
+        .footer-logo-fallback {
+          background: linear-gradient(135deg, #ec4899, #db2777, #3b82f6);
+          box-shadow: 0 4px 16px rgba(236,72,153,0.28);
+        }
+        .footer-social-icon {
+          background: rgba(255,255,255,0.30);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.55);
+        }
+        .footer-contact-icon {
+          background: rgba(236,72,153,0.10);
+          border: 1px solid rgba(236,72,153,0.15);
+        }
+        .footer-bottom-line {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(236,72,153,0.22), rgba(147,197,253,0.18), transparent);
+        }
+      `}</style>
+
+      <div className="footer-top-line" />
+
+      <div className="absolute inset-0 pointer-events-none footer-gradient-overlay" />
+      <div className="absolute bottom-0 left-[5%] w-[350px] h-[350px] rounded-full pointer-events-none footer-orb-pink" />
+      <div className="absolute bottom-[10%] right-[10%] w-[300px] h-[300px] rounded-full pointer-events-none footer-orb-blue" />
+      <div className="absolute top-0 left-[40%] w-[200px] h-[200px] rounded-full pointer-events-none footer-orb-light" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 pb-8 sm:pb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
+
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-4">
               {pengaturan?.url_logo ? (
                 <img
                   src={pengaturan.url_logo}
                   alt={pengaturan.nama_toko || "Store"}
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border border-gray-200"
+                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl object-cover footer-logo-img"
                 />
               ) : (
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-sm footer-logo-fallback">
                   {pengaturan?.nama_toko?.charAt(0) || "G"}
                 </div>
               )}
@@ -49,17 +104,19 @@ export default function FooterPublic({
                 {pengaturan?.nama_toko || "Toko"}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal max-w-[200px] sm:max-w-none">
               {pengaturan?.tagline || "Pancarkan Pesona Alami Kulitmu"}
             </p>
-            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-5">
+
+            <div className="flex items-center gap-2.5 sm:gap-3 mt-5">
               {pengaturan?.link_instagram && (
                 <a
                   href={pengaturan.link_instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-violet-600 hover:border-violet-300 transition-all"
+                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-pink-600 transition-all duration-300 footer-social-icon"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -74,7 +131,7 @@ export default function FooterPublic({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-violet-600 hover:border-violet-300 transition-all"
+                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-pink-600 transition-all duration-300 footer-social-icon"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
@@ -87,7 +144,7 @@ export default function FooterPublic({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="TikTok"
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-violet-600 hover:border-violet-300 transition-all"
+                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-pink-600 transition-all duration-300 footer-social-icon"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.72a8.2 8.2 0 0 0 4.76 1.52V6.79a4.84 4.84 0 0 1-1-.1z" />
@@ -98,14 +155,14 @@ export default function FooterPublic({
           </div>
 
           <div>
-            <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-700 mb-3 sm:mb-4">
+            <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] mb-4 text-pink-700">
               Kategori
             </h4>
-            <ul className="space-y-1.5 sm:space-y-2.5">
+            <ul className="space-y-2.5">
               <li>
                 <Link
                   href="/produkpublic"
-                  className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                  className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium"
                 >
                   Semua Produk
                 </Link>
@@ -114,7 +171,7 @@ export default function FooterPublic({
                 <li key={k.id}>
                   <Link
                     href={`/produkpublic?kategori=${k.slug}`}
-                    className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                    className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium"
                   >
                     {k.nama_kategori}
                   </Link>
@@ -124,23 +181,17 @@ export default function FooterPublic({
           </div>
 
           <div>
-            <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-700 mb-3 sm:mb-4">
+            <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] mb-4 text-pink-700">
               Navigasi
             </h4>
-            <ul className="space-y-1.5 sm:space-y-2.5">
+            <ul className="space-y-2.5">
               <li>
-                <Link
-                  href="/"
-                  className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
-                >
+                <Link href="/" className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium">
                   Beranda
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/produkpublic"
-                  className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
-                >
+                <Link href="/produkpublic" className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium">
                   Produk
                 </Link>
               </li>
@@ -149,7 +200,7 @@ export default function FooterPublic({
                   href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                  className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium"
                 >
                   Hubungi Kami
                 </a>
@@ -158,36 +209,42 @@ export default function FooterPublic({
           </div>
 
           <div className="col-span-2 md:col-span-1">
-            <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-700 mb-3 sm:mb-4">
+            <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] mb-4 text-pink-700">
               Kontak
             </h4>
-            <ul className="space-y-2 sm:space-y-3">
-              <li className="flex items-start gap-2 sm:gap-3">
-                <Phone size={14} className="text-gray-400 mt-0.5 shrink-0" />
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 footer-contact-icon">
+                  <Phone size={12} className="text-pink-600" />
+                </div>
                 <a
                   href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                  className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium leading-relaxed pt-0.5"
                 >
                   {pengaturan?.no_wa_toko || "-"}
                 </a>
               </li>
               {pengaturan?.email && (
-                <li className="flex items-start gap-2 sm:gap-3">
-                  <Mail size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                <li className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 footer-contact-icon">
+                    <Mail size={12} className="text-pink-600" />
+                  </div>
                   <a
                     href={`mailto:${pengaturan.email}`}
-                    className="text-xs sm:text-sm text-gray-400 hover:text-gray-900 transition-colors break-all"
+                    className="text-xs sm:text-sm text-gray-700 hover:text-pink-700 transition-colors duration-200 font-medium leading-relaxed pt-0.5 break-all"
                   >
                     {pengaturan.email}
                   </a>
                 </li>
               )}
               {pengaturan?.alamat && (
-                <li className="flex items-start gap-2 sm:gap-3">
-                  <MapPin size={14} className="text-gray-400 mt-0.5 shrink-0" />
-                  <span className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                <li className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 footer-contact-icon">
+                    <MapPin size={12} className="text-pink-600" />
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed pt-0.5">
                     {pengaturan.alamat}
                   </span>
                 </li>
@@ -196,12 +253,12 @@ export default function FooterPublic({
           </div>
         </div>
 
-        <div className="border-t border-gray-200 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-          <p className="text-[10px] sm:text-xs text-gray-300 text-center sm:text-left">
-            © {new Date().getFullYear()}{" "}
-            {pengaturan?.nama_toko || "Toko"}. All rights reserved.
+        <div className="relative mt-12 sm:mt-16 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="absolute top-0 left-0 right-0 footer-bottom-line" />
+          <p className="text-[11px] sm:text-xs text-gray-500 text-center sm:text-left font-medium">
+            © {new Date().getFullYear()} {pengaturan?.nama_toko || "Toko"}. All rights reserved.
           </p>
-          <p className="text-[10px] sm:text-xs text-gray-300">
+          <p className="text-[11px] sm:text-xs font-medium text-pink-500">
             Crafted with care for your skin
           </p>
         </div>
