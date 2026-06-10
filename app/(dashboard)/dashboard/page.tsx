@@ -1,7 +1,7 @@
 import { getDashboardSummary, getProdukPalingLaris, getStokByKategori } from "@/actions/dashboard";
 import { getPengaturan } from "@/actions/pengaturan";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const [summaryResult, produkLarisResult, stokKategoriResult, pengaturanResult] = await Promise.all([

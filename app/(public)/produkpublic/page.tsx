@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, Suspense } from "react"
+import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, X, ChevronDown, PackageSearch, Plus, Minus, ShoppingBag, Trash2, MessageCircle, ArrowRight, AlertCircle } from "lucide-react"
@@ -52,7 +52,7 @@ function formatWhatsApp(nomor: string) {
   return clean
 }
 
-function ProdukContent() {
+export default function ProdukPage() {
   const searchParams = useSearchParams()
   const activeKategori = searchParams.get("kategori") || "semua"
 
@@ -954,13 +954,5 @@ function ProdukContent() {
         )}
       </div>
     </div>
-  )
-}
-
-export default function ProdukPage() {
-  return (
-    <Suspense>
-      <ProdukContent />
-    </Suspense>
   )
 }
