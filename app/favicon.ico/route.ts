@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 export async function GET() {
   try {
@@ -15,18 +17,22 @@ export async function GET() {
       ? pengaturan.url_logo
       : `/${pengaturan.url_logo}`;
 
-    const fullPath = `${process.env.NEXT_PUBLIC_BASE_URL || ""}${logoPath}`;
+    const filePath = path.join(process.cwd(), "public", logoPath);
 
-    const res = await fetch(fullPath);
-
-    if (!res.ok) {
+    if (!fs.existsSync(filePath)) {
       return new NextResponse(null, { status: 204 });
     }
 
-    const contentType = res.headers.get("content-type") || "image/png";
-    const buffer = await res.arrayBuffer();
+    const fileBuffer = fs.readFileSync(filePath);
+    const ext = path.extname(logoPath).toLowerCase();
+    
+    let contentType = "image/png";
+    if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
+    else if (ext === ".svg") contentType = "image/svg+xml";
+    else if (ext === ".ico") contentType = "image/x-icon";
+    else if (ext === ".webp") contentType = "image/webp";
 
-    return new NextResponse(buffer, {
+    return new NextResponse(fileBuffer, {
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=3600",
