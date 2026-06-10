@@ -330,7 +330,7 @@ export async function updateRiwayatKeluarAction(
 
       for (const oldItem of existingTransaksi.detail_transaksi) {
         await tx.produk.update({
-          where: { id: oldItem.produk_id },
+          where: { id: oldItem.produk_id! },
           data: {
             stok_sekarang: {
               increment: oldItem.jumlah,
