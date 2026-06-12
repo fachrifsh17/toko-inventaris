@@ -55,13 +55,20 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
     const embed_maps = formData.get("embed_maps") as string;
 
     const logoFile = formData.get("url_logo") as File | null;
-    let url_logo: string | null = null;
-
     const currentPengaturan = await prisma.pengaturan.findUnique({
       where: { id },
     });
 
+    let url_logo = currentPengaturan?.url_logo || null;
+
     if (logoFile && logoFile.size > 0 && logoFile.name !== "undefined") {
+      if (currentPengaturan?.url_logo) {
+        const fileNameLama = currentPengaturan.url_logo.split('/').pop();
+        if (fileNameLama) {
+          await supabase.storage.from("logo").remove([fileNameLama]);
+        }
+      }
+
       const fileExt = logoFile.name.split(".").pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
 
@@ -76,8 +83,6 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
         .getPublicUrl(fileName);
 
       url_logo = data.publicUrl;
-    } else {
-      url_logo = currentPengaturan?.url_logo || null;
     }
 
     if (!nama_toko || !no_wa_toko) {

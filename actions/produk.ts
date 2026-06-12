@@ -164,6 +164,13 @@ export async function editProdukAction(prevState: any, formData: FormData) {
     if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
       url_foto = url_foto_uploaded;
     } else if (raw_url_foto && (raw_url_foto as File).size > 0) {
+      if (existing.url_foto) {
+        const fileNameLama = existing.url_foto.split('/').pop();
+        if (fileNameLama) {
+          await supabase.storage.from("produk").remove([fileNameLama]);
+        }
+      }
+
       const file = raw_url_foto as File;
       const fileExt = file.name.split(".").pop();
       const fileName = `produk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
@@ -224,6 +231,13 @@ export async function deleteProdukAction(prevState: any, formData: FormData) {
 
     const existing = await prisma.produk.findUnique({ where: { id } });
     if (!existing) return { success: false, error: "Produk tidak ditemukan." };
+
+    if (existing.url_foto) {
+      const fileName = existing.url_foto.split('/').pop();
+      if (fileName) {
+        await supabase.storage.from("produk").remove([fileName]);
+      }
+    }
 
     await prisma.produk.delete({ where: { id } });
 

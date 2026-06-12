@@ -101,6 +101,13 @@ export async function editBannerAction(prevState: any, formData: FormData) {
     if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto_banner) {
       url_foto_banner = url_foto_uploaded;
     } else if (raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+      if (existing.url_foto_banner) {
+        const fileNameLama = existing.url_foto_banner.split('/').pop();
+        if (fileNameLama) {
+          await supabase.storage.from("banners").remove([fileNameLama]);
+        }
+      }
+
       const file = raw_url_foto as File;
       const fileExt = file.name.split(".").pop();
       const fileName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
@@ -152,6 +159,13 @@ export async function deleteBannerAction(prevState: any, formData: FormData) {
 
     const existing = await prisma.banners.findUnique({ where: { id } });
     if (!existing) return { success: false, error: "Banner tidak ditemukan." };
+
+    if (existing.url_foto_banner) {
+      const fileName = existing.url_foto_banner.split('/').pop();
+      if (fileName) {
+        await supabase.storage.from("banners").remove([fileName]);
+      }
+    }
 
     await prisma.banners.delete({ where: { id } });
 
