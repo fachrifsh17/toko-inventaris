@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 
 export async function GET() {
   try {
@@ -13,33 +11,12 @@ export async function GET() {
       return new NextResponse(null, { status: 204 });
     }
 
-    const logoPath = pengaturan.url_logo.startsWith("/")
-      ? pengaturan.url_logo
-      : `/${pengaturan.url_logo}`;
-
-    // Baca langsung dari direktori fisik aplikasi
-    const filePath = path.join(process.cwd(), "public", logoPath);
-
-    if (!fs.existsSync(filePath)) {
-      return new NextResponse(null, { status: 204 });
-    }
-
-    const fileBuffer = fs.readFileSync(filePath);
+    // Karena url_logo sekarang berisi URL publik dari Supabase (misal: https://xyz.supabase.co/...)
+    // Kita cukup mengarahkan (redirect) ke URL tersebut
+    return NextResponse.redirect(pengaturan.url_logo);
     
-    // Deteksi tipe konten (opsional, tapi disarankan)
-    const ext = path.extname(logoPath).toLowerCase();
-    let contentType = "image/png";
-    if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
-    else if (ext === ".svg") contentType = "image/svg+xml";
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=3600",
-      },
-    });
   } catch (error) {
-    console.error("Error apple-icon:", error);
+    console.error("Error redirecting to logo:", error);
     return new NextResponse(null, { status: 204 });
   }
 }

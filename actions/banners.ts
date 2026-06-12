@@ -1,10 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import fs from "fs/promises";
-import path from "path";
 
 export async function getBanners() {
   try {
@@ -36,25 +35,22 @@ export async function addBannerAction(prevState: any, formData: FormData) {
     const raw_url_foto = formData.get("url_foto");
     let url_foto_banner = url_foto_uploaded || "";
 
-    if (
-      !url_foto_banner && 
-      raw_url_foto && 
-      typeof (raw_url_foto as any).name === "string" &&
-      (raw_url_foto as any).size > 0
-    ) {
-      try {
-        const file: any = raw_url_foto;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const ext = path.extname(file.name) || ".jpg";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads", "banners");
-        await fs.mkdir(uploadsDir, { recursive: true });
-        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        url_foto_banner = `/uploads/banners/${fileName}`;
-      } catch (err) {
-        console.error("Error saving banner file:", err);
-      }
+    if (!url_foto_banner && raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+      const file = raw_url_foto as File;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("banners")
+        .getPublicUrl(fileName);
+
+      url_foto_banner = data.publicUrl;
     }
 
     if (!url_foto_banner) return { success: false, error: "Foto banner wajib diisi!" };
@@ -101,42 +97,25 @@ export async function editBannerAction(prevState: any, formData: FormData) {
     const raw_url_foto = formData.get("url_foto");
     
     let url_foto_banner = existing.url_foto_banner;
-    let apakah_foto_berubah = false;
 
     if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto_banner) {
       url_foto_banner = url_foto_uploaded;
-      apakah_foto_berubah = true;
-    } else if (
-      raw_url_foto &&
-      typeof (raw_url_foto as any).name === "string" &&
-      (raw_url_foto as any).size > 0
-    ) {
-      try {
-        const file: any = raw_url_foto;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const ext = path.extname(file.name) || ".jpg";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads", "banners");
-        
-        await fs.mkdir(uploadsDir, { recursive: true });
-        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        
-        url_foto_banner = `/uploads/banners/${fileName}`;
-        apakah_foto_berubah = true;
-      } catch (err) {
-        console.error("Error saving banner file:", err);
-        return { success: false, error: "Gagal menyimpan file foto baru." };
-      }
-    }
+    } else if (raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+      const file = raw_url_foto as File;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
-    if (apakah_foto_berubah && existing.url_foto_banner && existing.url_foto_banner.startsWith("/uploads/")) {
-      try {
-        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto_banner);
-        await fs.unlink(oldFilePath);
-      } catch (unlinkErr) {
-        console.error("Gagal menghapus file foto lama dari server:", unlinkErr);
-      }
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("banners")
+        .getPublicUrl(fileName);
+
+      url_foto_banner = data.publicUrl;
     }
 
     await prisma.banners.update({
@@ -175,15 +154,6 @@ export async function deleteBannerAction(prevState: any, formData: FormData) {
     if (!existing) return { success: false, error: "Banner tidak ditemukan." };
 
     await prisma.banners.delete({ where: { id } });
-
-    if (existing.url_foto_banner && existing.url_foto_banner.startsWith("/uploads/")) {
-      try {
-        const oldFilePath = path.join(process.cwd(), "public", existing.url_foto_banner);
-        await fs.unlink(oldFilePath);
-      } catch (unlinkErr) {
-        console.error("Gagal menghapus file foto saat hapus banner:", unlinkErr);
-      }
-    }
 
     revalidatePath("/banners");
     return { success: true, message: "Banner berhasil dihapus!" };

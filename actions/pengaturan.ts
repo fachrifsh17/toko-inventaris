@@ -1,10 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import fs from "fs/promises";
-import path from "path";
 
 export async function getPengaturan() {
   try {
@@ -63,23 +62,20 @@ export async function updatePengaturanAction(prevState: any, formData: FormData)
     });
 
     if (logoFile && logoFile.size > 0 && logoFile.name !== "undefined") {
-      if (currentPengaturan?.url_logo) {
-        const oldPath = path.join(process.cwd(), "public", currentPengaturan.url_logo);
-        await fs.unlink(oldPath).catch(() => {});
-      }
+      const fileExt = logoFile.name.split(".").pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "logo");
-      await fs.mkdir(uploadDir, { recursive: true });
+      const { error: uploadError } = await supabase.storage
+        .from("logo")
+        .upload(fileName, logoFile);
 
-      const fileExt = path.extname(logoFile.name) || ".png";
-      const fileName = `logo-${Date.now()}${fileExt}`;
-      const filePath = path.join(uploadDir, fileName);
+      if (uploadError) throw uploadError;
 
-      const bytes = await logoFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await fs.writeFile(filePath, buffer);
+      const { data } = supabase.storage
+        .from("logo")
+        .getPublicUrl(fileName);
 
-      url_logo = `/uploads/logo/${fileName}`;
+      url_logo = data.publicUrl;
     } else {
       url_logo = currentPengaturan?.url_logo || null;
     }

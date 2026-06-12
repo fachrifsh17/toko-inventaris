@@ -1,10 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import fs from "fs/promises";
-import path from "path";
 
 export async function getProduk(opts?: {
   page?: number;
@@ -84,39 +83,34 @@ export async function addProdukAction(prevState: any, formData: FormData) {
     const kategori_id = formData.get("kategori_id")
       ? Number(formData.get("kategori_id"))
       : null;
-    const url_foto_uploaded =
-      (formData.get("url_foto_uploaded") as string)?.trim() || "";
+    
+    const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
     const raw_url_foto = formData.get("url_foto");
     let url_foto = url_foto_uploaded || "";
 
-    if (!url_foto && raw_url_foto) {
-      if (typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
-        try {
-          const file: any = raw_url_foto;
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const ext = path.extname(file.name) || ".jpg";
-          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-          const uploadsDir = path.join(process.cwd(), "public", "uploads", "produk");
-          await fs.mkdir(uploadsDir, { recursive: true });
-          await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-          url_foto = `/uploads/produk/${fileName}`;
-        } catch (err) {
-          console.error("Error saving uploaded file in addProdukAction:", err);
-          return { success: false, error: "Gagal menyimpan file foto ke server." };
-        }
-      } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "") {
-        url_foto = raw_url_foto.trim();
-      }
+    if (!url_foto && raw_url_foto && (raw_url_foto as File).size > 0) {
+      const file = raw_url_foto as File;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `produk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("produk")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("produk")
+        .getPublicUrl(fileName);
+
+      url_foto = data.publicUrl;
     }
+
     const is_active = formData.get("is_active") === "1" || formData.get("is_active") === "true";
 
-    if (!nama_produk)
-      return { success: false, error: "Nama produk wajib diisi!" };
-    if (isNaN(harga_jual) || harga_jual < 0)
-      return { success: false, error: "Harga jual tidak valid!" };
-    if (isNaN(harga_modal) || harga_modal < 0)
-      return { success: false, error: "Harga modal tidak valid!" };
+    if (!nama_produk) return { success: false, error: "Nama produk wajib diisi!" };
+    if (isNaN(harga_jual) || harga_jual < 0) return { success: false, error: "Harga jual tidak valid!" };
+    if (isNaN(harga_modal) || harga_modal < 0) return { success: false, error: "Harga modal tidak valid!" };
     if (!url_foto) return { success: false, error: "URL foto wajib diisi!" };
 
     await prisma.produk.create({
@@ -150,78 +144,48 @@ export async function editProdukAction(prevState: any, formData: FormData) {
     }
 
     const id = Number(formData.get("id"));
-    if (isNaN(id) || id <= 0)
-      return { success: false, error: "ID tidak valid." };
+    if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
     const nama_produk = (formData.get("nama_produk") as string)?.trim();
     const deskripsi = (formData.get("deskripsi") as string)?.trim() || null;
     const harga_jual = Number(formData.get("harga_jual"));
     const harga_modal = Number(formData.get("harga_modal"));
     const stok_sekarang = Number(formData.get("stok_sekarang") || 0);
-    const kategori_id = formData.get("kategori_id")
-      ? Number(formData.get("kategori_id"))
-      : null;
+    const kategori_id = formData.get("kategori_id") ? Number(formData.get("kategori_id")) : null;
 
     const existing = await prisma.produk.findUnique({ where: { id } });
     if (!existing) return { success: false, error: "Produk tidak ditemukan." };
 
     const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
     const raw_url_foto = formData.get("url_foto");
-
+    
     let url_foto = existing.url_foto;
-    let fileLamaHarusDihapus = false;
-    let adaFileBaruDiupload = false;
 
-    if (raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
-      adaFileBaruDiupload = true;
-      fileLamaHarusDihapus = true;
-    } else if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
+    if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto) {
       url_foto = url_foto_uploaded;
-      fileLamaHarusDihapus = true;
-    } else if (typeof raw_url_foto === "string" && raw_url_foto.trim() !== "" && raw_url_foto.trim() !== existing.url_foto) {
-      url_foto = raw_url_foto.trim();
-      fileLamaHarusDihapus = true;
-    }
+    } else if (raw_url_foto && (raw_url_foto as File).size > 0) {
+      const file = raw_url_foto as File;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `produk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
-    if (fileLamaHarusDihapus && existing.url_foto) {
-      const isFileLokal = !existing.url_foto.startsWith("http") && existing.url_foto.includes("uploads");
-      if (isFileLokal) {
-        const pathFileLama = existing.url_foto.replace(/^\//, "");
-        const fullFilePath = path.join(process.cwd(), "public", pathFileLama);
-        try {
-          await fs.access(fullFilePath);
-          await fs.unlink(fullFilePath);
-        } catch (err) {
-          console.error("Gagal hapus file lama:", fullFilePath, err);
-        }
-      }
-    }
+      const { error: uploadError } = await supabase.storage
+        .from("produk")
+        .upload(fileName, file);
 
-    if (adaFileBaruDiupload) {
-      try {
-        const file: any = raw_url_foto;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const ext = path.extname(file.name) || ".jpg";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadsDir = path.join(process.cwd(), "public", "uploads", "produk");
-        await fs.mkdir(uploadsDir, { recursive: true });
-        await fs.writeFile(path.join(uploadsDir, fileName), buffer);
-        url_foto = `/uploads/produk/${fileName}`;
-      } catch (err) {
-        console.error("Error saving uploaded file:", err);
-        return { success: false, error: "Gagal menyimpan file foto baru." };
-      }
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("produk")
+        .getPublicUrl(fileName);
+
+      url_foto = data.publicUrl;
     }
 
     const is_active = formData.get("is_active") === "1" || formData.get("is_active") === "true";
 
-    if (!nama_produk)
-      return { success: false, error: "Nama produk wajib diisi!" };
-    if (isNaN(harga_jual) || harga_jual < 0)
-      return { success: false, error: "Harga jual tidak valid!" };
-    if (isNaN(harga_modal) || harga_modal < 0)
-      return { success: false, error: "Harga modal tidak valid!" };
+    if (!nama_produk) return { success: false, error: "Nama produk wajib diisi!" };
+    if (isNaN(harga_jual) || harga_jual < 0) return { success: false, error: "Harga jual tidak valid!" };
+    if (isNaN(harga_modal) || harga_modal < 0) return { success: false, error: "Harga modal tidak valid!" };
 
     await prisma.produk.update({
       where: { id },
@@ -256,27 +220,12 @@ export async function deleteProdukAction(prevState: any, formData: FormData) {
     }
 
     const id = Number(formData.get("id"));
-    if (isNaN(id) || id <= 0)
-      return { success: false, error: "ID tidak valid." };
+    if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
     const existing = await prisma.produk.findUnique({ where: { id } });
     if (!existing) return { success: false, error: "Produk tidak ditemukan." };
 
     await prisma.produk.delete({ where: { id } });
-
-    if (existing.url_foto) {
-      const isFileLokal = !existing.url_foto.startsWith("http") && existing.url_foto.includes("uploads");
-      if (isFileLokal) {
-        const pathFileLama = existing.url_foto.replace(/^\//, "");
-        const fullFilePath = path.join(process.cwd(), "public", pathFileLama);
-        try {
-          await fs.access(fullFilePath);
-          await fs.unlink(fullFilePath);
-        } catch (err) {
-          console.error("Gagal hapus file saat delete produk:", fullFilePath, err);
-        }
-      }
-    }
 
     revalidatePath("/produk");
     return { success: true, message: "Produk berhasil dihapus!" };
