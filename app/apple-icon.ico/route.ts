@@ -8,15 +8,24 @@ export async function GET() {
     });
 
     if (!pengaturan?.url_logo) {
-      return new NextResponse(null, { status: 204 });
+      return new NextResponse(null, { status: 404 });
     }
 
-    // Karena url_logo sekarang berisi URL publik dari Supabase (misal: https://xyz.supabase.co/...)
-    // Kita cukup mengarahkan (redirect) ke URL tersebut
-    return NextResponse.redirect(pengaturan.url_logo);
+    // 1. Ambil data gambar dari Supabase
+    const response = await fetch(pengaturan.url_logo);
+    const imageBuffer = await response.arrayBuffer();
+
+    // 2. Kirim gambar langsung sebagai response, BUKAN redirect
+    return new NextResponse(imageBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "image/jpeg", // Atau image/png sesuai file kamu
+        "Cache-Control": "public, max-age=86400", // Agar loading cepat
+      },
+    });
     
   } catch (error) {
-    console.error("Error redirecting to logo:", error);
-    return new NextResponse(null, { status: 204 });
+    console.error("Error fetching favicon:", error);
+    return new NextResponse(null, { status: 500 });
   }
 }

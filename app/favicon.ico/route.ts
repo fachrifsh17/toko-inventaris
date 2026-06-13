@@ -7,17 +7,18 @@ export async function GET() {
       select: { url_logo: true },
     });
 
-    // Jika URL logo tidak ada, kembalikan response kosong
     if (!pengaturan?.url_logo) {
       return new NextResponse(null, { status: 204 });
     }
 
-    // Redirect langsung ke URL publik Supabase
-    // Ini jauh lebih efisien daripada membaca file secara manual
-    return NextResponse.redirect(pengaturan.url_logo);
+    // Pastikan URL valid dengan mengubahnya menjadi objek URL
+    const targetUrl = new URL(pengaturan.url_logo);
+    
+    return NextResponse.redirect(targetUrl);
     
   } catch (error) {
-    console.error("Error favicon:", error);
-    return new NextResponse(null, { status: 204 });
+    console.error("Error favicon redirect:", error);
+    // Kembalikan status 404 jika URL tidak valid agar tidak spam error
+    return new NextResponse(null, { status: 404 });
   }
 }
