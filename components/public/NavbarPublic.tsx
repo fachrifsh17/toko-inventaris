@@ -37,7 +37,7 @@ export default function NavbarPublic({
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
     }
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -47,7 +47,7 @@ export default function NavbarPublic({
         handleClose()
       }
     }
-    document.addEventListener("mousedown", handleClick)
+    document.addEventListener("mousedown", handleClick, { passive: true })
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
@@ -59,7 +59,7 @@ export default function NavbarPublic({
         setOpen(false)
         setDropOpen(false)
         setAnimating(false)
-      }, 350)
+      }, 220)
     } else {
       setDropOpen(false)
     }
@@ -148,31 +148,30 @@ export default function NavbarPublic({
           box-shadow: 0 2px 10px rgba(219,39,119,0.06);
         }
         .nb-icon-wrap {
-          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .nb-icon-rotated {
           transform: rotate(90deg);
         }
         .nb-mobile-menu {
-          max-height: 0px;
-          opacity: 0;
-          transform: translateY(-8px);
-          transition: max-height 400ms cubic-bezier(0.32, 0.72, 0, 1), opacity 400ms cubic-bezier(0.32, 0.72, 0, 1), transform 400ms cubic-bezier(0.32, 0.72, 0, 1);
-          overflow: hidden;
-          will-change: max-height, opacity, transform;
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows 220ms cubic-bezier(0.32, 0.72, 0, 1);
+          transform: translateZ(0);
         }
         .nb-mobile-menu-open {
-          max-height: 400px;
-          opacity: 1;
-          transform: translateY(0);
+          grid-template-rows: 1fr;
+        }
+        .nb-mobile-menu > div {
+          overflow: hidden;
         }
         .nb-mobile-inner {
           border-top: 1px solid rgba(236,72,153,0.10);
         }
         .nb-mob-item {
           opacity: 0;
-          transform: translateX(-12px);
-          transition: opacity 300ms cubic-bezier(0.32, 0.72, 0, 1), transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+          transform: translateX(-10px);
+          transition: opacity 180ms ease-out, transform 180ms ease-out;
           transition-delay: 0ms;
         }
         .nb-mob-item-active {
@@ -180,21 +179,21 @@ export default function NavbarPublic({
           transform: translateX(0);
         }
         .nb-mob-item-active.nb-mob-item-1 {
-          transition-delay: 50ms;
+          transition-delay: 40ms;
         }
         .nb-mob-item-active.nb-mob-item-2 {
-          transition-delay: 100ms;
+          transition-delay: 80ms;
         }
         .nb-mob-cta {
           opacity: 0;
-          transform: translateY(12px);
-          transition: opacity 300ms cubic-bezier(0.32, 0.72, 0, 1), transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+          transform: translateY(8px);
+          transition: opacity 180ms ease-out, transform 180ms ease-out;
           transition-delay: 0ms;
         }
         .nb-mob-cta-active {
           opacity: 1;
           transform: translateY(0);
-          transition-delay: 150ms;
+          transition-delay: 120ms;
         }
         .nb-mob-link:hover {
           background: rgba(255,255,255,0.55);
@@ -203,17 +202,19 @@ export default function NavbarPublic({
           background: rgba(255,255,255,0.50);
         }
         .nb-mobile-drop {
-          max-height: 0px;
-          opacity: 0;
-          transition: max-height 400ms cubic-bezier(0.32, 0.72, 0, 1), opacity 400ms cubic-bezier(0.32, 0.72, 0, 1);
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows 200ms cubic-bezier(0.32, 0.72, 0, 1);
+          transform: translateZ(0);
+        }
+        .nb-mobile-drop > div {
           overflow: hidden;
         }
         .nb-mobile-drop-open {
-          max-height: 300px;
-          opacity: 1;
+          grid-template-rows: 1fr;
         }
         .nb-chevron {
-          transition: transform 400ms cubic-bezier(0.32, 0.72, 0, 1);
+          transition: transform 200ms ease-out;
         }
         .nb-chevron-up {
           transform: rotate(180deg);
@@ -317,72 +318,76 @@ export default function NavbarPublic({
             </div>
 
             <div className={`md:hidden nb-mobile-menu ${!animating && open ? "nb-mobile-menu-open" : ""}`}>
-              <div className="px-4 pb-5 pt-1 space-y-1 nb-mobile-inner">
-                <div className={`nb-mob-item nb-mob-item-1 ${!animating && open ? "nb-mob-item-active" : ""}`}>
-                  <Link
-                    href="/"
-                    onClick={handleClose}
-                    className="flex items-center text-[15px] text-gray-800 hover:text-pink-700 font-medium py-3 px-4 rounded-2xl transition-all duration-200 nb-mob-link"
-                  >
-                    Beranda
-                  </Link>
-                </div>
-
-                {kategoriList.length > 0 ? (
-                  <div className={`nb-mob-item nb-mob-item-2 ${!animating && open ? "nb-mob-item-active" : ""}`}>
-                    <button
-                      onClick={() => setMobileDrop(!mobileDrop)}
-                      className="flex items-center justify-between w-full text-[15px] text-gray-800 hover:text-pink-700 font-medium py-3 px-4 rounded-2xl transition-all duration-200 nb-mob-link"
-                    >
-                      Produk
-                      <ChevronDown
-                        size={14}
-                        className={`nb-chevron ${mobileDrop ? "nb-chevron-up" : ""}`}
-                      />
-                    </button>
-                    <div className={`nb-mobile-drop ${mobileDrop && !animating ? "nb-mobile-drop-open" : ""}`}>
-                      <div className="pl-4 space-y-0.5 pb-2">
-                        <Link
-                          href="/produkpublic"
-                          onClick={handleClose}
-                          className="block text-[14px] text-gray-600 hover:text-pink-700 font-medium py-2.5 px-4 rounded-xl transition-all duration-200 nb-mob-sub-link"
-                        >
-                          Semua Produk
-                        </Link>
-                        {kategoriList.map((k) => (
-                          <Link
-                            key={k.id}
-                            href={`/produkpublic?kategori=${k.slug}`}
-                            onClick={handleClose}
-                            className="block text-[14px] text-gray-600 hover:text-pink-700 font-medium py-2.5 px-4 rounded-xl transition-all duration-200 nb-mob-sub-link"
-                          >
-                            {k.nama_kategori}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`nb-mob-item nb-mob-item-2 ${!animating && open ? "nb-mob-item-active" : ""}`}>
+              <div>
+                <div className="px-4 pb-5 pt-1 space-y-1 nb-mobile-inner">
+                  <div className={`nb-mob-item nb-mob-item-1 ${!animating && open ? "nb-mob-item-active" : ""}`}>
                     <Link
-                      href="/produkpublic"
+                      href="/"
                       onClick={handleClose}
                       className="flex items-center text-[15px] text-gray-800 hover:text-pink-700 font-medium py-3 px-4 rounded-2xl transition-all duration-200 nb-mob-link"
                     >
-                      Produk
+                      Beranda
                     </Link>
                   </div>
-                )}
 
-                <div className={`pt-2 nb-mob-cta ${!animating && open ? "nb-mob-cta-active" : ""}`}>
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-white text-[15px] font-semibold px-5 py-3.5 rounded-full nb-wa-btn"
-                  >
-                    Hubungi Kami
-                  </a>
+                  {kategoriList.length > 0 ? (
+                    <div className={`nb-mob-item nb-mob-item-2 ${!animating && open ? "nb-mob-item-active" : ""}`}>
+                      <button
+                        onClick={() => setMobileDrop(!mobileDrop)}
+                        className="flex items-center justify-between w-full text-[15px] text-gray-800 hover:text-pink-700 font-medium py-3 px-4 rounded-2xl transition-all duration-200 nb-mob-link"
+                      >
+                        Produk
+                        <ChevronDown
+                          size={14}
+                          className={`nb-chevron ${mobileDrop ? "nb-chevron-up" : ""}`}
+                        />
+                      </button>
+                      <div className={`nb-mobile-drop ${mobileDrop && !animating ? "nb-mobile-drop-open" : ""}`}>
+                        <div>
+                          <div className="pl-4 space-y-0.5 pb-2">
+                            <Link
+                              href="/produkpublic"
+                              onClick={handleClose}
+                              className="block text-[14px] text-gray-600 hover:text-pink-700 font-medium py-2.5 px-4 rounded-xl transition-all duration-200 nb-mob-sub-link"
+                            >
+                              Semua Produk
+                            </Link>
+                            {kategoriList.map((k) => (
+                              <Link
+                                key={k.id}
+                                href={`/produkpublic?kategori=${k.slug}`}
+                                onClick={handleClose}
+                                className="block text-[14px] text-gray-600 hover:text-pink-700 font-medium py-2.5 px-4 rounded-xl transition-all duration-200 nb-mob-sub-link"
+                              >
+                                {k.nama_kategori}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`nb-mob-item nb-mob-item-2 ${!animating && open ? "nb-mob-item-active" : ""}`}>
+                      <Link
+                        href="/produkpublic"
+                        onClick={handleClose}
+                        className="flex items-center text-[15px] text-gray-800 hover:text-pink-700 font-medium py-3 px-4 rounded-2xl transition-all duration-200 nb-mob-link"
+                      >
+                        Produk
+                      </Link>
+                    </div>
+                  )}
+
+                  <div className={`pt-2 nb-mob-cta ${!animating && open ? "nb-mob-cta-active" : ""}`}>
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center text-white text-[15px] font-semibold px-5 py-3.5 rounded-full nb-wa-btn"
+                    >
+                      Hubungi Kami
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
