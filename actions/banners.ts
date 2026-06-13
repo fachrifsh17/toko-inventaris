@@ -32,17 +32,16 @@ export async function addBannerAction(prevState: any, formData: FormData) {
     const is_active = formData.get("is_active") === "true";
     
     const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
-    const raw_url_foto = formData.get("url_foto");
-    let url_foto_banner = url_foto_uploaded || "";
+    const raw_url_foto = formData.get("url_foto") as File | null;
+    let url_foto_banner = url_foto_uploaded;
 
-    if (!url_foto_banner && raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
-      const file = raw_url_foto as File;
-      const fileExt = file.name.split(".").pop();
+    if (!url_foto_banner && raw_url_foto && raw_url_foto.size > 0) {
+      const fileExt = raw_url_foto.name.split(".").pop();
       const fileName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("banners")
-        .upload(fileName, file);
+        .upload(fileName, raw_url_foto);
 
       if (uploadError) throw uploadError;
 
@@ -94,13 +93,13 @@ export async function editBannerAction(prevState: any, formData: FormData) {
     if (!existing) return { success: false, error: "Banner tidak ditemukan." };
 
     const url_foto_uploaded = (formData.get("url_foto_uploaded") as string)?.trim() || "";
-    const raw_url_foto = formData.get("url_foto");
+    const raw_url_foto = formData.get("url_foto") as File | null;
     
     let url_foto_banner = existing.url_foto_banner;
 
     if (url_foto_uploaded && url_foto_uploaded !== existing.url_foto_banner) {
       url_foto_banner = url_foto_uploaded;
-    } else if (raw_url_foto && typeof (raw_url_foto as any).name === "string" && (raw_url_foto as any).size > 0) {
+    } else if (raw_url_foto && raw_url_foto.size > 0) {
       if (existing.url_foto_banner) {
         const fileNameLama = existing.url_foto_banner.split('/').pop();
         if (fileNameLama) {
@@ -108,13 +107,12 @@ export async function editBannerAction(prevState: any, formData: FormData) {
         }
       }
 
-      const file = raw_url_foto as File;
-      const fileExt = file.name.split(".").pop();
+      const fileExt = raw_url_foto.name.split(".").pop();
       const fileName = `banner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("banners")
-        .upload(fileName, file);
+        .upload(fileName, raw_url_foto);
 
       if (uploadError) throw uploadError;
 
