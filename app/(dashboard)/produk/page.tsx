@@ -284,7 +284,7 @@ function ProdukFormFields({
         <select
           id="is_active"
           name="is_active"
-          defaultValue={defaultValues 
+          defaultValue={defaultValues
           ? (defaultValues.is_active === 1 || defaultValues.is_active === true ? "1" : "0"): "1"}
           className={inputCls}
         >
@@ -327,7 +327,7 @@ function KategoriFormFields({
         <select
           id="is_active_kategori"
           name="is_active"
-          defaultValue={defaultValues 
+          defaultValue={defaultValues
           ? (defaultValues.is_active === 1 || defaultValues.is_active === true ? "1" : "0") : "1"}
           className={inputCls}
         >
@@ -348,7 +348,9 @@ export default function ProdukPage() {
   const [produkTotal, setProdukTotal] = useState<number>(0);
   const [kategoriFilter, setKategoriFilter] = useState<string>("");
   const [kategoriList, setKategoriList] = useState<Kategori[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingProduk, setLoadingProduk] = useState(true);
+  const [loadingKategori, setLoadingKategori] = useState(false);
+  const [kategoriFilterLoaded, setKategoriFilterLoaded] = useState(false);
   const [showAddProduk, setShowAddProduk] = useState(false);
   const [showEditProduk, setShowEditProduk] = useState(false);
   const [selectedProduk, setSelectedProduk] = useState<Produk | null>(null);
@@ -371,8 +373,8 @@ export default function ProdukPage() {
 
   const [isPending, startTransition] = useTransition();
 
-  const load = async () => {
-    setLoading(true);
+  const loadProduk = async () => {
+    setLoadingProduk(true);
     try {
       const p = await getProduk({
         page: produkPage,
@@ -391,34 +393,51 @@ export default function ProdukPage() {
           setProdukTotal((p.data as any).total ?? 0);
         }
       }
-
-      try {
-        const k = await getKategoriList();
-        if (k.success && k.data) setKategoriList(k.data as Kategori[]);
-      } catch (errK) {
-        console.error("Error getKategoriList:", errK);
-      }
     } catch (err) {
-      console.error("Error loading produk/kategori:", err);
+      console.error("Error loading produk:", err);
       setProdukList([]);
       setProdukTotal(0);
     } finally {
-      setLoading(false);
+      setLoadingProduk(false);
+    }
+  };
+
+  const loadKategoriForFilter = async () => {
+    if (kategoriFilterLoaded) return;
+    setKategoriFilterLoaded(true);
+    try {
+      const k = await getKategoriList();
+      if (k.success && k.data) setKategoriList(k.data as Kategori[]);
+    } catch (err) {
+      console.error("Error loading kategori filter:", err);
     }
   };
 
   const loadKategori = async () => {
-    const res = await getKategoriList();
-    if (res.success && res.data) {
-      setKategoriEditList(res.data as Kategori[]);
-      setKategoriList(res.data as Kategori[]);
+    setLoadingKategori(true);
+    try {
+      const res = await getKategoriList();
+      if (res.success && res.data) {
+        setKategoriEditList(res.data as Kategori[]);
+        setKategoriList(res.data as Kategori[]);
+        setKategoriFilterLoaded(true);
+      }
+    } catch (err) {
+      console.error("Error loading kategori:", err);
+    } finally {
+      setLoadingKategori(false);
     }
   };
 
   useEffect(() => {
-    load();
-    loadKategori();
+    loadProduk();
   }, [produkPage, kategoriFilter]);
+
+  useEffect(() => {
+    if (activeTab === "kategori") {
+      loadKategori();
+    }
+  }, [activeTab]);
 
   const openAddProduk = () => {
     setFormMsg(null);
@@ -447,7 +466,7 @@ export default function ProdukPage() {
       if (res.success) {
         setShowAddProduk(false);
         toast.success(res.message || "Produk berhasil disimpan!", { position: "top-center" });
-        await load();
+        await loadProduk();
         (e.target as HTMLFormElement).reset();
       } else {
         setFormMsg({ type: "error", text: res.error! });
@@ -464,7 +483,7 @@ export default function ProdukPage() {
         setShowEditProduk(false);
         setSelectedProduk(null);
         toast.success(res.message || "Perubahan berhasil disimpan!", { position: "top-center" });
-        await load();
+        await loadProduk();
       } else {
         setFormMsg({ type: "error", text: res.error! });
       }
@@ -486,7 +505,7 @@ export default function ProdukPage() {
         toast.success(res.message || "Produk berhasil dihapus!", { position: "top-center" });
         setShowDeleteProduk(false);
         setDeleteProdukTarget(null);
-        await load();
+        await loadProduk();
       } else {
         toast.error(res.error || "Gagal menghapus produk.", { position: "top-center" });
         setShowDeleteProduk(false);
@@ -696,6 +715,7 @@ export default function ProdukPage() {
               <select
                 id="filter_kategori"
                 value={kategoriFilter}
+                onFocus={loadKategoriForFilter}
                 onChange={(e) => {
                   const v = e.target.value;
                   setKategoriFilter(v);
@@ -714,7 +734,7 @@ export default function ProdukPage() {
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            {loading ? (
+            {loadingProduk ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -823,7 +843,7 @@ export default function ProdukPage() {
                 </table>
               </div>
             )}
-            {!loading && totalPagesProduk > 1 && (
+            {!loadingProduk && totalPagesProduk > 1 && (
               <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{produkTotal}</span> produk</p>
                 <nav className="flex items-center gap-1" aria-label="Navigasi halaman produk">
@@ -874,7 +894,7 @@ export default function ProdukPage() {
                 </nav>
               </div>
             )}
-            {!loading && totalPagesProduk <= 1 && filteredProduk.length > 0 && (
+            {!loadingProduk && totalPagesProduk <= 1 && filteredProduk.length > 0 && (
               <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
                 <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{produkTotal}</span> produk</p>
               </div>
@@ -916,7 +936,7 @@ export default function ProdukPage() {
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            {loading ? (
+            {loadingKategori ? (
               <div className="flex items-center justify-center py-16 text-slate-400 gap-3">
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -997,7 +1017,7 @@ export default function ProdukPage() {
                 </table>
               </div>
             )}
-            {!loading && totalPagesKategori > 1 && (
+            {!loadingKategori && totalPagesKategori > 1 && (
               <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{filteredKategori.length}</span> kategori</p>
                 <nav className="flex items-center gap-1" aria-label="Navigasi halaman kategori">
@@ -1048,7 +1068,7 @@ export default function ProdukPage() {
                 </nav>
               </div>
             )}
-            {!loading && totalPagesKategori <= 1 && filteredKategori.length > 0 && (
+            {!loadingKategori && totalPagesKategori <= 1 && filteredKategori.length > 0 && (
               <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
                 <p className="text-xs text-slate-400">Total <span className="font-semibold text-slate-600">{filteredKategori.length}</span> kategori</p>
               </div>
@@ -1080,19 +1100,40 @@ export default function ProdukPage() {
         </Modal>
       )}
 
+      {showAddKategori && (
+        <Modal onClose={() => setShowAddKategori(false)}>
+          <ModalHeader title="Tambah Kategori" color="bg-violet-100 text-violet-600" iconPath={iconTag} onClose={() => setShowAddKategori(false)} />
+          <form onSubmit={handleAddKategori} className="p-6 space-y-4">
+            {formMsg && <Alert msg={formMsg} />}
+            <KategoriFormFields />
+            <FormFooter onCancel={() => setShowAddKategori(false)} submitLabel="Simpan Kategori" />
+          </form>
+        </Modal>
+      )}
+
+      {showEditKategori && selectedKategori && (
+        <Modal onClose={() => setShowEditKategori(false)}>
+          <ModalHeader title="Edit Kategori" color="bg-amber-100 text-amber-600" iconPath={iconTag} onClose={() => setShowEditKategori(false)} />
+          <form key={selectedKategori.id} onSubmit={handleEditKategori} className="p-6 space-y-4">
+            <input type="hidden" name="id" value={selectedKategori.id} />
+            {formMsg && <Alert msg={formMsg} />}
+            <KategoriFormFields defaultValues={selectedKategori} />
+            <FormFooter onCancel={() => setShowEditKategori(false)} submitLabel="Simpan Perubahan" />
+          </form>
+        </Modal>
+      )}
+
       {showDeleteProduk && deleteProdukTarget && (
         <Modal onClose={() => { setShowDeleteProduk(false); setDeleteProdukTarget(null); }}>
           <div className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+              <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">Hapus Produk</h3>
-              <p className="text-slate-500 text-sm mt-2">
-                Yakin ingin menghapus produk <span className="font-semibold text-slate-700">&quot;{deleteProdukTarget.nama_produk}&quot;</span>? Tindakan ini tidak dapat dibatalkan.
-              </p>
+              <p className="text-sm text-slate-500 mt-1">Apakah anda yakin ingin menghapus <span className="font-semibold text-slate-700">{deleteProdukTarget.nama_produk}</span>? Tindakan ini tidak dapat dibatalkan.</p>
             </div>
             <div className="flex justify-center gap-3 pt-2">
               <button
@@ -1114,49 +1155,24 @@ export default function ProdukPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
                 )}
-                Hapus
+                Ya, Hapus
               </button>
             </div>
           </div>
         </Modal>
       )}
 
-      {showAddKategori && (
-        <Modal onClose={() => setShowAddKategori(false)}>
-          <ModalHeader title="Tambah Kategori" color="bg-pink-100 text-pink-600" iconPath={iconTag} onClose={() => setShowAddKategori(false)} />
-          <form onSubmit={handleAddKategori} className="p-6 space-y-4">
-            {formMsg && <Alert msg={formMsg} />}
-            <KategoriFormFields />
-            <FormFooter onCancel={() => setShowAddKategori(false)} submitLabel="Simpan Kategori" />
-          </form>
-        </Modal>
-      )}
-
-      {showEditKategori && selectedKategori && (
-        <Modal onClose={() => setShowEditKategori(false)}>
-          <ModalHeader title="Edit Kategori" color="bg-amber-100 text-amber-600" iconPath={iconTag} onClose={() => setShowEditKategori(false)} />
-          <form key={selectedKategori.id} onSubmit={handleEditKategori} className="p-6 space-y-4">
-            <input type="hidden" name="id" value={selectedKategori.id} />
-            {formMsg && <Alert msg={formMsg} />}
-            <KategoriFormFields defaultValues={selectedKategori} />
-            <FormFooter onCancel={() => setShowEditKategori(false)} submitLabel="Simpan Perubahan" />
-          </form>
-        </Modal>
-      )}
-
       {showDeleteKategori && deleteKategoriTarget && (
         <Modal onClose={() => { setShowDeleteKategori(false); setDeleteKategoriTarget(null); }}>
           <div className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto" aria-hidden="true">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+              <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">Hapus Kategori</h3>
-              <p className="text-slate-500 text-sm mt-2">
-                Yakin ingin menghapus kategori <span className="font-semibold text-slate-700">&quot;{deleteKategoriTarget.nama_kategori}&quot;</span>? Tindakan ini tidak dapat dibatalkan.
-              </p>
+              <p className="text-sm text-slate-500 mt-1">Apakah anda yakin ingin menghapus <span className="font-semibold text-slate-700">{deleteKategoriTarget.nama_kategori}</span>? Tindakan ini tidak dapat dibatalkan.</p>
             </div>
             <div className="flex justify-center gap-3 pt-2">
               <button
@@ -1178,7 +1194,7 @@ export default function ProdukPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
                 )}
-                Hapus
+                Ya, Hapus
               </button>
             </div>
           </div>
