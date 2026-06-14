@@ -18,6 +18,11 @@ export default async function DashboardPage() {
     ? pengaturanResult.data.nama_toko
     : "Toko";
 
+  const s = summary?.rekapTransaksiDigital;
+  const k = summary?.kartuRingkasan;
+  const a = summary?.aktivitasHariIni;
+  const r = summary?.riwayatTerbaru ?? [];
+
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -26,7 +31,7 @@ export default async function DashboardPage() {
     }).format(num);
   };
 
-  const maxStok = Math.max(...stokKategori.map((k) => k.totalStok), 1);
+  const maxStok = stokKategori.length > 0 ? Math.max(...stokKategori.map((kat) => kat.totalStok), 1) : 1;
 
   return (
     <div className="space-y-6">
@@ -40,291 +45,178 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Transaksi Digital
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
-                {summary.rekapTransaksiDigital.totalTransaksi}
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium block mt-1">
-                Total transaksi tercatat
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Transaksi Digital</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">{s?.totalTransaksi ?? 0}</span>
+            <span className="text-[10px] text-slate-400 font-medium block mt-1">Total transaksi tercatat</span>
           </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Nominal Digital
-              </span>
-              <span className="text-lg sm:text-xl font-extrabold text-slate-900 block leading-tight py-1">
-                {formatRupiah(summary.rekapTransaksiDigital.totalNominal)}
-              </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 mt-1">
-                Total keseluruhan
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
+          <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
           </div>
-
-          <div className="bg-white rounded-2xl border border-emerald-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider block">
-                Lunas
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 block leading-tight">
-                {summary.rekapTransaksiDigital.totalLunas}
-              </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 mt-1">
-                Transaksi selesai
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-red-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider block">
-                Belum Lunas
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-red-500 block leading-tight">
-                {summary.rekapTransaksiDigital.totalBelumLunas}
-              </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-red-50 text-red-600 mt-1">
-                Menunggu pembayaran
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-
         </div>
-      )}
 
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Total Produk
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
-                {summary.kartuRingkasan.totalProduk}
-              </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 mt-1">
-                {summary.kartuRingkasan.produkAktif} Aktif
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" />
-              </svg>
-            </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Nominal Digital</span>
+            <span className="text-lg sm:text-xl font-extrabold text-slate-900 block leading-tight py-1">{s ? formatRupiah(s.totalNominal) : "-"}</span>
+            <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 mt-1">Total keseluruhan</span>
           </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Total Stok
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
-                {summary.kartuRingkasan.totalStok}
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium block mt-1">
-                Unit tersedia di gudang
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
+          <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Nilai Aset Stok
-              </span>
-              <span className="text-lg sm:text-xl font-extrabold text-slate-900 block leading-tight py-1">
-                {formatRupiah(summary.kartuRingkasan.nilaiStok)}
-              </span>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 mt-1">
-                Harga Modal Toko
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-300 hover:shadow-md group">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Total Kategori
-              </span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">
-                {summary.kartuRingkasan.totalKategori}
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium block mt-1">
-                Kategori produk terdaftar
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01" />
-              </svg>
-            </div>
-          </div>
-
         </div>
-      )}
 
-      {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
-                Stok Masuk Hari Ini
-              </h3>
-              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                Terverifikasi
-              </span>
-            </div>
-            <div className="p-5 grid grid-cols-2 gap-4 divide-x divide-slate-100">
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
-                  Total Unit Masuk
-                </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 block">
-                  {summary.aktivitasHariIni.stokMasuk}
-                </span>
-              </div>
-              <div className="pl-4">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
-                  Jumlah Transaksi
-                </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">
-                  {summary.aktivitasHariIni.jumlahTransaksiMasuk}
-                </span>
-              </div>
-            </div>
+        <div className="bg-white rounded-2xl border border-emerald-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider block">Lunas</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 block leading-tight">{s?.totalLunas ?? 0}</span>
+            <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 mt-1">Transaksi selesai</span>
           </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" aria-hidden="true"></span>
-                Stok Keluar Hari Ini
-              </h3>
-              <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-                Terverifikasi
-              </span>
-            </div>
-            <div className="p-5 grid grid-cols-2 gap-4 divide-x divide-slate-100">
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
-                  Total Unit Keluar
-                </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1 block">
-                  {summary.aktivitasHariIni.stokKeluar}
-                </span>
-              </div>
-              <div className="pl-4">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
-                  Jumlah Transaksi
-                </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">
-                  {summary.aktivitasHariIni.jumlahTransaksiKeluar}
-                </span>
-              </div>
-            </div>
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
-
         </div>
-      )}
+
+        <div className="bg-white rounded-2xl border border-red-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider block">Belum Lunas</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-red-500 block leading-tight">{s?.totalBelumLunas ?? 0}</span>
+            <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-red-50 text-red-600 mt-1">Menunggu pembayaran</span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Produk</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">{k?.totalProduk ?? 0}</span>
+            <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 mt-1">{k?.produkAktif ?? 0} Aktif</span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8-4m0 0l8 4m0 0v10l-8 4m0-10L4 17m16 0l-8 4m0 0l-8-4m0 0v-10" /></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Stok</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">{k?.totalStok ?? 0}</span>
+            <span className="text-[10px] text-slate-400 font-medium block mt-1">Unit tersedia di gudang</span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Nilai Aset Stok</span>
+            <span className="text-lg sm:text-xl font-extrabold text-slate-900 block leading-tight py-1">{k ? formatRupiah(k.nilaiStok) : "-"}</span>
+            <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 mt-1">Harga Modal Toko</span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-5 flex items-center justify-between hover:-translate-y-1 transition-colors duration-300 hover:shadow-md group">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Kategori</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">{k?.totalKategori ?? 0}</span>
+            <span className="text-[10px] text-slate-400 font-medium block mt-1">Kategori produk terdaftar</span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01" /></svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
+              Stok Masuk Hari Ini
+            </h3>
+            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Terverifikasi</span>
+          </div>
+          <div className="p-5 grid grid-cols-2 gap-4 divide-x divide-slate-100">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Total Unit Masuk</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 block">{a?.stokMasuk ?? 0}</span>
+            </div>
+            <div className="pl-4">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Jumlah Transaksi</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">{a?.jumlahTransaksiMasuk ?? 0}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500" aria-hidden="true"></span>
+              Stok Keluar Hari Ini
+            </h3>
+            <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">Terverifikasi</span>
+          </div>
+          <div className="p-5 grid grid-cols-2 gap-4 divide-x divide-slate-100">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Total Unit Keluar</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1 block">{a?.stokKeluar ?? 0}</span>
+            </div>
+            <div className="pl-4">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Jumlah Transaksi</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-pink-600 mt-1 block">{a?.jumlahTransaksiKeluar ?? 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-
-        {summary && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Riwayat Aktivitas Terbaru
-              </h3>
-            </div>
-            <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 px-1">
-              {summary.riwayatTerbaru.length > 0 ? (
-                summary.riwayatTerbaru.map((riwayat) => (
-                  <div key={riwayat.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors rounded-xl">
-                    <div className="space-y-0.5 pr-2">
-                      <span className="text-xs font-bold text-slate-800 block truncate max-w-[200px] sm:max-w-sm">
-                        {riwayat.produk}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-medium block">
-                        Oleh: {riwayat.dicatatOleh || "Sistem"} &bull; {new Date(riwayat.tanggal).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                      <span
-                        className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                          riwayat.jenis === "masuk"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-rose-50 text-rose-700"
-                        }`}
-                      >
-                        {riwayat.jenis}
-                      </span>
-                      <span className={`text-xs font-extrabold block ${riwayat.jenis === "masuk" ? "text-emerald-600" : "text-rose-600"}`}>
-                        {riwayat.jenis === "masuk" ? "+" : "-"}{riwayat.jumlah} unit
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-xs text-slate-400 font-medium">
-                  Belum ada riwayat perputaran stok.
-                </div>
-              )}
-            </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
+          <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Riwayat Aktivitas Terbaru
+            </h3>
           </div>
-        )}
+          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 px-1">
+            {r.length > 0 ? (
+              r.map((riwayat) => (
+                <div key={riwayat.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors rounded-xl">
+                  <div className="space-y-0.5 pr-2">
+                    <span className="text-xs font-bold text-slate-800 block truncate max-w-[200px] sm:max-w-sm">{riwayat.produk}</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">
+                      Oleh: {riwayat.dicatatOleh || "Sistem"} &bull; {new Date(riwayat.tanggal).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${riwayat.jenis === "masuk" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                      {riwayat.jenis}
+                    </span>
+                    <span className={`text-xs font-extrabold block ${riwayat.jenis === "masuk" ? "text-emerald-600" : "text-rose-600"}`}>
+                      {riwayat.jenis === "masuk" ? "+" : "-"}{riwayat.jumlah} unit
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-xs text-slate-400 font-medium">Belum ada riwayat perputaran stok.</div>
+            )}
+          </div>
+        </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden flex flex-col">
           <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
               Produk Paling Populer
             </h3>
           </div>
@@ -333,36 +225,23 @@ export default async function DashboardPage() {
               produkLaris.map((produk, idx) => (
                 <div key={produk.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors rounded-xl">
                   <div className="flex items-center gap-3 pr-2">
-                    <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-700 flex items-center justify-center font-bold text-xs shrink-0">
-                      #{idx + 1}
-                    </div>
+                    <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-700 flex items-center justify-center font-bold text-xs shrink-0">#{idx + 1}</div>
                     <div className="space-y-0.5">
-                      <span className="text-xs font-bold text-slate-800 block truncate max-w-[150px] sm:max-w-sm">
-                        {produk.nama_produk}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-medium block">
-                        Kategori: {produk.kategori?.nama_kategori || "Umum"}
-                      </span>
+                      <span className="text-xs font-bold text-slate-800 block truncate max-w-[150px] sm:max-w-sm">{produk.nama_produk}</span>
+                      <span className="text-[10px] text-slate-400 font-medium block">Kategori: {produk.kategori?.nama_kategori || "Umum"}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-xs font-bold text-pink-600 block">
-                      {formatRupiah(produk.harga_jual)}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
-                      Tersedia: {produk.stok_sekarang ?? 0} unit
-                    </span>
+                    <span className="text-xs font-bold text-pink-600 block">{formatRupiah(produk.harga_jual)}</span>
+                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Tersedia: {produk.stok_sekarang ?? 0} unit</span>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-xs text-slate-400 font-medium">
-                Belum ada data produk terlaris.
-              </div>
+              <div className="p-8 text-center text-xs text-slate-400 font-medium">Belum ada data produk terlaris.</div>
             )}
           </div>
         </div>
-
       </div>
 
       {stokKategori.length > 0 && (
@@ -384,26 +263,20 @@ export default async function DashboardPage() {
               }).join("\n")}
             `}</style>
             <div className="space-y-4">
-              {stokKategori.map((kat, idx) => {
-                return (
-                  <div key={kat.kategori} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-slate-700">{kat.kategori}</span>
-                      <span className="text-slate-400">
-                        {kat.jumlahProduk} produk &bull;{" "}
-                        <span className="text-pink-600 font-bold">
-                          {kat.totalStok} unit
-                        </span>
-                      </span>
-                    </div>
-                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full bg-gradient-to-r from-pink-500 to-violet-500 rounded-full transition-all duration-500 stok-bar-${idx}`}
-                      ></div>
-                    </div>
+              {stokKategori.map((kat, idx) => (
+                <div key={kat.kategori} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-700">{kat.kategori}</span>
+                    <span className="text-slate-400">
+                      {kat.jumlahProduk} produk &bull;{" "}
+                      <span className="text-pink-600 font-bold">{kat.totalStok} unit</span>
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`h-full bg-gradient-to-r from-pink-500 to-violet-500 rounded-full transition-colors duration-300 stok-bar-${idx}`}></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
