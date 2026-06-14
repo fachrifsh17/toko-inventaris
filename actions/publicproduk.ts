@@ -1,25 +1,32 @@
 "use server";
 
-import { cache } from "react"
 import { prisma } from "@/lib/prisma"
+import { unstable_cache } from "next/cache"
 
-export const getPengaturan = cache(async () => {
-  try {
-    const data = await prisma.pengaturan.findFirst({
+const fetchPengaturan = unstable_cache(
+  async () => {
+    return prisma.pengaturan.findFirst({
       select: {
         nama_toko: true,
         no_wa_toko: true,
       }
     });
-    return data;
+  },
+  ["public-produk-pengaturan"],
+  { revalidate: 10 }
+);
+
+export async function getPengaturan() {
+  try {
+    return await fetchPengaturan();
   } catch (error) {
     console.error(error);
     return null;
   }
-})
+}
 
-export const getKategoriList = cache(async () => {
-  try {
+const fetchKategoriList = unstable_cache(
+  async () => {
     const data = await prisma.kategori.findMany({
       where: { is_active: true },
       orderBy: { nama_kategori: "asc" },
@@ -27,14 +34,53 @@ export const getKategoriList = cache(async () => {
         id: true,
         nama_kategori: true,
         slug: true,
+        _count: {
+          select: {
+            produk: {
+              where: { is_active: true }
+            }
+          }
+        }
       }
     });
-    return data;
+    return data.map(k => ({
+      id: k.id,
+      nama_kategori: k.nama_kategori,
+      slug: k.slug,
+      count: k._count.produk
+    }));
+  },
+  ["public-produk-kategori-list"],
+  { revalidate: 10 }
+);
+
+export async function getKategoriList() {
+  try {
+    return await fetchKategoriList();
   } catch (error) {
     console.error(error);
     return [];
   }
-})
+}
+
+const fetchProdukCount = unstable_cache(
+  async () => {
+    return prisma.produk.count({
+      where: { is_active: true }
+    });
+  },
+  ["public-produk-count"],
+  { revalidate: 10 }
+);
+
+export async function getProdukCount() {
+  try {
+    return await fetchProdukCount();
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
+}
 
 export async function getProdukPublic(kategoriSlug?: string, cursor?: string, limit: number = 8) {
   try {
@@ -76,18 +122,31 @@ export async function getProdukPublic(kategoriSlug?: string, cursor?: string, li
   }
 }
 
-export const getProdukBySlug = cache(async (slug: string) => {
-  try {
-    const data = await prisma.produk.findFirst({
-      where: { id: Number(slug), is_active: true },
+const fetchProdukBySlug = unstable_cache(
+  async (slug: string) => {
+    const idNum = Number(slug);
+    if (isNaN(idNum)) return null;
+    const data = await prisma.produk.findUnique({
+      where: { id: idNum },
       include: { kategori: true }
     });
-    return data;
+    if (data && data.is_active) {
+      return data;
+    }
+    return null;
+  },
+  ["public-produk-by-slug"],
+  { revalidate: 10 }
+);
+
+export async function getProdukBySlug(slug: string) {
+  try {
+    return await fetchProdukBySlug(slug);
   } catch (error) {
     console.error(error);
     return null;
   }
-})
+}
 
 export async function getProdukTerbaru(limit: number = 8) {
   try {

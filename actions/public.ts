@@ -1,46 +1,68 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { unstable_cache } from "next/cache";
+
+const fetchPengaturan = unstable_cache(
+  async () => {
+    return prisma.pengaturan.findFirst();
+  },
+  ["public-home-pengaturan"],
+  { revalidate: 10 }
+);
 
 export async function getPengaturan() {
   try {
-    const data = await prisma.pengaturan.findFirst();
-    return data;
+    return await fetchPengaturan();
   } catch (error) {
     console.error("Error getPengaturan:", error);
     return null;
   }
 }
 
-export async function getBanners() {
-  try {
-    const data = await prisma.banners.findMany({
+const fetchBanners = unstable_cache(
+  async () => {
+    return prisma.banners.findMany({
       where: { is_active: true },
       orderBy: { urutan: "asc" }
     });
-    return data;
+  },
+  ["public-home-banners"],
+  { revalidate: 10 }
+);
+
+export async function getBanners() {
+  try {
+    return await fetchBanners();
   } catch (error) {
     console.error("Error getBanners:", error);
     return [];
   }
 }
 
-export async function getKategoriList() {
-  try {
-    const data = await prisma.kategori.findMany({
+const fetchKategoriList = unstable_cache(
+  async () => {
+    return prisma.kategori.findMany({
       where: { is_active: true },
       orderBy: { nama_kategori: "asc" }
     });
-    return data;
+  },
+  ["public-home-kategori-list"],
+  { revalidate: 10 }
+);
+
+export async function getKategoriList() {
+  try {
+    return await fetchKategoriList();
   } catch (error) {
     console.error("Error getKategoriList:", error);
     return [];
   }
 }
 
-export async function getProduk() {
-  try {
-    const data = await prisma.produk.findMany({
+const fetchProduk = unstable_cache(
+  async () => {
+    return prisma.produk.findMany({
       where: { is_active: true },
       take: 4,
       orderBy: { id: "desc" },
@@ -53,15 +75,22 @@ export async function getProduk() {
         }
       }
     });
-    return data;
+  },
+  ["public-home-produk"],
+  { revalidate: 10 }
+);
+
+export async function getProduk() {
+  try {
+    return await fetchProduk();
   } catch (error) {
     console.error("Error getProduk:", error);
     return [];
   }
 }
 
-export async function getHomeData() {
-  try {
+const fetchHomeData = unstable_cache(
+  async () => {
     const [pengaturan, banners, produk] = await Promise.all([
       prisma.pengaturan.findFirst(),
       prisma.banners.findMany({
@@ -83,6 +112,14 @@ export async function getHomeData() {
       })
     ]);
     return { pengaturan, banners, produk };
+  },
+  ["public-home-data"],
+  { revalidate: 10 }
+);
+
+export async function getHomeData() {
+  try {
+    return await fetchHomeData();
   } catch (error) {
     console.error("Error getHomeData:", error);
     return { pengaturan: null, banners: [], produk: [] };

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, X, ChevronDown, PackageSearch, Plus, Minus, ShoppingBag, Trash2, MessageCircle, ArrowRight, AlertCircle } from "lucide-react"
-import { getPengaturan, getProdukPublic, getKategoriList } from "@/actions/publicproduk"
+import { getPengaturan, getProdukPublic, getKategoriList, getProdukCount } from "@/actions/publicproduk"
 
 interface Produk {
   id: number
@@ -19,6 +19,7 @@ interface Kategori {
   id: number
   nama_kategori: string
   slug: string
+  count: number
 }
 
 interface Pengaturan {
@@ -59,7 +60,7 @@ function ProdukContent() {
   const [pengaturan, setPengaturan] = useState<Pengaturan | null>(null)
   const [kategoriList, setKategoriList] = useState<Kategori[]>([])
   const [produk, setProduk] = useState<Produk[]>([])
-  const [semuaProduk, setSemuaProduk] = useState<Produk[]>([])
+  const [totalProdukCount, setTotalProdukCount] = useState<number>(0)
   const [search, setSearch] = useState("")
   const [showFilter, setShowFilter] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
@@ -162,32 +163,20 @@ function ProdukContent() {
   }, [])
 
   useEffect(() => {
-    async function loadAll() {
-      let allProduk: Produk[] = []
-      let nextCursor: string | undefined = undefined
-      do {
-        const result = await getProdukPublic("semua", nextCursor, 100)
-        allProduk = [...allProduk, ...result.data]
-        nextCursor = result.nextCursor ?? undefined
-      } while (nextCursor)
-      setSemuaProduk(allProduk)
-    }
-    loadAll()
-  }, [])
-
-  useEffect(() => {
     async function load() {
       setLoadingMore(true)
-      const [p, k, pr] = await Promise.all([
+      const [p, k, pr, count] = await Promise.all([
         getPengaturan(),
         getKategoriList(),
-        getProdukPublic(activeKategori, undefined, 8)
+        getProdukPublic(activeKategori, undefined, 8),
+        getProdukCount()
       ])
       setPengaturan(p)
-      setKategoriList(k)
+      setKategoriList(k as Kategori[])
       setProduk(pr.data)
       setCursor(pr.nextCursor ?? undefined)
       setHasMore(pr.hasMore)
+      setTotalProdukCount(count)
       setIsExpanded(false)
       setLoadingMore(false)
     }
@@ -795,14 +784,14 @@ function ProdukContent() {
                 >
                   <span className={activeKategori === "semua" ? "font-semibold" : "font-normal"}>Semua Produk</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${activeKategori === "semua" ? "badge-active" : "badge-inactive"}`}>
-                    {semuaProduk.length}
+                    {totalProdukCount}
                   </span>
                 </Link>
 
                 {kategoriList.length > 0 && <div className="h-px mx-3 my-1.5 dropdown-divider" />}
 
                 {kategoriList.map((k) => {
-                  const count = semuaProduk.filter((p) => p.kategori?.slug === k.slug).length
+                  const count = k.count
                   const isActive = activeKategori === k.slug
                   return (
                     <Link
