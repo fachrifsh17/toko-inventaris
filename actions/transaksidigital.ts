@@ -60,35 +60,7 @@ const getCachedTransaksiDigital = unstable_cache(
       prisma.transaksi_digital.count({ where }),
     ]);
 
-    const data = rows.map((t) => {
-      const total_biaya_admin = t.biaya_admin?.nominal_biaya || 0;
-      const total_semua = t.nominal + total_biaya_admin - (t.biaya_lain_lain || 0);
-
-      return {
-        id: t.id,
-        biaya_admin_id: t.biaya_admin_id,
-        saldo_id: t.saldo_id,
-        nama_pelanggan: t.nama_pelanggan,
-        jenis: t.jenis,
-        provider_bank: t.provider_bank,
-        nomor_target: t.nomor_target,
-        nominal: t.nominal,
-        biaya_lain_lain: t.biaya_lain_lain,
-        total_bayar: t.total_bayar,
-        status: t.status,
-        keterangan: t.keterangan,
-        dicatat_oleh: t.dicatat_oleh,
-        tanggal: t.tanggal,
-        created_at: t.created_at,
-        users: t.users,
-        biaya_admin: t.biaya_admin,
-        saldo: t.saldo,
-        total_biaya_admin,
-        total_semua,
-      };
-    });
-
-    return { data, total, page: p, limit: ps, error: "" };
+    return { rows, total };
   },
   ["transaksi-digital"]
 );
@@ -107,10 +79,14 @@ export async function getTransaksiDigital(opts?: {
     const session = cookieStore.get("user_session");
 
     if (!session) {
-      return { data: [], total: 0, page: Number(opts?.page) || 1, limit: Number(opts?.pageSize) || 10, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+      return {
+        success: false,
+        error: "Akses ditolak: Anda harus login terlebih dahulu.",
+        data: { rows: [], total: 0 },
+      };
     }
 
-    return await getCachedTransaksiDigital(
+    const data = await getCachedTransaksiDigital(
       opts?.page,
       opts?.pageSize,
       opts?.startDate,
@@ -119,9 +95,15 @@ export async function getTransaksiDigital(opts?: {
       opts?.saldo_id,
       opts?.status
     );
+
+    return { success: true, data };
   } catch (error) {
     console.error("Error getTransaksiDigital:", error);
-    return { data: [], total: 0, page: Number(opts?.page) || 1, limit: Number(opts?.pageSize) || 10, error: (error as Error).message };
+    return {
+      success: false,
+      error: "Gagal mengambil data transaksi digital.",
+      data: { rows: [], total: 0 },
+    };
   }
 }
 
@@ -428,8 +410,8 @@ export async function editTransaksiDigitalAction(
               data: {
                 total_saldo: { decrement: existing.nominal },
                 updated_at: new Date(),
-              },
-            });
+                  },
+                });
           } else if (existing.status === "Lunas") {
             const oldNetChange = existing.biaya_admin.nominal_biaya - existing.biaya_lain_lain;
             await tx.saldo.update({

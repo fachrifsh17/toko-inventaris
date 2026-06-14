@@ -98,7 +98,7 @@ const getCachedRekapData = unstable_cache(
       };
     });
 
-    return { data, total, page: pageNum, limit: pageSize };
+    return { data, total, page: pageNum, limit: pageSize, error: "" };
   },
   ["rekap-digital-data"]
 );
