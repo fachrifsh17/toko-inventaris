@@ -1,22 +1,27 @@
 import { PrismaClient } from "@prisma/client";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// 1. Buat instance dasar yang murni
 const prismaBase = globalForPrisma.prisma || new PrismaClient({ log: ["query"] });
 
-// 2. Terapkan extension pada instance dasar
 export const prisma = prismaBase.$extends({
   query: {
     $allModels: {
       async $allOperations({ args, query }) {
         if (args && typeof args === 'object' && 'where' in args && (args as any).where?.tanggal) {
           const tanggal = (args as any).where.tanggal;
+          
           if (tanggal.gte instanceof Date) {
-            tanggal.gte = new Date(new Date(tanggal.gte).setHours(0, 0, 0, 0));
+            tanggal.gte = dayjs(tanggal.gte).tz("Asia/Jakarta").startOf("day").toDate();
           }
           if (tanggal.lte instanceof Date) {
-            tanggal.lte = new Date(new Date(tanggal.lte).setHours(23, 59, 59, 999));
+            tanggal.lte = dayjs(tanggal.lte).tz("Asia/Jakarta").endOf("day").toDate();
           }
         }
         return query(args);
