@@ -4,13 +4,13 @@ import { useEffect, useState, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, X, ChevronDown, PackageSearch, Plus, Minus, ShoppingBag, Trash2, MessageCircle, ArrowRight, AlertCircle } from "lucide-react"
-import { getPengaturan, getProdukPublic, getKategoriList } from "@/actions/publicproduk"
+import { getPengaturan, getProdukPublic, getProdukPageData } from "@/actions/publicproduk"
 
 interface Produk {
   id: number
   nama_produk: string
   harga_jual: number
-  stok_sekarang: number | null
+  stok_sekarang?: number | null
   url_foto: string
   kategori: { nama_kategori: string; slug: string } | null
 }
@@ -30,7 +30,7 @@ interface CartItem {
   id: number
   nama_produk: string
   harga_jual: number
-  stok_sekarang: number | null
+  stok_sekarang?: number | null
   url_foto: string
   qty: number
 }
@@ -52,7 +52,6 @@ function formatWhatsApp(nomor: string) {
   return clean
 }
 
-// ========== KOMPPONEN UTAMA DIPINDAH KE SINI ==========
 function ProdukContent() {
   const searchParams = useSearchParams()
   const activeKategori = searchParams.get("kategori") || "semua"
@@ -163,22 +162,19 @@ function ProdukContent() {
   }, [])
 
   useEffect(() => {
-    getProdukPublic("semua", 1, 9999).then((pr) => setSemuaProduk(pr))
-  }, [])
-
-  useEffect(() => {
     async function load() {
       setLoadingMore(true)
-      const [p, k, pr] = await Promise.all([
+      const [pageData, pengaturanData, semuaData] = await Promise.all([
+        getProdukPageData(activeKategori, 1, 8),
         getPengaturan(),
-        getKategoriList(),
-        getProdukPublic(activeKategori, 1, 8)
+        getProdukPublic("semua", 1, 9999)
       ])
-      setPengaturan(p)
-      setKategoriList(k)
-      setProduk(pr)
+      setPengaturan(pengaturanData)
+      setKategoriList(pageData.kategori)
+      setProduk(pageData.produk)
+      setSemuaProduk(semuaData)
       setPage(1)
-      setHasMore(pr.length === 8)
+      setHasMore(pageData.produk.length === 8)
       setIsExpanded(false)
       setLoadingMore(false)
     }
@@ -958,7 +954,6 @@ function ProdukContent() {
   )
 }
 
-// ========== EXPORT DEFAULT DENGAN SUSPENSE WRAPPER ==========
 export default function ProdukPage() {
   return (
     <Suspense>
