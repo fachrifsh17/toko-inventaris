@@ -82,8 +82,8 @@ export async function getProdukCount() {
   }
 }
 
-export async function getProdukPublic(kategoriSlug?: string, cursor?: string, limit: number = 8) {
-  try {
+const fetchProdukPublic = unstable_cache(
+  async (kategoriSlug?: string, cursor?: string, limit: number = 8) => {
     const where: any = { is_active: true };
 
     if (kategoriSlug && kategoriSlug !== "semua") {
@@ -116,6 +116,14 @@ export async function getProdukPublic(kategoriSlug?: string, cursor?: string, li
     const nextCursor = hasMore && data.length > 0 ? String(data[data.length - 1].id) : null;
 
     return { data, hasMore, nextCursor };
+  },
+  ["public-produk-public"],
+  { revalidate: 3600 }
+);
+
+export async function getProdukPublic(kategoriSlug?: string, cursor?: string, limit: number = 8) {
+  try {
+    return await fetchProdukPublic(kategoriSlug, cursor, limit);
   } catch (error) {
     console.error(error);
     return { data: [], hasMore: false, nextCursor: null };
@@ -148,8 +156,8 @@ export async function getProdukBySlug(slug: string) {
   }
 }
 
-export async function getProdukTerbaru(limit: number = 8) {
-  try {
+const fetchProdukTerbaru = unstable_cache(
+  async (limit: number = 8) => {
     const data = await prisma.produk.findMany({
       where: { is_active: true },
       include: { kategori: true },
@@ -157,6 +165,14 @@ export async function getProdukTerbaru(limit: number = 8) {
       take: limit
     });
     return data;
+  },
+  ["public-produk-terbaru"],
+  { revalidate: 3600 }
+);
+
+export async function getProdukTerbaru(limit: number = 8) {
+  try {
+    return await fetchProdukTerbaru(limit);
   } catch (error) {
     console.error(error);
     return [];
