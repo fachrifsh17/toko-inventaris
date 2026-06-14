@@ -19,7 +19,7 @@ import {
   Send,
   ExternalLink
 } from "lucide-react"
-import { getPengaturan, getBanners, getProduk } from "@/actions/public"
+import { getHomeData } from "@/actions/public"
 
 interface Pengaturan {
   nama_toko: string | null
@@ -126,17 +126,11 @@ export default function HomePage() {
   ]
 
   useEffect(() => {
-    async function load() {
-      const [p, b, pr] = await Promise.all([
-        getPengaturan(),
-        getBanners(),
-        getProduk()
-      ])
-      setPengaturan(p)
-      setBanners(b)
-      setProduk(pr || [])
-    }
-    load()
+    getHomeData().then(({ pengaturan, banners, produk }) => {
+      setPengaturan(pengaturan)
+      setBanners(banners)
+      setProduk(produk || [])
+    })
   }, [])
 
   useEffect(() => {

@@ -59,3 +59,32 @@ export async function getProduk() {
     return [];
   }
 }
+
+export async function getHomeData() {
+  try {
+    const [pengaturan, banners, produk] = await Promise.all([
+      prisma.pengaturan.findFirst(),
+      prisma.banners.findMany({
+        where: { is_active: true },
+        orderBy: { urutan: "asc" }
+      }),
+      prisma.produk.findMany({
+        where: { is_active: true },
+        take: 4,
+        orderBy: { id: "desc" },
+        include: {
+          kategori: {
+            select: {
+              nama_kategori: true,
+              slug: true
+            }
+          }
+        }
+      })
+    ]);
+    return { pengaturan, banners, produk };
+  } catch (error) {
+    console.error("Error getHomeData:", error);
+    return { pengaturan: null, banners: [], produk: [] };
+  }
+}
