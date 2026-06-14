@@ -1,8 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { cache } from "react"
+import { prisma } from "@/lib/prisma"
 
-export async function getPengaturan() {
+export const getPengaturan = cache(async () => {
   try {
     const data = await prisma.pengaturan.findFirst({
       select: {
@@ -15,9 +16,9 @@ export async function getPengaturan() {
     console.error(error);
     return null;
   }
-}
+})
 
-export async function getKategoriList() {
+export const getKategoriList = cache(async () => {
   try {
     const data = await prisma.kategori.findMany({
       where: { is_active: true },
@@ -33,7 +34,7 @@ export async function getKategoriList() {
     console.error(error);
     return [];
   }
-}
+})
 
 export async function getProdukPublic(kategoriSlug?: string, cursor?: string, limit: number = 8) {
   try {
@@ -75,7 +76,7 @@ export async function getProdukPublic(kategoriSlug?: string, cursor?: string, li
   }
 }
 
-export async function getProdukBySlug(slug: string) {
+export const getProdukBySlug = cache(async (slug: string) => {
   try {
     const data = await prisma.produk.findFirst({
       where: { id: Number(slug), is_active: true },
@@ -86,7 +87,7 @@ export async function getProdukBySlug(slug: string) {
     console.error(error);
     return null;
   }
-}
+})
 
 export async function getProdukTerbaru(limit: number = 8) {
   try {
