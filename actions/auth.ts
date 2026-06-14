@@ -18,26 +18,24 @@ export async function loginAction(prevState: any, formData: FormData) {
       where: { username: username },
     });
 
-    const isPasswordValid = user
-      ? await bcrypt.compare(password, user.password)
-      : await bcrypt.compare(
-          "dummy",
-          "$2b$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummyhash",
-        );
+    if (!user) {
+      return { error: "Username atau password salah!" };
+    }
 
-    if (!user || !isPasswordValid) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       return { error: "Username atau password salah!" };
     }
 
     const cookieStore = await cookies();
-    
-    const INACTIVITY_TIMEOUT = 60 * 60 * 3; 
+    const INACTIVITY_TIMEOUT = 60 * 60 * 3;
 
     cookieStore.set("user_session", String(user.id), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: INACTIVITY_TIMEOUT, 
+      maxAge: INACTIVITY_TIMEOUT,
     });
   } catch (error) {
     return { error: "Terjadi kesalahan pada server. Silakan coba lagi." };
