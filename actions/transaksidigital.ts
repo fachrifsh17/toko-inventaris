@@ -1,8 +1,69 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
+
+const getCachedTransaksiDigital = unstable_cache(
+  async (
+    page?: number,
+    pageSize?: number,
+    startDate?: string,
+    endDate?: string,
+    jenis?: string,
+    saldo_id?: number,
+    status?: string
+  ) => {
+    const p = page && page > 0 ? page : 1;
+    const ps = pageSize && pageSize > 0 ? pageSize : 10;
+
+    const where: any = {};
+
+    if (jenis) {
+      where.jenis = jenis;
+    }
+
+    if (saldo_id) {
+      where.saldo_id = saldo_id;
+    }
+
+    if (status) {
+      where.status = status === "Belum Lunas" ? "Belum_Lunas" : status;
+    }
+
+    if (startDate || endDate) {
+      where.tanggal = {};
+      if (startDate) {
+        where.tanggal.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const d = new Date(endDate);
+        d.setHours(23, 59, 59, 999);
+        where.tanggal.lte = d;
+      }
+    }
+
+    const [rows, total] = await Promise.all([
+      prisma.transaksi_digital.findMany({
+        where,
+        include: {
+          users: { select: { id: true, nama_lengkap: true } },
+          biaya_admin: { select: { id: true, nominal_biaya: true } },
+          saldo: { select: { id: true, nama_akun: true } },
+        },
+        orderBy: {
+          tanggal: "desc",
+        },
+        skip: (p - 1) * ps,
+        take: ps,
+      }),
+      prisma.transaksi_digital.count({ where }),
+    ]);
+
+    return { rows, total };
+  },
+  ["transaksi-digital"]
+);
 
 export async function getTransaksiDigital(opts?: {
   page?: number;
@@ -25,53 +86,17 @@ export async function getTransaksiDigital(opts?: {
       };
     }
 
-    const page = opts?.page && opts.page > 0 ? opts.page : 1;
-    const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 10;
+    const data = await getCachedTransaksiDigital(
+      opts?.page,
+      opts?.pageSize,
+      opts?.startDate,
+      opts?.endDate,
+      opts?.jenis,
+      opts?.saldo_id,
+      opts?.status
+    );
 
-    const where: any = {};
-
-    if (opts?.jenis) {
-      where.jenis = opts.jenis;
-    }
-
-    if (opts?.saldo_id) {
-      where.saldo_id = opts.saldo_id;
-    }
-
-    if (opts?.status) {
-      where.status = opts.status === "Belum Lunas" ? "Belum_Lunas" : opts.status;
-    }
-
-    if (opts?.startDate || opts?.endDate) {
-      where.tanggal = {};
-      if (opts?.startDate) {
-        where.tanggal.gte = new Date(opts.startDate);
-      }
-      if (opts?.endDate) {
-        const d = new Date(opts.endDate);
-        d.setHours(23, 59, 59, 999);
-        where.tanggal.lte = d;
-      }
-    }
-
-    const [rows, total] = await Promise.all([
-      prisma.transaksi_digital.findMany({
-        where,
-        include: {
-          users: { select: { id: true, nama_lengkap: true } },
-          biaya_admin: { select: { id: true, nominal_biaya: true } },
-          saldo: { select: { id: true, nama_akun: true } },
-        },
-        orderBy: {
-          tanggal: "desc",
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.transaksi_digital.count({ where }),
-    ]);
-
-    return { success: true, data: { rows, total } };
+    return { success: true, data };
   } catch (error) {
     console.error("Error getTransaksiDigital:", error);
     return {

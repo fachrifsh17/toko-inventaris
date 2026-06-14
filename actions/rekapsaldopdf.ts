@@ -2,24 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { getPengaturan } from "./pengaturan";
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getRekapPdfData(
-  jenis?: string,
-  providerBank?: string,
-  saldoId?: number,
-  startDate?: Date,
-  endDate?: Date,
-  status?: string,
-) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
+const getCachedRekapPdfData = unstable_cache(
+  async (
+    jenis?: string,
+    providerBank?: string,
+    saldoId?: number,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+  ) => {
     const where: any = {};
 
     if (jenis) where.jenis = jenis;
@@ -112,11 +106,43 @@ export async function getRekapPdfData(
     };
 
     return {
-      success: true,
       data: formattedData,
       ringkasan,
       saldoNama: saldoData?.nama_akun || null,
       pengaturan: pengaturanRes.success ? pengaturanRes.data : null,
+    };
+  },
+  ["rekap-digital-pdf-data"]
+);
+
+export async function getRekapPdfData(
+  jenis?: string,
+  providerBank?: string,
+  saldoId?: number,
+  startDate?: Date,
+  endDate?: Date,
+  status?: string,
+) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
+    const result = await getCachedRekapPdfData(
+      jenis,
+      providerBank,
+      saldoId,
+      startDate?.toISOString(),
+      endDate?.toISOString(),
+      status
+    );
+
+    return {
+      success: true,
+      ...result,
     };
   } catch (error) {
     console.error("Error in getRekapPdfData:", error);

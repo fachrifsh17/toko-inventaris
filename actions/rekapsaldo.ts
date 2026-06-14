@@ -1,27 +1,20 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getRekapData(
-  jenis?: string,
-  providerBank?: string,
-  saldoId?: number | string,
-  startDate?: Date | string,
-  endDate?: Date | string,
-  status?: string,
-  page: number | string = 1,
-  limit: number | string = 10,
-) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { data: [], total: 0, page: Number(page), limit: Number(limit), error: "Unauthorized" };
-    }
-
+const getCachedRekapData = unstable_cache(
+  async (
+    jenis?: string,
+    providerBank?: string,
+    saldoId?: string,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+    page: number = 1,
+    limit: number = 10,
+  ) => {
     const pageNum = Number(page) || 1;
     const pageSize = Number(limit) || 10;
 
@@ -106,18 +99,12 @@ export async function getRekapData(
     });
 
     return { data, total, page: pageNum, limit: pageSize };
-  } catch (error) {
-    return { data: [], total: 0, page: Number(page) || 1, limit: Number(limit) || 10, error: (error as Error).message };
-  }
-}
+  },
+  ["rekap-digital-data"]
+);
 
-export async function getRekapDetail(id: number) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) return null;
-
+const getCachedRekapDetail = unstable_cache(
+  async (id: number) => {
     const transaksi = await prisma.transaksi_digital.findUnique({
       where: { id: Number(id) },
       include: {
@@ -154,6 +141,182 @@ export async function getRekapDetail(id: number) {
       total_biaya_admin,
       total_semua,
     };
+  },
+  ["rekap-digital-detail"]
+);
+
+const getCachedExportRekapIndividual = unstable_cache(
+  async (id: number) => {
+    const transaksi = await prisma.transaksi_digital.findUnique({
+      where: { id: Number(id) },
+      include: {
+        users: { select: { id: true, nama_lengkap: true } },
+        biaya_admin: { select: { id: true, nominal_biaya: true } },
+        saldo: { select: { id: true, nama_akun: true } },
+      },
+    });
+
+    if (!transaksi) return null;
+
+    const total_biaya_admin = transaksi.biaya_admin?.nominal_biaya || 0;
+    const total_semua = transaksi.nominal + total_biaya_admin - (transaksi.biaya_lain_lain || 0);
+
+    return {
+      id: transaksi.id,
+      biaya_admin_id: transaksi.biaya_admin_id,
+      saldo_id: transaksi.saldo_id,
+      nama_pelanggan: transaksi.nama_pelanggan,
+      jenis: transaksi.jenis,
+      provider_bank: transaksi.provider_bank,
+      nomor_target: transaksi.nomor_target,
+      nominal: transaksi.nominal,
+      biaya_lain_lain: transaksi.biaya_lain_lain,
+      total_bayar: transaksi.total_bayar,
+      status: transaksi.status,
+      keterangan: transaksi.keterangan,
+      dicatat_oleh: transaksi.dicatat_oleh,
+      tanggal: transaksi.tanggal,
+      created_at: transaksi.created_at,
+      users: transaksi.users,
+      biaya_admin: transaksi.biaya_admin,
+      saldo: transaksi.saldo,
+      total_biaya_admin,
+      total_semua,
+    };
+  },
+  ["rekap-digital-export-individual"]
+);
+
+const getCachedExportRekapFiltered = unstable_cache(
+  async (
+    jenis?: string,
+    providerBank?: string,
+    saldoId?: string,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+  ) => {
+    const where: any = {};
+
+    if (jenis) {
+      where.jenis = jenis;
+    }
+
+    if (status) {
+      where.status = status === "Belum Lunas" ? "Belum_Lunas" : status;
+    }
+
+    if (saldoId) {
+      const parsedSaldoId = Number(saldoId);
+      if (!isNaN(parsedSaldoId)) {
+        where.saldo_id = parsedSaldoId;
+      }
+    }
+
+    if (providerBank && providerBank.trim() !== "") {
+      where.provider_bank = {
+        contains: providerBank.trim(),
+      };
+    }
+
+    if (startDate || endDate) {
+      where.tanggal = {};
+      if (startDate) {
+        where.tanggal.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const d = new Date(endDate);
+        d.setHours(23, 59, 59, 999);
+        where.tanggal.lte = d;
+      }
+    }
+
+    const rows = await prisma.transaksi_digital.findMany({
+      where,
+      include: {
+        users: { select: { id: true, nama_lengkap: true } },
+        biaya_admin: { select: { id: true, nominal_biaya: true } },
+        saldo: { select: { id: true, nama_akun: true } },
+      },
+      orderBy: {
+        tanggal: "desc",
+      },
+    });
+
+    const data = rows.map((t) => {
+      const total_biaya_admin = t.biaya_admin?.nominal_biaya || 0;
+      const total_semua = t.nominal + total_biaya_admin - (t.biaya_lain_lain || 0);
+
+      return {
+        id: t.id,
+        biaya_admin_id: t.biaya_admin_id,
+        saldo_id: t.saldo_id,
+        nama_pelanggan: t.nama_pelanggan,
+        jenis: t.jenis,
+        provider_bank: t.provider_bank,
+        nomor_target: t.nomor_target,
+        nominal: t.nominal,
+        biaya_lain_lain: t.biaya_lain_lain,
+        total_bayar: t.total_bayar,
+        status: t.status,
+        keterangan: t.keterangan,
+        dicatat_oleh: t.dicatat_oleh,
+        tanggal: t.tanggal,
+        created_at: t.created_at,
+        users: t.users,
+        biaya_admin: t.biaya_admin,
+        saldo: t.saldo,
+        total_biaya_admin,
+        total_semua,
+      };
+    });
+
+    return data;
+  },
+  ["rekap-digital-export-filtered"]
+);
+
+export async function getRekapData(
+  jenis?: string,
+  providerBank?: string,
+  saldoId?: number | string,
+  startDate?: Date | string,
+  endDate?: Date | string,
+  status?: string,
+  page: number | string = 1,
+  limit: number | string = 10,
+) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { data: [], total: 0, page: Number(page), limit: Number(limit), error: "Unauthorized" };
+    }
+
+    return await getCachedRekapData(
+      jenis,
+      providerBank,
+      saldoId?.toString(),
+      startDate instanceof Date ? startDate.toISOString() : startDate,
+      endDate instanceof Date ? endDate.toISOString() : endDate,
+      status,
+      Number(page),
+      Number(limit)
+    );
+  } catch (error) {
+    return { data: [], total: 0, page: Number(page) || 1, limit: Number(limit) || 10, error: (error as Error).message };
+  }
+}
+
+export async function getRekapDetail(id: number) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) return null;
+
+    return await getCachedRekapDetail(id);
   } catch (error) {
     return null;
   }
@@ -265,44 +428,12 @@ export async function exportRekapIndividual(id: number) {
 
     if (!session) return { success: false, error: "Unauthorized" };
 
-    const transaksi = await prisma.transaksi_digital.findUnique({
-      where: { id: Number(id) },
-      include: {
-        users: { select: { id: true, nama_lengkap: true } },
-        biaya_admin: { select: { id: true, nominal_biaya: true } },
-        saldo: { select: { id: true, nama_akun: true } },
-      },
-    });
-
-    if (!transaksi) return { success: false, error: "Not found" };
-
-    const total_biaya_admin = transaksi.biaya_admin?.nominal_biaya || 0;
-    const total_semua = transaksi.nominal + total_biaya_admin - (transaksi.biaya_lain_lain || 0);
+    const data = await getCachedExportRekapIndividual(id);
+    if (!data) return { success: false, error: "Not found" };
 
     return {
       success: true,
-      data: {
-        id: transaksi.id,
-        biaya_admin_id: transaksi.biaya_admin_id,
-        saldo_id: transaksi.saldo_id,
-        nama_pelanggan: transaksi.nama_pelanggan,
-        jenis: transaksi.jenis,
-        provider_bank: transaksi.provider_bank,
-        nomor_target: transaksi.nomor_target,
-        nominal: transaksi.nominal,
-        biaya_lain_lain: transaksi.biaya_lain_lain,
-        total_bayar: transaksi.total_bayar,
-        status: transaksi.status,
-        keterangan: transaksi.keterangan,
-        dicatat_oleh: transaksi.dicatat_oleh,
-        tanggal: transaksi.tanggal,
-        created_at: transaksi.created_at,
-        users: transaksi.users,
-        biaya_admin: transaksi.biaya_admin,
-        saldo: transaksi.saldo,
-        total_biaya_admin,
-        total_semua,
-      },
+      data,
     };
   } catch (error) {
     return { success: false, error: (error as Error).message };
@@ -323,80 +454,14 @@ export async function exportRekapFiltered(
 
     if (!session) return { success: false, error: "Unauthorized" };
 
-    const where: any = {};
-
-    if (jenis) {
-      where.jenis = jenis;
-    }
-
-    if (status) {
-      where.status = status === "Belum Lunas" ? "Belum_Lunas" : status;
-    }
-
-    if (saldoId) {
-      const parsedSaldoId = Number(saldoId);
-      if (!isNaN(parsedSaldoId)) {
-        where.saldo_id = parsedSaldoId;
-      }
-    }
-
-    if (providerBank && providerBank.trim() !== "") {
-      where.provider_bank = {
-        contains: providerBank.trim(),
-      };
-    }
-
-    if (startDate || endDate) {
-      where.tanggal = {};
-      if (startDate) {
-        where.tanggal.gte = new Date(startDate);
-      }
-      if (endDate) {
-        const d = new Date(endDate);
-        d.setHours(23, 59, 59, 999);
-        where.tanggal.lte = d;
-      }
-    }
-
-    const rows = await prisma.transaksi_digital.findMany({
-      where,
-      include: {
-        users: { select: { id: true, nama_lengkap: true } },
-        biaya_admin: { select: { id: true, nominal_biaya: true } },
-        saldo: { select: { id: true, nama_akun: true } },
-      },
-      orderBy: {
-        tanggal: "desc",
-      },
-    });
-
-    const data = rows.map((t) => {
-      const total_biaya_admin = t.biaya_admin?.nominal_biaya || 0;
-      const total_semua = t.nominal + total_biaya_admin - (t.biaya_lain_lain || 0);
-
-      return {
-        id: t.id,
-        biaya_admin_id: t.biaya_admin_id,
-        saldo_id: t.saldo_id,
-        nama_pelanggan: t.nama_pelanggan,
-        jenis: t.jenis,
-        provider_bank: t.provider_bank,
-        nomor_target: t.nomor_target,
-        nominal: t.nominal,
-        biaya_lain_lain: t.biaya_lain_lain,
-        total_bayar: t.total_bayar,
-        status: t.status,
-        keterangan: t.keterangan,
-        dicatat_oleh: t.dicatat_oleh,
-        tanggal: t.tanggal,
-        created_at: t.created_at,
-        users: t.users,
-        biaya_admin: t.biaya_admin,
-        saldo: t.saldo,
-        total_biaya_admin,
-        total_semua,
-      };
-    });
+    const data = await getCachedExportRekapFiltered(
+      jenis,
+      providerBank,
+      saldoId?.toString(),
+      startDate instanceof Date ? startDate.toISOString() : startDate,
+      endDate instanceof Date ? endDate.toISOString() : endDate,
+      status
+    );
 
     return { success: true, data };
   } catch (error) {

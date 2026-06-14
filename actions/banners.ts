@@ -2,14 +2,21 @@
 
 import { prisma } from "@/lib/prisma";
 import { supabase } from "@/lib/supabase";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
+
+const getCachedBanners = unstable_cache(
+  async () => {
+    return prisma.banners.findMany({
+      orderBy: { urutan: "asc" },
+    });
+  },
+  ["banners"],
+);
 
 export async function getBanners() {
   try {
-    const banners = await prisma.banners.findMany({
-      orderBy: { urutan: "asc" },
-    });
+    const banners = await getCachedBanners();
     return { success: true, data: banners };
   } catch (error) {
     console.error("Error getBanners:", error);

@@ -8,7 +8,7 @@ const fetchPengaturan = unstable_cache(
     return prisma.pengaturan.findFirst();
   },
   ["public-home-pengaturan"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getPengaturan() {
@@ -28,7 +28,7 @@ const fetchBanners = unstable_cache(
     });
   },
   ["public-home-banners"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getBanners() {
@@ -48,7 +48,7 @@ const fetchKategoriList = unstable_cache(
     });
   },
   ["public-home-kategori-list"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getKategoriList() {
@@ -77,7 +77,7 @@ const fetchProduk = unstable_cache(
     });
   },
   ["public-home-produk"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getProduk() {
@@ -114,7 +114,7 @@ const fetchHomeData = unstable_cache(
     return { pengaturan, banners, produk };
   },
   ["public-home-data"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getHomeData() {

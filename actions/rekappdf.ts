@@ -2,23 +2,17 @@
 
 import { prisma } from "@/lib/prisma";
 import { getPengaturan } from "./pengaturan";
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getRekapPdfData(
-  type?: "masuk" | "keluar",
-  namaKategori?: string,
-  startDate?: Date,
-  endDate?: Date,
-  metodePembayaran?: string,
-) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
+const getCachedRekapPdfData = unstable_cache(
+  async (
+    type?: string,
+    namaKategori?: string,
+    startDate?: string,
+    endDate?: string,
+    metodePembayaran?: string,
+  ) => {
     const where: any = {};
 
     if (type) where.jenis_stok = type.toUpperCase();
@@ -126,9 +120,39 @@ export async function getRekapPdfData(
     });
 
     return {
-      success: true,
       data: formattedData,
       pengaturan: pengaturanRes.success ? pengaturanRes.data : null,
+    };
+  },
+  ["rekap-pdf-data"]
+);
+
+export async function getRekapPdfData(
+  type?: "masuk" | "keluar",
+  namaKategori?: string,
+  startDate?: Date,
+  endDate?: Date,
+  metodePembayaran?: string,
+) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
+    const result = await getCachedRekapPdfData(
+      type,
+      namaKategori,
+      startDate?.toISOString(),
+      endDate?.toISOString(),
+      metodePembayaran
+    );
+
+    return {
+      success: true,
+      ...result,
     };
   } catch (error) {
     return { success: false, error: (error as Error).message };

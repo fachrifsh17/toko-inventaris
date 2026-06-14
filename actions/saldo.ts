@@ -1,19 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getSaldo(opts?: {
-  page?: number;
-  pageSize?: number;
-}) {
-  try {
-    if (
-      opts &&
-      typeof opts.page === "number" &&
-      typeof opts.pageSize === "number"
-    ) {
+const getCachedSaldo = unstable_cache(
+  async (page?: number, pageSize?: number) => {
+    if (typeof page === "number" && typeof pageSize === "number") {
       const total = await prisma.saldo.count();
       const rows = await prisma.saldo.findMany({
         include: {
@@ -25,10 +18,10 @@ export async function getSaldo(opts?: {
           },
         },
         orderBy: { updated_at: "desc" },
-        skip: (opts.page - 1) * opts.pageSize,
-        take: opts.pageSize,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       });
-      return { success: true, data: { rows, total } };
+      return { rows, total };
     }
 
     const saldo = await prisma.saldo.findMany({
@@ -42,7 +35,37 @@ export async function getSaldo(opts?: {
       },
       orderBy: { updated_at: "desc" },
     });
-    return { success: true, data: saldo };
+    return saldo;
+  },
+  ["saldo"]
+);
+
+const getCachedSaldoActive = unstable_cache(
+  async () => {
+    return prisma.saldo.findMany({
+      where: { is_active: true },
+      orderBy: { nama_akun: "asc" },
+    });
+  },
+  ["saldo-active"]
+);
+
+export async function getSaldo(opts?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  try {
+    const data = await getCachedSaldo(opts?.page, opts?.pageSize);
+
+    if (
+      opts &&
+      typeof opts.page === "number" &&
+      typeof opts.pageSize === "number"
+    ) {
+      return { success: true, data };
+    }
+
+    return { success: true, data };
   } catch (error) {
     console.error("Error getSaldo:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -56,11 +79,8 @@ export async function getSaldo(opts?: {
 
 export async function getSaldoActive() {
   try {
-    const saldo = await prisma.saldo.findMany({
-      where: { is_active: true },
-      orderBy: { nama_akun: "asc" },
-    });
-    return { success: true, data: saldo };
+    const data = await getCachedSaldoActive();
+    return { success: true, data };
   } catch (error) {
     console.error("Error getSaldoActive:", error);
     return {

@@ -21,8 +21,7 @@ const fetchPengaturanData = unstable_cache(
     }
     return pengaturan;
   },
-  ["dashboard-pengaturan"],
-  { revalidate: 10 }
+  ["dashboard-pengaturan"]
 );
 
 export async function getPengaturan() {

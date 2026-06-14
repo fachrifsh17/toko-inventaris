@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
 interface ItemKeluarInput {
@@ -10,6 +10,62 @@ interface ItemKeluarInput {
   harga_modal_real: number;
   harga_jual_real: number;
 }
+
+const getCachedRiwayatKeluar = unstable_cache(
+  async (
+    page?: number,
+    pageSize?: number,
+    startDate?: string,
+    endDate?: string,
+    metodePembayaran?: string
+  ) => {
+    const p = page && page > 0 ? page : 1;
+    const ps = pageSize && pageSize > 0 ? pageSize : 10;
+
+    const where: any = {
+      jenis_stok: "KELUAR",
+    };
+
+    if (metodePembayaran) {
+      where.metode_pembayaran = metodePembayaran;
+    }
+
+    if (startDate || endDate) {
+      where.tanggal = {};
+      if (startDate) {
+        where.tanggal.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const d = new Date(endDate);
+        d.setHours(23, 59, 59, 999);
+        where.tanggal.lte = d;
+      }
+    }
+
+    const [rows, total] = await Promise.all([
+      prisma.transaksi.findMany({
+        where,
+        include: {
+          users: { select: { id: true, nama_lengkap: true } },
+          detail_transaksi: {
+            include: {
+              produk: { select: { id: true, nama_produk: true } },
+            },
+          },
+        },
+        orderBy: {
+          tanggal: "desc",
+        },
+        skip: (p - 1) * ps,
+        take: ps,
+      }),
+      prisma.transaksi.count({ where }),
+    ]);
+
+    return { rows, total };
+  },
+  ["riwayat-keluar"]
+);
 
 export async function getRiwayatKeluar(opts?: {
   page?: number;
@@ -30,50 +86,15 @@ export async function getRiwayatKeluar(opts?: {
       };
     }
 
-    const page = opts?.page && opts.page > 0 ? opts.page : 1;
-    const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 10;
+    const data = await getCachedRiwayatKeluar(
+      opts?.page,
+      opts?.pageSize,
+      opts?.startDate,
+      opts?.endDate,
+      opts?.metodePembayaran
+    );
 
-    const where: any = {
-      jenis_stok: "KELUAR",
-    };
-
-    if (opts?.metodePembayaran) {
-      where.metode_pembayaran = opts.metodePembayaran;
-    }
-
-    if (opts?.startDate || opts?.endDate) {
-      where.tanggal = {};
-      if (opts?.startDate) {
-        where.tanggal.gte = new Date(opts.startDate);
-      }
-      if (opts?.endDate) {
-        const d = new Date(opts.endDate);
-        d.setHours(23, 59, 59, 999);
-        where.tanggal.lte = d;
-      }
-    }
-
-    const [rows, total] = await Promise.all([
-      prisma.transaksi.findMany({
-        where,
-        include: {
-          users: { select: { id: true, nama_lengkap: true } },
-          detail_transaksi: {
-            include: {
-              produk: { select: { id: true, nama_produk: true } },
-            },
-          },
-        },
-        orderBy: {
-          tanggal: "desc",
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.transaksi.count({ where }),
-    ]);
-
-    return { success: true, data: { rows, total } };
+    return { success: true, data };
   } catch (error) {
     return {
       success: false,

@@ -1,19 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getBiayaAdmin(opts?: {
-  page?: number;
-  pageSize?: number;
-}) {
-  try {
-    if (
-      opts &&
-      typeof opts.page === "number" &&
-      typeof opts.pageSize === "number"
-    ) {
+const getCachedBiayaAdmin = unstable_cache(
+  async (page?: number, pageSize?: number) => {
+    if (typeof page === "number" && typeof pageSize === "number") {
       const total = await prisma.biaya_admin.count();
       const rows = await prisma.biaya_admin.findMany({
         include: {
@@ -24,10 +17,10 @@ export async function getBiayaAdmin(opts?: {
           },
         },
         orderBy: { created_at: "desc" },
-        skip: (opts.page - 1) * opts.pageSize,
-        take: opts.pageSize,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       });
-      return { success: true, data: { rows, total } };
+      return { rows, total };
     }
 
     const biayaAdmin = await prisma.biaya_admin.findMany({
@@ -40,7 +33,38 @@ export async function getBiayaAdmin(opts?: {
       },
       orderBy: { created_at: "desc" },
     });
-    return { success: true, data: biayaAdmin };
+    return biayaAdmin;
+  },
+  ["biaya-admin"],
+);
+
+const getCachedBiayaAdminActive = unstable_cache(
+  async () => {
+    return prisma.biaya_admin.findMany({
+      where: { is_active: true },
+      orderBy: { nominal_biaya: "asc" },
+    });
+  },
+  ["biaya-admin-active"],
+  { revalidate: 10 }
+);
+
+export async function getBiayaAdmin(opts?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  try {
+    const data = await getCachedBiayaAdmin(opts?.page, opts?.pageSize);
+
+    if (
+      opts &&
+      typeof opts.page === "number" &&
+      typeof opts.pageSize === "number"
+    ) {
+      return { success: true, data };
+    }
+
+    return { success: true, data };
   } catch (error) {
     console.error("Error getBiayaAdmin:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -54,11 +78,8 @@ export async function getBiayaAdmin(opts?: {
 
 export async function getBiayaAdminActive() {
   try {
-    const biayaAdmin = await prisma.biaya_admin.findMany({
-      where: { is_active: true },
-      orderBy: { nominal_biaya: "asc" },
-    });
-    return { success: true, data: biayaAdmin };
+    const data = await getCachedBiayaAdminActive();
+    return { success: true, data };
   } catch (error) {
     console.error("Error getBiayaAdminActive:", error);
     return {

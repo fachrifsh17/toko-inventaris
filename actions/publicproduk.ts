@@ -13,7 +13,7 @@ const fetchPengaturan = unstable_cache(
     });
   },
   ["public-produk-pengaturan"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getPengaturan() {
@@ -51,7 +51,7 @@ const fetchKategoriList = unstable_cache(
     }));
   },
   ["public-produk-kategori-list"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getKategoriList() {
@@ -70,7 +70,7 @@ const fetchProdukCount = unstable_cache(
     });
   },
   ["public-produk-count"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getProdukCount() {
@@ -136,7 +136,7 @@ const fetchProdukBySlug = unstable_cache(
     return null;
   },
   ["public-produk-by-slug"],
-  { revalidate: 10 }
+  { revalidate: 3600 }
 );
 
 export async function getProdukBySlug(slug: string) {

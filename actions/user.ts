@@ -2,8 +2,53 @@
 
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import bcrypt from "bcrypt";
+
+const getCachedCurrentUser = unstable_cache(
+  async (userId: number) => {
+    return prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        nama_lengkap: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  },
+  ["current-user"]
+);
+
+const getCachedUsers = unstable_cache(
+  async () => {
+    return prisma.users.findMany({
+      select: {
+        id: true,
+        username: true,
+        nama_lengkap: true,
+        created_at: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  },
+  ["users"]
+);
+
+const getCachedUserById = unstable_cache(
+  async (id: number) => {
+    return prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        nama_lengkap: true,
+      }
+    });
+  },
+  ["user-by-id"]
+);
 
 export async function getCurrentUser() {
   try {
@@ -19,16 +64,7 @@ export async function getCurrentUser() {
       return { success: false, error: "Sesi tidak valid." };
     }
 
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        nama_lengkap: true,
-        created_at: true,
-        updated_at: true,
-      },
-    });
+    const user = await getCachedCurrentUser(userId);
 
     if (!user) {
       return { success: false, error: "Pengguna tidak ditemukan." };
@@ -127,15 +163,7 @@ export async function getUsers() {
       return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
     }
 
-    const users = await prisma.users.findMany({
-      select: {
-        id: true,
-        username: true,
-        nama_lengkap: true,
-        created_at: true,
-      },
-      orderBy: { created_at: 'desc' },
-    });
+    const users = await getCachedUsers();
     return { success: true, data: users };
   } catch (error) {
     console.error("Error getUsers:", error);
@@ -199,14 +227,7 @@ export async function getUserById(id: number) {
       return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
     }
 
-    const user = await prisma.users.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        username: true,
-        nama_lengkap: true,
-      }
-    });
+    const user = await getCachedUserById(id);
 
     if (!user) {
       return { success: false, error: "Pengguna tidak ditemukan." };

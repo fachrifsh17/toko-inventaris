@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
 interface ItemMasukInput {
@@ -11,38 +11,27 @@ interface ItemMasukInput {
   harga_jual_real: number;
 }
 
-export async function getRiwayatMasuk(opts?: {
-  page?: number;
-  pageSize?: number;
-  startDate?: string;
-  endDate?: string;
-}) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return {
-        success: false,
-        error: "Akses ditolak: Anda harus login terlebih dahulu.",
-        data: { rows: [], total: 0 },
-      };
-    }
-
-    const page = opts?.page && opts.page > 0 ? opts.page : 1;
-    const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 10;
+const getCachedRiwayatMasuk = unstable_cache(
+  async (
+    page?: number,
+    pageSize?: number,
+    startDate?: string,
+    endDate?: string
+  ) => {
+    const p = page && page > 0 ? page : 1;
+    const ps = pageSize && pageSize > 0 ? pageSize : 10;
 
     const where: any = {
       jenis_stok: "MASUK",
     };
 
-    if (opts?.startDate || opts?.endDate) {
+    if (startDate || endDate) {
       where.tanggal = {};
-      if (opts?.startDate) {
-        where.tanggal.gte = new Date(opts.startDate);
+      if (startDate) {
+        where.tanggal.gte = new Date(startDate);
       }
-      if (opts?.endDate) {
-        const d = new Date(opts.endDate);
+      if (endDate) {
+        const d = new Date(endDate);
         d.setHours(23, 59, 59, 999);
         where.tanggal.lte = d;
       }
@@ -62,13 +51,43 @@ export async function getRiwayatMasuk(opts?: {
         orderBy: {
           tanggal: "desc",
         },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: (p - 1) * ps,
+        take: ps,
       }),
       prisma.transaksi.count({ where }),
     ]);
 
-    return { success: true, data: { rows, total } };
+    return { rows, total };
+  },
+  ["riwayat-masuk"]
+);
+
+export async function getRiwayatMasuk(opts?: {
+  page?: number;
+  pageSize?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return {
+        success: false,
+        error: "Akses ditolak: Anda harus login terlebih dahulu.",
+        data: { rows: [], total: 0 },
+      };
+    }
+
+    const data = await getCachedRiwayatMasuk(
+      opts?.page,
+      opts?.pageSize,
+      opts?.startDate,
+      opts?.endDate
+    );
+
+    return { success: true, data };
   } catch (error) {
     console.error("Error getRiwayatMasuk:", error);
     return {
@@ -241,7 +260,6 @@ export async function updateRiwayatMasukAction(
         return { error: "Transaksi ini bukan transaksi masuk." };
       }
 
-      // Reverse old stock increments
       for (const oldItem of existingTransaksi.detail_transaksi) {
         if (oldItem.produk_id) {
           await tx.produk.update({
@@ -255,12 +273,10 @@ export async function updateRiwayatMasukAction(
         }
       }
 
-      // Delete old detail items
       await tx.detail_transaksi.deleteMany({
         where: { transaksi_id: id },
       });
 
-      // Validate new items
       for (const item of items) {
         if (!item.produk_id) return { error: "Ada produk yang tidak valid." };
         if (isNaN(item.jumlah) || item.jumlah <= 0) return { error: "Jumlah barang harus lebih dari 0." };
@@ -274,7 +290,6 @@ export async function updateRiwayatMasukAction(
         }
       }
 
-      // Update master transaksi
       await tx.transaksi.update({
         where: { id },
         data: {
@@ -284,7 +299,6 @@ export async function updateRiwayatMasukAction(
         },
       });
 
-      // Create new detail items and increment stock
       for (const item of items) {
         await tx.detail_transaksi.create({
           data: {

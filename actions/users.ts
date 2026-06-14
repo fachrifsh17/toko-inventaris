@@ -1,9 +1,24 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import bcrypt from "bcrypt";
+
+const getCachedUsers = unstable_cache(
+  async () => {
+    return prisma.users.findMany({
+      select: {
+        id: true,
+        username: true,
+        nama_lengkap: true,
+        created_at: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+  },
+  ["users"]
+);
 
 export async function getUsers() {
   try {
@@ -14,15 +29,7 @@ export async function getUsers() {
       return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu.", data: [] };
     }
 
-    const users = await prisma.users.findMany({
-      select: {
-        id: true,
-        username: true,
-        nama_lengkap: true,
-        created_at: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
+    const users = await getCachedUsers();
     return { success: true, data: users };
   } catch (error) {
     console.error("Error getUsers:", error);

@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
 function generateSlug(str: string): string {
@@ -13,13 +13,20 @@ function generateSlug(str: string): string {
     .replace(/-+/g, "-");
 }
 
-export async function getKategori() {
-  try {
-    const kategori = await prisma.kategori.findMany({
+const getCachedKategori = unstable_cache(
+  async () => {
+    return prisma.kategori.findMany({
       include: { _count: { select: { produk: true } } },
       orderBy: { nama_kategori: "asc" },
     });
-    return { success: true, data: kategori };
+  },
+  ["kategori"],
+);
+
+export async function getKategori() {
+  try {
+    const data = await getCachedKategori();
+    return { success: true, data };
   } catch (error) {
     console.error("Error getKategori:", error);
     return { success: false, error: "Gagal mengambil data kategori.", data: [] };
@@ -38,7 +45,6 @@ export async function addKategoriAction(prevState: any, formData: FormData) {
     const nama_kategori = (formData.get("nama_kategori") as string)?.trim();
     const slugInput = (formData.get("slug") as string)?.trim();
     
-    // PERBAIKAN: Diubah menjadi Boolean (true / false)
     const is_active = (formData.get("is_active") === "on" || formData.get("is_active") === "true" || formData.get("is_active") === "1");
 
     if (!nama_kategori) return { success: false, error: "Nama kategori wajib diisi!" };
@@ -77,7 +83,6 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
     const nama_kategori = (formData.get("nama_kategori") as string)?.trim();
     const slugInput = (formData.get("slug") as string)?.trim();
     
-    // PERBAIKAN: Diubah menjadi Boolean (true / false)
     const is_active = (formData.get("is_active") === "on" || formData.get("is_active") === "true" || formData.get("is_active") === "1");
 
     if (!nama_kategori) return { success: false, error: "Nama kategori wajib diisi!" };
@@ -100,7 +105,6 @@ export async function editKategoriAction(prevState: any, formData: FormData) {
 
     await prisma.kategori.update({
       where: { id },
-      // PERBAIKAN: Pastikan nama field 'updated_at' di model Prisma kamu sudah benar
       data: { nama_kategori, slug, is_active, updated_at: new Date() },
     });
 

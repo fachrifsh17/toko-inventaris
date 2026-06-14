@@ -31,7 +31,6 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     const cookieStore = await cookies();
     
-    // Durasi 1 Jam (3600 detik) - Ideal untuk keamanan aplikasi kasir/rekap
     const INACTIVITY_TIMEOUT = 60 * 60 * 3; 
 
     cookieStore.set("user_session", String(user.id), {

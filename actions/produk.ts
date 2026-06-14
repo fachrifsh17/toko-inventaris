@@ -2,8 +2,46 @@
 
 import { prisma } from "@/lib/prisma";
 import { supabase } from "@/lib/supabase";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
+
+const getCachedProduk = unstable_cache(
+  async (page?: number, pageSize?: number, kategori_id?: number) => {
+    if (typeof page === "number" && typeof pageSize === "number") {
+      const where: any = {};
+      if (kategori_id) where.kategori_id = kategori_id;
+
+      const total = await prisma.produk.count({ where });
+      const rows = await prisma.produk.findMany({
+        where,
+        include: { kategori: { select: { id: true, nama_kategori: true } } },
+        orderBy: { created_at: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+
+      return { rows, total };
+    }
+
+    const produk = await prisma.produk.findMany({
+      include: { kategori: { select: { id: true, nama_kategori: true } } },
+      orderBy: { created_at: "desc" },
+    });
+    return produk;
+  },
+  ["produk"],
+  { revalidate: 10 }
+);
+
+const getCachedKategori = unstable_cache(
+  async () => {
+    return prisma.kategori.findMany({
+      where: { is_active: true },
+      orderBy: { nama_kategori: "asc" },
+    });
+  },
+  ["produk-kategori"],
+ );
 
 export async function getProduk(opts?: {
   page?: number;
@@ -11,31 +49,17 @@ export async function getProduk(opts?: {
   kategori_id?: number;
 }) {
   try {
+    const data = await getCachedProduk(opts?.page, opts?.pageSize, opts?.kategori_id);
+
     if (
       opts &&
       typeof opts.page === "number" &&
       typeof opts.pageSize === "number"
     ) {
-      const where: any = {};
-      if (opts.kategori_id) where.kategori_id = opts.kategori_id;
-
-      const total = await prisma.produk.count({ where });
-      const rows = await prisma.produk.findMany({
-        where,
-        include: { kategori: { select: { id: true, nama_kategori: true } } },
-        orderBy: { created_at: "desc" },
-        skip: (opts.page - 1) * opts.pageSize,
-        take: opts.pageSize,
-      });
-
-      return { success: true, data: { rows, total } };
+      return { success: true, data };
     }
 
-    const produk = await prisma.produk.findMany({
-      include: { kategori: { select: { id: true, nama_kategori: true } } },
-      orderBy: { created_at: "desc" },
-    });
-    return { success: true, data: produk };
+    return { success: true, data };
   } catch (error) {
     console.error("Error getProduk:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -49,13 +73,8 @@ export async function getProduk(opts?: {
 
 export async function getKategori() {
   try {
-    const kategori = await prisma.kategori.findMany({
-      where: {
-        is_active: true,
-      },
-      orderBy: { nama_kategori: "asc" },
-    });
-    return { success: true, data: kategori };
+    const data = await getCachedKategori();
+    return { success: true, data };
   } catch (error) {
     console.error("Error getKategori:", error);
     return {

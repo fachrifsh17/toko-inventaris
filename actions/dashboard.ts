@@ -154,8 +154,7 @@ const fetchDashboardSummaryCached = unstable_cache(
       riwayatTerbaru,
     };
   },
-  ["dashboard-summary-data"],
-  { revalidate: 10 }
+  ["dashboard-summary-data"]
 );
 
 export async function getDashboardSummary() {
@@ -221,8 +220,7 @@ const fetchProdukPalingLaris = unstable_cache(
 
     return produkDetail;
   },
-  ["produk-paling-laris"],
-  { revalidate: 10 }
+  ["produk-paling-laris"]
 );
 
 export async function getProdukPalingLaris(limit: number = 5) {
@@ -271,8 +269,7 @@ const fetchStokByKategori = unstable_cache(
 
     return formatted;
   },
-  ["stok-by-kategori"],
-  { revalidate: 10 }
+  ["stok-by-kategori"]
 );
 
 export async function getStokByKategori() {
@@ -377,8 +374,7 @@ const fetchUnpaidTransactionsCount = unstable_cache(
     ]);
     return creditTransaksiCount + belumLunasDigitalCount;
   },
-  ["unpaid-transactions-count"],
-  { revalidate: 10 }
+  ["unpaid-transactions-count"]
 );
 
 export async function getUnpaidTransactionsCount() {
