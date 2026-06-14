@@ -4,13 +4,13 @@ import { useEffect, useState, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, X, ChevronDown, PackageSearch, Plus, Minus, ShoppingBag, Trash2, MessageCircle, ArrowRight, AlertCircle } from "lucide-react"
-import { getPengaturan, getProdukPublic, getProdukPageData } from "@/actions/publicproduk"
+import { getPengaturan, getProdukPublic, getKategoriList } from "@/actions/publicproduk"
 
 interface Produk {
   id: number
   nama_produk: string
   harga_jual: number
-  stok_sekarang?: number | null
+  stok_sekarang: number | null
   url_foto: string
   kategori: { nama_kategori: string; slug: string } | null
 }
@@ -30,7 +30,7 @@ interface CartItem {
   id: number
   nama_produk: string
   harga_jual: number
-  stok_sekarang?: number | null
+  stok_sekarang: number | null
   url_foto: string
   qty: number
 }
@@ -64,7 +64,7 @@ function ProdukContent() {
   const [showFilter, setShowFilter] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
 
-  const [page, setPage] = useState(1)
+  const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const observerTarget = useRef<HTMLDivElement>(null)
@@ -162,19 +162,32 @@ function ProdukContent() {
   }, [])
 
   useEffect(() => {
+    async function loadAll() {
+      let allProduk: Produk[] = []
+      let nextCursor: string | undefined = undefined
+      do {
+        const result = await getProdukPublic("semua", nextCursor, 100)
+        allProduk = [...allProduk, ...result.data]
+        nextCursor = result.nextCursor ?? undefined
+      } while (nextCursor)
+      setSemuaProduk(allProduk)
+    }
+    loadAll()
+  }, [])
+
+  useEffect(() => {
     async function load() {
       setLoadingMore(true)
-      const [pageData, pengaturanData, semuaData] = await Promise.all([
-        getProdukPageData(activeKategori, 1, 8),
+      const [p, k, pr] = await Promise.all([
         getPengaturan(),
-        getProdukPublic("semua", 1, 9999)
+        getKategoriList(),
+        getProdukPublic(activeKategori, undefined, 8)
       ])
-      setPengaturan(pengaturanData)
-      setKategoriList(pageData.kategori)
-      setProduk(pageData.produk)
-      setSemuaProduk(semuaData)
-      setPage(1)
-      setHasMore(pageData.produk.length === 8)
+      setPengaturan(p)
+      setKategoriList(k)
+      setProduk(pr.data)
+      setCursor(pr.nextCursor ?? undefined)
+      setHasMore(pr.hasMore)
       setIsExpanded(false)
       setLoadingMore(false)
     }
@@ -185,13 +198,12 @@ function ProdukContent() {
     if (!isExpanded) return
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && cursor) {
           setLoadingMore(true)
-          const nextPage = page + 1
-          const newProduk = await getProdukPublic(activeKategori, nextPage, 8)
-          if (newProduk.length < 8) setHasMore(false)
-          setProduk((prev) => [...prev, ...newProduk])
-          setPage(nextPage)
+          const result = await getProdukPublic(activeKategori, cursor, 8)
+          setProduk((prev) => [...prev, ...result.data])
+          setCursor(result.nextCursor ?? undefined)
+          setHasMore(result.hasMore)
           setLoadingMore(false)
         }
       },
@@ -201,7 +213,7 @@ function ProdukContent() {
     return () => {
       if (observerTarget.current) observer.unobserve(observerTarget.current)
     }
-  }, [page, hasMore, loadingMore, activeKategori, isExpanded])
+  }, [cursor, hasMore, loadingMore, activeKategori, isExpanded])
 
   const filtered = produk.filter((p) =>
     p.nama_produk.toLowerCase().includes(search.toLowerCase())
