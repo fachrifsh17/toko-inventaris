@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { Prisma, StatusBayarDigital } from "@prisma/client";
 
@@ -16,15 +16,8 @@ type TransaksiWithDetails = Prisma.transaksiGetPayload<{
   };
 }>;
 
-export async function getDashboardSummary() {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
+const fetchDashboardSummaryCached = unstable_cache(
+  async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -139,29 +132,45 @@ export async function getDashboardSummary() {
     });
 
     return {
-      success: true,
-      data: {
-        kartuRingkasan: {
-          totalProduk,
-          totalKategori,
-          totalStok: totalStok._sum.stok_sekarang ?? 0,
-          produkAktif: produkBerlabel,
-          nilaiStok: totalNilaiStok,
-        },
-        aktivitasHariIni: {
-          stokMasuk: sumMasukQty._sum.jumlah ?? 0,
-          jumlahTransaksiMasuk: stokMasukHariIni._count,
-          stokKeluar: sumKeluarQty._sum.jumlah ?? 0,
-          jumlahTransaksiKeluar: stokKeluarHariIni._count,
-        },
-        rekapTransaksiDigital: {
-          totalTransaksi: rekapTotal,
-          totalNominal: rekapNominal._sum.total_saldo ?? 0,
-          totalLunas: rekapLunas,
-          totalBelumLunas: rekapBelumLunas,
-        },
-        riwayatTerbaru,
+      kartuRingkasan: {
+        totalProduk,
+        totalKategori,
+        totalStok: totalStok._sum.stok_sekarang ?? 0,
+        produkAktif: produkBerlabel,
+        nilaiStok: totalNilaiStok,
       },
+      aktivitasHariIni: {
+        stokMasuk: sumMasukQty._sum.jumlah ?? 0,
+        jumlahTransaksiMasuk: stokMasukHariIni._count,
+        stokKeluar: sumKeluarQty._sum.jumlah ?? 0,
+        jumlahTransaksiKeluar: stokKeluarHariIni._count,
+      },
+      rekapTransaksiDigital: {
+        totalTransaksi: rekapTotal,
+        totalNominal: rekapNominal._sum.total_saldo ?? 0,
+        totalLunas: rekapLunas,
+        totalBelumLunas: rekapBelumLunas,
+      },
+      riwayatTerbaru,
+    };
+  },
+  ["dashboard-summary-data"],
+  { revalidate: 10 }
+);
+
+export async function getDashboardSummary() {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
+    const data = await fetchDashboardSummaryCached();
+    return {
+      success: true,
+      data,
     };
   } catch (error) {
     console.error("Error getDashboardSummary:", error);
@@ -172,15 +181,8 @@ export async function getDashboardSummary() {
   }
 }
 
-export async function getProdukPalingLaris(limit: number = 5) {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
+const fetchProdukPalingLaris = unstable_cache(
+  async (limit: number) => {
     const transaksiKeluarIds = await prisma.transaksi.findMany({
       where: { jenis_stok: "keluar" },
       select: { id: true },
@@ -217,9 +219,25 @@ export async function getProdukPalingLaris(limit: number = 5) {
       },
     });
 
+    return produkDetail;
+  },
+  ["produk-paling-laris"],
+  { revalidate: 10 }
+);
+
+export async function getProdukPalingLaris(limit: number = 5) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
+    const data = await fetchProdukPalingLaris(limit);
     return {
       success: true,
-      data: produkDetail,
+      data,
     };
   } catch (error) {
     console.error("Error getProdukPalingLaris:", error);
@@ -230,15 +248,8 @@ export async function getProdukPalingLaris(limit: number = 5) {
   }
 }
 
-export async function getStokByKategori() {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
-    }
-
+const fetchStokByKategori = unstable_cache(
+  async () => {
     const stokByKategori = await prisma.kategori.findMany({
       select: {
         id: true,
@@ -258,9 +269,25 @@ export async function getStokByKategori() {
       totalStok: kat.produk.reduce((sum, p) => sum + (p.stok_sekarang || 0), 0),
     }));
 
+    return formatted;
+  },
+  ["stok-by-kategori"],
+  { revalidate: 10 }
+);
+
+export async function getStokByKategori() {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
+    }
+
+    const data = await fetchStokByKategori();
     return {
       success: true,
-      data: formatted,
+      data,
     };
   } catch (error) {
     console.error("Error getStokByKategori:", error);
@@ -334,15 +361,8 @@ export async function tambahRiwayatStokAction(data: {
   }
 }
 
-export async function getUnpaidTransactionsCount() {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("user_session");
-
-    if (!session) {
-      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu.", count: 0 };
-    }
-
+const fetchUnpaidTransactionsCount = unstable_cache(
+  async () => {
     const [creditTransaksiCount, belumLunasDigitalCount] = await Promise.all([
       prisma.transaksi.count({
         where: {
@@ -355,10 +375,25 @@ export async function getUnpaidTransactionsCount() {
         },
       }),
     ]);
+    return creditTransaksiCount + belumLunasDigitalCount;
+  },
+  ["unpaid-transactions-count"],
+  { revalidate: 10 }
+);
 
+export async function getUnpaidTransactionsCount() {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("user_session");
+
+    if (!session) {
+      return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu.", count: 0 };
+    }
+
+    const count = await fetchUnpaidTransactionsCount();
     return {
       success: true,
-      count: creditTransaksiCount + belumLunasDigitalCount,
+      count,
     };
   } catch (error) {
     console.error("Error getUnpaidTransactionsCount:", error);

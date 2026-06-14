@@ -2,11 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { supabase } from "@/lib/supabase";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 
-export async function getPengaturan() {
-  try {
+const fetchPengaturanData = unstable_cache(
+  async () => {
     let pengaturan = await prisma.pengaturan.findFirst();
 
     if (!pengaturan) {
@@ -19,10 +19,19 @@ export async function getPengaturan() {
         },
       });
     }
+    return pengaturan;
+  },
+  ["dashboard-pengaturan"],
+  { revalidate: 10 }
+);
+
+export async function getPengaturan() {
+  try {
+    const data = await fetchPengaturanData();
 
     return {
       success: true,
-      data: pengaturan,
+      data,
     };
   } catch (error) {
     console.error("Error getPengaturan:", error);
