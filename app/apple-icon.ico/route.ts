@@ -11,24 +11,21 @@ export async function GET() {
       return new NextResponse(null, { status: 404 });
     }
 
-    const response = await fetch(pengaturan.url_logo);
+    const url = pengaturan.url_logo;
+    let targetUrl: URL;
 
-    if (!response.ok) {
-      return new NextResponse(null, { status: 404 });
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      targetUrl = new URL(url);
+    } else {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+      targetUrl = new URL(url, baseUrl);
     }
 
-    const imageBuffer = await response.arrayBuffer();
-    const contentType = response.headers.get("content-type") || "application/octet-stream";
-
-    return new NextResponse(imageBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400",
-      },
+    return NextResponse.redirect(targetUrl, {
+      status: 307, 
     });
   } catch (error) {
-    console.error("Error fetching favicon:", error);
-    return new NextResponse(null, { status: 500 });
+    console.error("Error favicon redirect:", error);
+    return new NextResponse(null, { status: 404 });
   }
 }

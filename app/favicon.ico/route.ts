@@ -22,8 +22,7 @@ export async function GET() {
     }
 
     return NextResponse.redirect(targetUrl, {
-      status: 308,
-      headers: { "Cache-Control": "public, max-age=86400" }
+      status: 307, 
     });
   } catch (error) {
     console.error("Error favicon redirect:", error);
