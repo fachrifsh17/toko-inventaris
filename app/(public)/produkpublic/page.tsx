@@ -68,6 +68,7 @@ function ProdukContent() {
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const observerTarget = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -164,7 +165,7 @@ function ProdukContent() {
 
   useEffect(() => {
     async function load() {
-      setLoadingMore(true)
+      setInitialLoading(true)
       const [p, k, pr, count] = await Promise.all([
         getPengaturan(),
         getKategoriList(),
@@ -178,7 +179,7 @@ function ProdukContent() {
       setHasMore(pr.hasMore)
       setTotalProdukCount(count)
       setIsExpanded(false)
-      setLoadingMore(false)
+      setInitialLoading(false)
     }
     load()
   }, [activeKategori])
@@ -545,6 +546,33 @@ function ProdukContent() {
           border: 2px solid rgba(219,39,119,0.2);
           border-top-color: #ec4899;
         }
+        .skeleton-pulse {
+          background: linear-gradient(90deg, rgba(236,72,153,0.06) 0%, rgba(236,72,153,0.12) 50%, rgba(236,72,153,0.06) 100%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s ease-in-out infinite;
+          border-radius: 0.75rem;
+        }
+        .skeleton-card {
+          background: rgba(255,255,255,0.92);
+          border: 1px solid rgba(236,72,153,0.06);
+          box-shadow: 0 4px 24px rgba(219,39,119,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
+          border-radius: 1rem;
+          overflow: hidden;
+        }
+        .skeleton-img {
+          background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(252,231,243,0.3));
+        }
+        @keyframes skeletonShimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        @keyframes initialFadeIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .initial-fade-in {
+          animation: initialFadeIn 0.5s ease forwards;
+        }
       `}</style>
 
       <div className="fixed inset-0 z-0 overflow-hidden">
@@ -812,8 +840,22 @@ function ProdukContent() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="glass-empty text-center py-24 sm:py-32 rounded-3xl">
+        {initialLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="aspect-square skeleton-img" />
+                <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-3 space-y-2.5">
+                  <div className="skeleton-pulse h-2.5 w-12" />
+                  <div className="skeleton-pulse h-3.5 w-full" />
+                  <div className="skeleton-pulse h-3 w-3/4" />
+                  <div className="skeleton-pulse h-4 w-24 mt-1" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="glass-empty text-center py-24 sm:py-32 rounded-3xl initial-fade-in">
             <div className="inline-flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl mb-5 glass-deep">
               <PackageSearch size={28} strokeWidth={1.5} className="empty-icon-color" />
             </div>
@@ -833,7 +875,7 @@ function ProdukContent() {
         ) : (
           <>
             <div className="relative">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 initial-fade-in">
                 {displayedProduk.map((p) => {
                   const inCart = getCartItemQty(p.id)
                   const isJustAdded = justAdded === p.id
