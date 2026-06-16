@@ -147,26 +147,121 @@ export function handleCetakStruk(data: StrukData, pengaturan: PengaturanData | n
 
   const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Struk</title>
 <style>
-@page { size: 58mm auto; margin: 0mm; }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; font-family: 'Courier New', Courier, monospace; font-size: 8.5pt; line-height: 1.3; color: #000; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.hd { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 6px; }
-.hd h1 { font-size: 10pt; letter-spacing: 1.5px; text-transform: uppercase; }
-.hd p { font-size: 7pt; color: #555; margin-top: 1px; }
-.ci { display: flex; justify-content: space-between; font-size: 7pt; color: #555; margin-top: 1px; }
-.ir { display: flex; justify-content: space-between; font-size: 8pt; margin-bottom: 1px; }
+@page {
+  size: 58mm auto;
+  margin: 0mm;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  width: 58mm;
+  max-width: 58mm;
+  margin: 0 auto;
+  padding: 2mm 3mm;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8.5pt;
+  line-height: 1.3;
+  color: #000;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.hd {
+  text-align: center;
+  border-bottom: 1px dashed #000;
+  padding-bottom: 5px;
+  margin-bottom: 6px;
+}
+.hd h1 {
+  font-size: 10pt;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.hd p {
+  font-size: 7pt;
+  color: #555;
+  margin-top: 1px;
+}
+.ci {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7pt;
+  color: #555;
+  margin-top: 1px;
+}
+.ir {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8pt;
+  margin-bottom: 1px;
+}
 .il { color: #555; }
 .iv { font-weight: 700; }
-.dv { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+.dv {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 5px 0;
+}
 .it { margin-bottom: 4px; }
-.in { font-size: 8pt; font-weight: 700; word-break: break-all; }
-.idt { font-size: 7.5pt; color: #333; display: flex; justify-content: space-between; }
-.is { font-size: 8pt; font-weight: 700; text-align: right; }
-.ts { border-top: 1px dashed #000; padding-top: 5px; margin-top: 3px; }
-.tr { display: flex; justify-content: space-between; font-size: 8.5pt; margin-bottom: 1px; }
-.gt { font-size: 11pt; font-weight: 700; }
-.ct { margin-top: 6px; font-size: 7pt; color: #555; font-style: italic; border-top: 1px dashed #ccc; padding-top: 3px; word-break: break-all; }
-.ft { margin-top: 8px; text-align: center; border-top: 1px dashed #ccc; padding-top: 4px; font-size: 6.5pt; color: #888; }
+.in {
+  font-size: 8pt;
+  font-weight: 700;
+  word-break: break-all;
+}
+.idt {
+  font-size: 7.5pt;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+}
+.is {
+  font-size: 8pt;
+  font-weight: 700;
+  text-align: right;
+}
+.ts {
+  border-top: 1px dashed #000;
+  padding-top: 5px;
+  margin-top: 3px;
+}
+.tr {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8.5pt;
+  margin-bottom: 1px;
+}
+.gt {
+  font-size: 11pt;
+  font-weight: 700;
+}
+.ct {
+  margin-top: 6px;
+  font-size: 7pt;
+  color: #555;
+  font-style: italic;
+  border-top: 1px dashed #ccc;
+  padding-top: 3px;
+  word-break: break-all;
+}
+.ft {
+  margin-top: 8px;
+  text-align: center;
+  border-top: 1px dashed #ccc;
+  padding-top: 4px;
+  font-size: 6.5pt;
+  color: #888;
+}
+@media print {
+  html, body {
+    width: 58mm;
+    max-width: 58mm;
+    margin: 0;
+    padding: 2mm 3mm;
+  }
+}
 </style></head><body>
 <div class="hd"><h1>${pengaturan?.nama_toko || "Struk Penjualan"}</h1>${pengaturan?.alamat ? `<p>${pengaturan.alamat}</p>` : ""}${hasContact ? `<div class="ci"><span>${pengaturan?.no_wa_toko ? `Tlp:${pengaturan.no_wa_toko}` : ""} ${pengaturan?.email || ""}</span></div>` : ""}<p>Struk Transaksi</p></div>
 <div>
@@ -192,31 +287,23 @@ html, body { width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm 3mm; fon
 <div class="ft"><p>Terima kasih atas pembelian Anda</p><p>${new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"})}</p></div>
 </body></html>`;
 
-  const oldIframe = document.getElementById("print-iframe") as HTMLIFrameElement | null;
-  if (oldIframe) oldIframe.remove();
-
-  const iframe = document.createElement("iframe");
-  iframe.id = "print-iframe";
-  iframe.style.position = "fixed";
-  iframe.style.right = "0";
-  iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "0";
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentDocument || iframe.contentWindow?.document;
-  if (doc) {
-    doc.open();
-    doc.write(html);
-    doc.close();
-
-    iframe.onload = () => {
-      setTimeout(() => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-        setTimeout(() => { iframe.remove(); }, 1000);
-      }, 300);
-    };
+  const printWindow = window.open("", "_blank", "width=300,height=600");
+  if (!printWindow) {
+    alert("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak struk.");
+    return;
   }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+
+  printWindow.onload = () => {
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      setTimeout(() => {
+        printWindow.close();
+      }, 500);
+    }, 400);
+  };
 }
