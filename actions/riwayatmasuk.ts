@@ -98,9 +98,32 @@ export async function getRiwayatMasuk(opts?: {
   }
 }
 
+function validateItems(items: ItemMasukInput[]): string | null {
+  if (!Array.isArray(items) || items.length === 0) {
+    return "Minimal pilih satu barang.";
+  }
+
+  for (const item of items) {
+    if (!item.produk_id) {
+      return "Ada produk yang tidak valid.";
+    }
+    if (isNaN(item.jumlah) || item.jumlah <= 0) {
+      return "Jumlah barang harus lebih dari 0.";
+    }
+    if (isNaN(item.harga_modal_real) || item.harga_modal_real <= 0) {
+      return "Harga modal wajib diisi dan harus lebih dari 0.";
+    }
+    if (isNaN(item.harga_jual_real) || item.harga_jual_real <= 0) {
+      return "Harga jual wajib diisi dan harus lebih dari 0.";
+    }
+  }
+
+  return null;
+}
+
 export async function addRiwayatMasukAction(
   prevState: any,
-  formData: FormData,
+  formData: FormData
 ) {
   try {
     const cookieStore = await cookies();
@@ -113,10 +136,15 @@ export async function addRiwayatMasukAction(
     const itemsJson = formData.get("items") as string;
     if (!itemsJson) return { success: false, error: "Daftar barang kosong." };
 
-    const items: ItemMasukInput[] = JSON.parse(itemsJson);
-    if (!Array.isArray(items) || items.length === 0) {
-      return { success: false, error: "Minimal pilih satu barang." };
+    let items: ItemMasukInput[];
+    try {
+      items = JSON.parse(itemsJson);
+    } catch {
+      return { success: false, error: "Format data barang tidak valid." };
     }
+
+    const validationError = validateItems(items);
+    if (validationError) return { success: false, error: validationError };
 
     const metode_pembayaran = (formData.get("metode_pembayaran") as string) || "CASH";
     const keterangan = (formData.get("keterangan") as string) || null;
@@ -124,9 +152,6 @@ export async function addRiwayatMasukAction(
 
     const result = await prisma.$transaction(async (tx) => {
       for (const item of items) {
-        if (!item.produk_id) return { error: "Ada produk yang tidak valid." };
-        if (isNaN(item.jumlah) || item.jumlah <= 0) return { error: "Jumlah barang harus lebih dari 0." };
-
         const produk = await tx.produk.findUnique({
           where: { id: item.produk_id, is_active: true },
         });
@@ -157,29 +182,20 @@ export async function addRiwayatMasukAction(
           },
         });
 
-        const updateData: any = {
-          stok_sekarang: {
-            increment: item.jumlah
-          }
-        };
-
-        if (item.harga_modal_real && item.harga_modal_real > 0) {
-          updateData.harga_modal = item.harga_modal_real;
-        }
-        if (item.harga_jual_real && item.harga_jual_real > 0) {
-          updateData.harga_jual = item.harga_jual_real;
-        }
-
         await tx.produk.update({
           where: { id: item.produk_id },
-          data: updateData,
+          data: {
+            stok_sekarang: { increment: item.jumlah },
+            harga_modal: item.harga_modal_real,
+            harga_jual: item.harga_jual_real,
+          },
         });
       }
 
       return { success: true };
     });
 
-    if (result && 'error' in result) {
+    if (result && "error" in result) {
       return { success: false, error: result.error };
     }
 
@@ -197,7 +213,7 @@ export async function addRiwayatMasukAction(
 export async function updateRiwayatMasukAction(
   id: number,
   prevState: any,
-  formData: FormData,
+  formData: FormData
 ) {
   try {
     const cookieStore = await cookies();
@@ -214,11 +230,7 @@ export async function updateRiwayatMasukAction(
       try {
         const parsed = JSON.parse(sessionCookie);
         userId = parseInt(
-          parsed?.id ??
-          parsed?.user?.id ??
-          parsed?.userId ??
-          parsed?.user_id ??
-          NaN
+          parsed?.id ?? parsed?.user?.id ?? parsed?.userId ?? parsed?.user_id ?? NaN
         );
       } catch {
         userId = 0;
@@ -239,9 +251,8 @@ export async function updateRiwayatMasukAction(
       return { success: false, error: "Format data barang tidak valid." };
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
-      return { success: false, error: "Minimal pilih satu barang." };
-    }
+    const validationError = validateItems(items);
+    if (validationError) return { success: false, error: validationError };
 
     const metode_pembayaran = (formData.get("metode_pembayaran") as string)?.toUpperCase() || "CASH";
     const keterangan = (formData.get("keterangan") as string) || null;
@@ -265,9 +276,7 @@ export async function updateRiwayatMasukAction(
           await tx.produk.update({
             where: { id: oldItem.produk_id },
             data: {
-              stok_sekarang: {
-                decrement: oldItem.jumlah,
-              },
+              stok_sekarang: { decrement: oldItem.jumlah },
             },
           });
         }
@@ -278,9 +287,6 @@ export async function updateRiwayatMasukAction(
       });
 
       for (const item of items) {
-        if (!item.produk_id) return { error: "Ada produk yang tidak valid." };
-        if (isNaN(item.jumlah) || item.jumlah <= 0) return { error: "Jumlah barang harus lebih dari 0." };
-
         const produk = await tx.produk.findUnique({
           where: { id: item.produk_id, is_active: true },
         });
@@ -310,22 +316,13 @@ export async function updateRiwayatMasukAction(
           },
         });
 
-        const updateData: any = {
-          stok_sekarang: {
-            increment: item.jumlah,
-          },
-        };
-
-        if (item.harga_modal_real && item.harga_modal_real > 0) {
-          updateData.harga_modal = item.harga_modal_real;
-        }
-        if (item.harga_jual_real && item.harga_jual_real > 0) {
-          updateData.harga_jual = item.harga_jual_real;
-        }
-
         await tx.produk.update({
           where: { id: item.produk_id },
-          data: updateData,
+          data: {
+            stok_sekarang: { increment: item.jumlah },
+            harga_modal: item.harga_modal_real,
+            harga_jual: item.harga_jual_real,
+          },
         });
       }
 
