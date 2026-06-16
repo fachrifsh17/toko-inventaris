@@ -126,6 +126,15 @@ export async function deleteUserAction(prevState: any, formData: FormData) {
     const id = Number(formData.get("id"));
     if (isNaN(id) || id <= 0) return { success: false, error: "ID tidak valid." };
 
+    const currentUserId = Number(session.value);
+    if (isNaN(currentUserId)) {
+      return { success: false, error: "Sesi tidak valid." };
+    }
+
+    if (id === currentUserId) {
+      return { success: false, error: "Anda tidak dapat menghapus akun yang sedang digunakan." };
+    }
+
     await prisma.users.delete({ where: { id } });
     revalidatePath("/user");
     return { success: true, message: "Pengguna berhasil dihapus!" };

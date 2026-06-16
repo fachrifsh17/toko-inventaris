@@ -309,6 +309,15 @@ export async function deleteUserAction(id: number) {
       return { success: false, error: "Akses ditolak: Anda harus login terlebih dahulu." };
     }
 
+    const currentUserId = Number(session.value);
+    if (isNaN(currentUserId)) {
+      return { success: false, error: "Sesi tidak valid." };
+    }
+
+    if (id === currentUserId) {
+      return { success: false, error: "Anda tidak dapat menghapus akun yang sedang digunakan." };
+    }
+
     await prisma.users.delete({
       where: { id },
     });
