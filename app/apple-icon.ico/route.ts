@@ -11,19 +11,22 @@ export async function GET() {
       return new NextResponse(null, { status: 404 });
     }
 
-    // 1. Ambil data gambar dari Supabase
     const response = await fetch(pengaturan.url_logo);
-    const imageBuffer = await response.arrayBuffer();
 
-    // 2. Kirim gambar langsung sebagai response, BUKAN redirect
+    if (!response.ok) {
+      return new NextResponse(null, { status: 404 });
+    }
+
+    const imageBuffer = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type") || "application/octet-stream";
+
     return new NextResponse(imageBuffer, {
       status: 200,
       headers: {
-        "Content-Type": "image/jpeg", // Atau image/png sesuai file kamu
-        "Cache-Control": "public, max-age=86400", // Agar loading cepat
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=86400, immutable",
       },
     });
-    
   } catch (error) {
     console.error("Error fetching favicon:", error);
     return new NextResponse(null, { status: 500 });

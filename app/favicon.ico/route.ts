@@ -8,17 +8,28 @@ export async function GET() {
     });
 
     if (!pengaturan?.url_logo) {
-      return new NextResponse(null, { status: 204 });
+      return new NextResponse(null, {
+        status: 204,
+        headers: { "Cache-Control": "public, max-age=86400, immutable" }
+      });
     }
 
-    // Pastikan URL valid dengan mengubahnya menjadi objek URL
-    const targetUrl = new URL(pengaturan.url_logo);
-    
-    return NextResponse.redirect(targetUrl);
-    
+    const url = pengaturan.url_logo;
+    let targetUrl: URL;
+
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      targetUrl = new URL(url);
+    } else {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+      targetUrl = new URL(url, baseUrl);
+    }
+
+    return NextResponse.redirect(targetUrl, {
+      status: 308,
+      headers: { "Cache-Control": "public, max-age=604800, immutable" }
+    });
   } catch (error) {
     console.error("Error favicon redirect:", error);
-    // Kembalikan status 404 jika URL tidak valid agar tidak spam error
     return new NextResponse(null, { status: 404 });
   }
 }
