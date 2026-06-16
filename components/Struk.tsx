@@ -287,23 +287,28 @@ html, body {
 <div class="ft"><p>Terima kasih atas pembelian Anda</p><p>${new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"})}</p></div>
 </body></html>`;
 
-  const printWindow = window.open("", "_blank", "width=300,height=600");
-  if (!printWindow) {
-    alert("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak struk.");
-    return;
+  let iframe = document.getElementById("print-frame") as HTMLIFrameElement;
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "print-frame";
+    iframe.style.position = "fixed";
+    iframe.style.bottom = "0";
+    iframe.style.right = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
   }
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
+  const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (!iframeDoc) return;
 
-  printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      setTimeout(() => {
-        printWindow.close();
-      }, 500);
-    }, 400);
-  };
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+  }, 300);
 }
